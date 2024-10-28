@@ -1,0 +1,47 @@
+<button id="createNewButton" class="fixed bottom-8 right-8 w-14 h-14 bg-bar-gold text-black rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition-colors duration-300" data-action="create-post">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+</button>
+
+<!-- New Post Modal -->
+<dialog id="newPostModal" class="p-8 rounded-lg bg-gray-800 text-white w-full max-w-2xl">
+    <h2 class="text-2xl font-bold mb-4">Create New Post</h2>
+    <form id="newPostForm" class="space-y-4">
+        <div>
+            <label for="postTitle" class="block mb-2">Title <span class="text-sm text-gray-400">(max 255 characters)</span></label>
+            <input type="text" id="postTitle" name="title" required maxlength="255" class="w-full p-2 rounded bg-gray-700 text-white">
+            <div class="text-sm text-gray-400 mt-1"><span id="postTitleCount">0</span>/255</div>
+        </div>
+        <div>
+            <label for="postBody" class="block mb-2">Content <span class="text-sm text-gray-400">(max 65535 characters)</span></label>
+            <textarea id="postBody" name="body" required maxlength="65535" class="w-full p-2 rounded bg-gray-700 text-white h-40"></textarea>
+            <div class="text-sm text-gray-400 mt-1"><span id="postBodyCount">0</span>/65535</div>
+        </div>
+        <div class="flex justify-end space-x-4">
+            <button type="button" class="px-4 py-2 bg-gray-600 rounded" onclick="document.getElementById('newPostModal').close()">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-bar-gold text-black rounded">Create Post</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- New Thread Modal -->
+<dialog id="newThreadModal" class="p-8 rounded-lg bg-gray-800 text-white w-full max-w-2xl">
+    <h2 class="text-2xl font-bold mb-4">Create New Thread</h2>
+    <form id="newThreadForm" class="space-y-4">
+        <div>
+            <label for="threadTitle" class="block mb-2">Title <span class="text-sm text-gray-400">(max 255 characters)</span></label>
+            <input type="text" id="threadTitle" name="title" required maxlength="255" class="w-full p-2 rounded bg-gray-700 text-white">
+            <div class="text-sm text-gray-400 mt-1"><span id="threadTitleCount">0</span>/255</div>
+        </div>
+        <div>
+            <label for="threadBody" class="block mb-2">Content <span class="text-sm text-gray-400">(max 65535 characters)</span></label>
+            <textarea id="threadBody" name="body" required maxlength="65535" class="w-full p-2 rounded bg-gray-700 text-white h-40"></textarea>
+            <div class="text-sm text-gray-400 mt-1"><span id="threadBodyCount">0</span>/65535</div>
+        </div>
+        <div class="flex justify-end space-x-4">
+            <button type="button" class="px-4 py-2 bg-gray-600 rounded" onclick="document.getElementById('newThreadModal').close()">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-bar-gold text-black rounded">Create Thread</button>
+        </div>
+    </form>
+</dialog>

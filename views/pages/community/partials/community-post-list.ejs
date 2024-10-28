@@ -1,0 +1,31 @@
+<div class="mb-4">
+  <select id="sortSelect" class="bg-gray-700 text-white border border-gray-600 rounded px-2 py-1">
+    <option value="trending">Trending</option>
+    <option value="created">New</option>
+    <option value="hot">Hot</option>
+    <option value="promoted">Promoted</option>
+  </select>
+</div>
+
+<% if (posts && posts.length > 0) { %>
+  <ul class="space-y-4">
+    <% posts.forEach(post => { %>
+      <li class="bg-gray-700 p-4 rounded-lg">
+        <%- include('../../../common/post', { 
+          post: post,
+          userProfile: userProfile[post.author]
+        }) %>
+      </li>
+    <% }); %>
+  </ul>
+<% } else { %>
+  <p class="text-gray-400">No community posts found.</p>
+<% } %>
+
+<script>
+document.getElementById('sortSelect').addEventListener('change', function() {
+  const sortValue = this.value;
+  const communityName = '<%= communityName %>'; // Make sure to pass communityName to this template
+  htmx.ajax('GET', `/community/${communityName}/community-posts?sort=${sortValue}`, '#postContent');
+});
+</script>

@@ -1,0 +1,50 @@
+<header class="bg-black w-full">
+    <div class="container mx-auto py-4 px-6 flex justify-between items-center">
+        <a href="/community" class="flex items-center">
+            <img src="https://fourthstreetbar.com/images/bar-logo.svg" alt="4th Street Bar Logo" class="h-10">
+            <span class="text-white text-2xl font-bold ml-2">4th Street Bar</span>
+        </a>
+        <nav>
+            <ul class="flex space-x-6">                
+                <li class="relative">
+                    <button id="loginBtn" class="bg-bar-gold text-black px-4 py-2 rounded hover:bg-opacity-80">Login</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Login Dialog -->
+<dialog id="loginDialog" class="fixed rounded-lg shadow-xl p-0 m-0 backdrop:bg-gray-800/50">
+    <div class="w-96 bg-white rounded-lg">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="text-lg font-semibold">Login</h3>
+            <button class="text-gray-500 hover:text-gray-700" id="closeLoginDialog">&times;</button>
+        </div>
+        <form id="loginForm" class="px-4 py-3">
+            <div class="mb-3">
+                <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                <input type="text" id="username" name="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="flex items-center justify-between">
+                <button type="submit" class="bg-bar-gold hover:bg-opacity-80 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Login with Hive Keychain
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- User Dialog -->
+<dialog id="userDialog" class="fixed rounded-lg shadow-xl p-0 m-0 backdrop:bg-gray-800/50">
+    <div class="w-48 bg-white rounded-lg">
+        <div class="py-1">
+            <a href="#" id="profileLink" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                View Profile
+            </a>
+            <button id="logoutBtn" class="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">
+                Logout
+            </button>
+        </div>
+    </div>
+</dialog>

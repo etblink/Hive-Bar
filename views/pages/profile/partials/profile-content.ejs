@@ -1,0 +1,243 @@
+<section class="py-16 bg-gray-900 h-screen flex flex-col">
+    <div class="container mx-auto flex-grow flex flex-col">
+        <h1 class="text-4xl font-bold text-center mb-8 text-bar-gold">User Profile</h1>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 flex-grow overflow-hidden">
+            <div class="col-span-1">
+                <%- include('profile-info-card') %>
+            </div>
+            <div class="col-span-2 flex flex-col">
+                <div class="h-[500px] flex flex-col flex-grow overflow-hidden">
+                    <div id="profileTabNavigation" class="bg-gray-800 rounded-lg flex gap-1 profile-tab-navigation">
+                        <button id="blogsButton"
+                                hx-get="/profile/<%= userProfile.name %>/blogs" 
+                                hx-target="#postContent" 
+                                class="flex-grow py-2 px-4 bg-bar-gold text-black font-bold rounded-tl-lg rounded-tr-lg"
+                                hx-trigger="click, load"
+                                data-username="<%= userProfile.name %>"
+                                onclick="setActiveTab(this)">
+                            Blogs
+                        </button>
+                        <button id="wallPostsButton"
+                                hx-get="/profile/<%= userProfile.name %>/wall-posts" 
+                                hx-target="#postContent" 
+                                class="flex-grow py-2 px-4 bg-gray-700 text-white font-bold rounded-tl-lg rounded-tr-lg"
+                                hx-trigger="click"
+                                data-username="<%= userProfile.name %>"
+                                onclick="setActiveTab(this)">
+                            Wall Posts
+                        </button>
+                    </div>
+                    <div id="postContent" class="space-y-6 overflow-y-auto flex-grow">
+                        <%- include('user-blog-posts', { userBlogPosts: userBlogPosts }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="createNewButtonContainer" style="display: none;">
+        <button id="createNewButton" class="fixed bottom-8 right-8 w-14 h-14 bg-bar-gold text-black rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition-colors duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const loggedInUser = localStorage.getItem('username');
+            const profileUser = '<%= userProfile.name %>';
+            const createNewButtonContainer = document.getElementById('createNewButtonContainer');
+            const createNewButton = document.getElementById('createNewButton');
+            
+            // Only show wallet and inbox buttons if viewing own profile
+            if (loggedInUser && loggedInUser === profileUser) {
+                const profileTabNavigation = document.getElementById('profileTabNavigation');
+                const walletButton = document.createElement('button');
+                walletButton.id = 'walletButton';
+                walletButton.setAttribute('hx-get', `/profile/${profileUser}/wallet`);
+                walletButton.setAttribute('hx-target', '#postContent');
+                walletButton.className = 'flex-grow py-2 px-4 bg-gray-700 text-white font-bold rounded-tl-lg rounded-tr-lg';
+                walletButton.setAttribute('hx-trigger', 'click');
+                walletButton.setAttribute('data-username', profileUser);
+                walletButton.onclick = function() { setActiveTab(this); };
+                walletButton.textContent = 'Wallet';
+
+                const inboxButton = document.createElement('button');
+                inboxButton.id = 'inboxButton';
+                inboxButton.setAttribute('hx-get', `/profile/${profileUser}/inbox`);
+                inboxButton.setAttribute('hx-target', '#postContent');
+                inboxButton.className = 'flex-grow py-2 px-4 bg-gray-700 text-white font-bold rounded-tl-lg rounded-tr-lg';
+                inboxButton.setAttribute('hx-trigger', 'click');
+                inboxButton.setAttribute('data-username', profileUser);
+                inboxButton.onclick = function() { setActiveTab(this); };
+                inboxButton.textContent = 'Inbox';
+
+                profileTabNavigation.appendChild(walletButton);
+                profileTabNavigation.appendChild(inboxButton);
+            }
+
+            // Set up create new button behavior
+            if (createNewButton) {
+                createNewButton.addEventListener('click', function() {
+                    const activeTab = document.querySelector('.profile-tab-navigation button.bg-bar-gold');
+                    if (activeTab.id === 'blogsButton') {
+                        // Open new blog post modal
+                        document.getElementById('newBlogPostModal').showModal();
+                    } else if (activeTab.id === 'wallPostsButton') {
+                        // Open new wall post modal
+                        document.getElementById('newWallPostModal').showModal();
+                    }
+                });
+            }
+
+            // Set up form submission for new blog posts
+            const newBlogPostForm = document.getElementById('newBlogPostForm');
+            if (newBlogPostForm) {
+                newBlogPostForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const title = document.getElementById('blogPostTitle').value;
+                    const body = document.getElementById('blogPostBody').value;
+                    createNewBlogPost(title, body);
+                });
+            }
+
+            // Set up form submission for new wall posts
+            const newWallPostForm = document.getElementById('newWallPostForm');
+            if (newWallPostForm) {
+                newWallPostForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const message = document.getElementById('wallPostMessage').value;
+                    const isEncrypted = document.getElementById('wallPostEncrypted').checked;
+                    createNewWallPost(message, isEncrypted);
+                });
+            }
+
+            // Initial setup of create new button visibility
+            setActiveTab(document.getElementById('blogsButton'));
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+        }
+    });
+
+    // Function to handle tab switching
+    function setActiveTab(selectedTab) {
+        // Remove active state from all tabs within the navigation only
+        document.querySelectorAll('.profile-tab-navigation button').forEach(tab => {
+            tab.classList.remove('bg-bar-gold', 'text-black');
+            tab.classList.add('bg-gray-700', 'text-white');
+        });
+        
+        // Add active state to selected tab
+        selectedTab.classList.remove('bg-gray-700', 'text-white');
+        selectedTab.classList.add('bg-bar-gold', 'text-black');
+
+        // Update create new button visibility
+        const createNewButtonContainer = document.getElementById('createNewButtonContainer');
+        const loggedInUser = localStorage.getItem('username');
+        const profileUser = '<%= userProfile.name %>';
+
+        if (selectedTab.id === 'blogsButton') {
+            createNewButtonContainer.style.display = (loggedInUser && loggedInUser === profileUser) ? 'block' : 'none';
+        } else if (selectedTab.id === 'wallPostsButton') {
+            createNewButtonContainer.style.display = (loggedInUser && loggedInUser !== profileUser) ? 'block' : 'none';
+        } else {
+            createNewButtonContainer.style.display = 'none';
+        }
+    }
+
+    // Function to create a new blog post
+    function createNewBlogPost(title, body) {
+        const username = localStorage.getItem('username');
+        const permlink = `${window.slugify(title)}-${Date.now()}`;
+        const jsonMetadata = JSON.stringify({
+            app: '4thstreetbar/1.0',
+            tags: ['4thstreetbar', 'blog']
+        });
+
+        const operations = [
+            ['comment',
+                {
+                    parent_author: '',
+                    parent_permlink: '4thstreetbar',
+                    author: username,
+                    permlink: permlink,
+                    title: title,
+                    body: body,
+                    json_metadata: jsonMetadata
+                }
+            ]
+        ];
+
+        window.hive_keychain.requestBroadcast(username, operations, 'posting', function(response) {
+            if (response.success) {
+                alert('Blog post created successfully!');
+                document.getElementById('newBlogPostModal').close();
+                document.getElementById('newBlogPostForm').reset();
+                // Refresh the blog posts
+                document.getElementById('blogsButton').click();
+            } else {
+                alert('Failed to create blog post: ' + response.message);
+            }
+        });
+    }
+
+    // Function to create a new wall post
+    function createNewWallPost(message, isEncrypted) {
+        const username = localStorage.getItem('username');
+        const profileUser = '<%= userProfile.name %>';
+        const memo = isEncrypted ? '#' + message : message;
+        const amount = '0.010'; // Default amount, can be adjusted based on user settings
+
+        window.hive_keychain.requestTransfer(username, profileUser, amount, memo, 'HBD', function(response) {
+            if (response.success) {
+                alert('Wall post created successfully!');
+                document.getElementById('newWallPostModal').close();
+                document.getElementById('newWallPostForm').reset();
+                // Refresh the wall posts
+                document.getElementById('wallPostsButton').click();
+            } else {
+                alert('Failed to create wall post: ' + response.message);
+            }
+        });
+    }
+</script>
+
+<!-- New Blog Post Modal -->
+<dialog id="newBlogPostModal" class="p-8 rounded-lg bg-gray-800 text-white w-full max-w-2xl">
+    <h2 class="text-2xl font-bold mb-4">Create New Blog Post</h2>
+    <form id="newBlogPostForm" class="space-y-4">
+        <div>
+            <label for="blogPostTitle" class="block mb-2">Title</label>
+            <input type="text" id="blogPostTitle" name="title" required class="w-full p-2 rounded bg-gray-700 text-white">
+        </div>
+        <div>
+            <label for="blogPostBody" class="block mb-2">Content</label>
+            <textarea id="blogPostBody" name="body" required class="w-full p-2 rounded bg-gray-700 text-white h-40"></textarea>
+        </div>
+        <div class="flex justify-end space-x-4">
+            <button type="button" class="px-4 py-2 bg-gray-600 rounded" onclick="document.getElementById('newBlogPostModal').close()">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-bar-gold text-black rounded">Create Blog Post</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- New Wall Post Modal -->
+<dialog id="newWallPostModal" class="p-8 rounded-lg bg-gray-800 text-white w-full max-w-2xl">
+    <h2 class="text-2xl font-bold mb-4">Create New Wall Post</h2>
+    <form id="newWallPostForm" class="space-y-4">
+        <div>
+            <label for="wallPostMessage" class="block mb-2">Message</label>
+            <textarea id="wallPostMessage" name="message" required class="w-full p-2 rounded bg-gray-700 text-white h-40"></textarea>
+        </div>
+        <div class="flex items-center">
+            <input type="checkbox" id="wallPostEncrypted" name="encrypted" class="mr-2">
+            <label for="wallPostEncrypted">Encrypt message</label>
+        </div>
+        <div class="flex justify-end space-x-4">
+            <button type="button" class="px-4 py-2 bg-gray-600 rounded" onclick="document.getElementById('newWallPostModal').close()">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-bar-gold text-black rounded">Create Wall Post</button>
+        </div>
+    </form>
+</dialog>

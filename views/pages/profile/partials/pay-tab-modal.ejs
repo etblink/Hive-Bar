@@ -1,0 +1,235 @@
+<button id="payTabButton" class="w-full bg-bar-gold text-black font-bold py-2 px-4 rounded hover:bg-yellow-600 transition-colors">
+    Pay Tab
+</button>
+
+<!-- QR Scanner Modal -->
+<div id="qrScannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-gray-800 p-6 rounded-lg w-full max-w-lg mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-bar-gold">Scan QR Code</h3>
+            <button id="closeModal" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="mb-4">
+            <div class="flex items-center space-x-4">
+                <div class="flex-grow">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">QR Data</label>
+                    <input type="text" id="qrDataInput" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-bar-gold" readonly>
+                </div>
+                <div class="flex items-center">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="cameraToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-bar-gold rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-bar-gold"></div>
+                        <span class="ml-2">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div id="video-container" class="hidden">
+            <video id="qr-video" class="w-full rounded-lg"></video>
+        </div>
+
+        <!-- New input fields for parsed data -->
+        <div class="mt-4 space-y-4">
+            <div>
+                <label for="toInput" class="block text-sm font-medium text-gray-300 mb-1">To</label>
+                <input type="text" id="toInput" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-bar-gold">
+            </div>
+            <div>
+                <label for="amountInput" class="block text-sm font-medium text-gray-300 mb-1">Amount</label>
+                <input type="text" id="amountInput" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-bar-gold">
+            </div>
+            <div>
+                <label for="memoInput" class="block text-sm font-medium text-gray-300 mb-1">Memo</label>
+                <input type="text" id="memoInput" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-bar-gold">
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="submitTransferButton" 
+                        class="bg-bar-gold text-black font-bold py-2 px-6 rounded hover:bg-yellow-600 transition-colors">
+                    Pay Tab
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/hive-uri@0.2.1/dist/hive-uri.min.js"></script>
+<script type="module">
+    const modal = document.getElementById('qrScannerModal');
+    const payTabButton = document.getElementById('payTabButton');
+    const closeModal = document.getElementById('closeModal');
+    const cameraToggle = document.getElementById('cameraToggle');
+    const videoContainer = document.getElementById('video-container');
+    const video = document.getElementById('qr-video');
+    const qrDataInput = document.getElementById('qrDataInput');
+    const toInput = document.getElementById('toInput');
+    const amountInput = document.getElementById('amountInput');
+    const memoInput = document.getElementById('memoInput');
+    
+    let scanner = null;
+
+    const startScanner = async () => {
+        try {
+            const QrScanner = (await import('/js/qr-scanner.min.js')).default;
+            scanner = new QrScanner(video, result => {
+                qrDataInput.value = result.data;
+                parseQrData(result.data);
+                scanner.stop();
+                cameraToggle.checked = false;
+                videoContainer.classList.add('hidden');
+            }, {
+                highlightScanRegion: true,
+                highlightCodeOutline: true,
+                inversionAttempts: 'attemptBoth' // This will try both regular and inverted QR codes
+            });
+            
+            await scanner.start();
+            videoContainer.classList.remove('hidden');
+        } catch (err) {
+            console.error('Failed to start scanner:', err);
+            cameraToggle.checked = false;
+            videoContainer.classList.add('hidden');
+        }
+    };
+
+    const parseQrData = (data) => {
+        try {
+            // Extract the operation data after /op/
+            const opData = data.split('/op/')[1];
+            // Remove the trailing dot if present
+            const cleanOpData = opData.replace(/\.$/, '');
+
+            // Decode base64url to string
+            const b64DecodeUnicode = str => {
+                // Convert base64url to base64 by replacing URL-safe chars
+                const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+                // Add padding if needed
+                const padded = b64.padEnd(b64.length + (4 - b64.length % 4) % 4, '=');
+                return atob(padded);
+            };
+
+            // Decode and parse the operation
+            const decodedOp = b64DecodeUnicode(cleanOpData);
+            const operation = JSON.parse(decodedOp);
+
+            console.log('Parsed operation:', operation);
+
+            if (operation[0] === 'transfer') {
+                const transferData = operation[1];
+                toInput.value = transferData.to || '';
+
+                if (transferData.amount) {
+                    const cleanAmount = transferData.amount.split(' ')[0];
+
+                    amountInput.value = cleanAmount;
+                } else {
+                    amountInput.value = '';
+                }
+
+                memoInput.value = transferData.memo || '';
+            } else {
+                console.warn('Unsupported operation:', operation[0]);
+                // Clear form fields
+                toInput.value = '';
+                amountInput.value = '';
+                memoInput.value = '';
+            }
+        } catch (error) {
+            console.error('Failed to parse QR data:', error);
+            // Clear form on error
+            toInput.value = '';
+            amountInput.value = '';
+            memoInput.value = '';
+        }
+    };
+
+
+    const submitTransfer = () => {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('Please log in to pay your tab');
+            return;
+        }
+        const to = toInput.value;
+        const amount = amountInput.value;
+        const memo = memoInput.value;
+        if (!to || !amount) {
+            alert('Please ensure recipient and amount are filled in');
+            return;
+        }
+        window.hive_keychain.requestTransfer(
+            username,
+            to,
+            amount,
+            memo,
+            'HBD',
+            function(response) {
+                if (response.success) {
+                    alert('Tab paid successfully!');
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    // Clear form
+                    toInput.value = '';
+                    amountInput.value = '';
+                    memoInput.value = '';
+                    qrDataInput.value = '';
+                } else {
+                    alert('Failed to pay tab: ' + response.message);
+                }
+            }
+        );
+    };
+
+    payTabButton.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        qrDataInput.value = '';
+        toInput.value = '';
+        amountInput.value = '';
+        memoInput.value = '';
+    });
+
+    closeModal.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        if (scanner) {
+            scanner.stop();
+            scanner.destroy();
+            scanner = null;
+        }
+        cameraToggle.checked = false;
+        videoContainer.classList.add('hidden');
+        qrDataInput.value = '';
+        toInput.value = '';
+        amountInput.value = '';
+        memoInput.value = '';
+    });
+
+    cameraToggle.addEventListener('change', async () => {
+        if (cameraToggle.checked) {
+            await startScanner();
+            if (!scanner) {
+                cameraToggle.checked = false;
+            }
+        } else {
+            if (scanner) {
+                scanner.stop();
+                scanner.destroy();
+                scanner = null;
+            }
+            videoContainer.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('submitTransferButton').addEventListener('click', submitTransfer);
+</script>

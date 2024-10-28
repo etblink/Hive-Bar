@@ -1,0 +1,131 @@
+<div class="bg-gray-800 p-6 rounded-lg text-center">
+    <img src="<%= (userProfile.posting_json_metadata && JSON.parse(userProfile.posting_json_metadata)?.profile?.profile_image) || `https://images.hive.blog/u/${userProfile.name}/avatar` %>" alt="<%= userProfile.name %> Profile Picture" class="w-24 h-24 mx-auto mb-4 rounded-full">
+    <h2 class="text-2xl font-bold mb-2"><%= (userProfile.json_metadata && JSON.parse(userProfile.json_metadata)?.profile?.name) || userProfile.name %></h2>
+    <p class="text-gray-400 mb-4">@<%= userProfile.name %></p>
+    <p class="text-sm mb-6"><%= (userProfile.json_metadata && JSON.parse(userProfile.json_metadata)?.profile?.about) || '' %></p>
+    <div class="flex justify-center space-x-8 mb-6">
+        <div>
+            <p class="font-bold text-xl cursor-pointer followers-count" data-username="<%= userProfile.name %>" tabindex="0" role="button" aria-label="View followers"><%= userProfile.follower_count %></p>
+            <p class="text-gray-400 text-sm followers-text" data-username="<%= userProfile.name %>" tabindex="0" role="button" aria-label="View followers">Followers</p>
+        </div>
+        <div>
+            <p class="font-bold text-xl cursor-pointer following-count" data-username="<%= userProfile.name %>" tabindex="0" role="button" aria-label="View following"><%= userProfile.following_count %></p>
+            <p class="text-gray-400 text-sm following-text" data-username="<%= userProfile.name %>" tabindex="0" role="button" aria-label="View following">Following</p>
+        </div>
+    </div>
+    <button id="profileActionButton" data-username="<%= userProfile.name %>" class="w-full bg-bar-gold text-black font-bold py-3 px-4 rounded hover:bg-opacity-80">
+        Follow
+    </button>
+</div>
+
+<!-- Follow Modal -->
+<dialog id="followModal" class="bg-gray-800 p-6 rounded-lg w-3/4 max-w-2xl">
+    <h2 id="modalTitle" class="text-2xl text-white font-bold mb-4"></h2>
+    <div id="followList" class="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+        <p>Loading...</p>
+    </div>
+    <button onclick="closeFollowModal()" class="mt-4 bg-bar-gold text-black font-bold py-2 px-4 rounded hover:bg-opacity-80">Close</button>
+</dialog>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const followersCount = document.querySelector('.followers-count');
+    const followersText = document.querySelector('.followers-text');
+    const followingCount = document.querySelector('.following-count');
+    const followingText = document.querySelector('.following-text');
+    const modal = document.getElementById('followModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const followList = document.getElementById('followList');
+    const profileActionButton = document.getElementById('profileActionButton');
+
+    async function fetchFollowList(username, type) {
+        try {
+            const response = await fetch(`/profile/api/${type}/${username}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch follow list');
+            }
+            const html = await response.text();
+            followList.innerHTML = html;
+        } catch (error) {
+            console.error('Error fetching follow list:', error);
+            followList.innerHTML = '<p>Failed to load follow list. Please try again later.</p>';
+        }
+    }
+
+    function openFollowModal(username, type) {
+        modalTitle.textContent = type;
+        fetchFollowList(username, type.toLowerCase());
+        modal.showModal();
+    }
+
+    function handleFollowClick(event, type) {
+        if (event.type === 'click' || (event.type === 'keydown' && (event.key === 'Enter' || event.key === ' '))) {
+            const username = event.target.dataset.username;
+            openFollowModal(username, type);
+        }
+    }
+
+    if (followersCount) {
+        followersCount.addEventListener('click', (e) => handleFollowClick(e, 'Followers'));
+        followersCount.addEventListener('keydown', (e) => handleFollowClick(e, 'Followers'));
+    }
+
+    if (followersText) {
+        followersText.addEventListener('click', (e) => handleFollowClick(e, 'Followers'));
+        followersText.addEventListener('keydown', (e) => handleFollowClick(e, 'Followers'));
+    }
+
+    if (followingCount) {
+        followingCount.addEventListener('click', (e) => handleFollowClick(e, 'Following'));
+        followingCount.addEventListener('keydown', (e) => handleFollowClick(e, 'Following'));
+    }
+
+    if (followingText) {
+        followingText.addEventListener('click', (e) => handleFollowClick(e, 'Following'));
+        followingText.addEventListener('keydown', (e) => handleFollowClick(e, 'Following'));
+    }
+
+    async function handleFollowUnfollow() {
+        window.waitForHiveKeychain(() => {
+            const username = profileActionButton.dataset.username;
+            const isFollowing = profileActionButton.textContent.trim() === 'Unfollow';
+            const operation = isFollowing ? 'unfollow' : 'follow';
+            const json = JSON.stringify(['follow', {follower: window.hive_keychain.current_username, following: username, what: [operation]}]);
+
+            window.hive_keychain.requestCustomJson(window.hive_keychain.current_username, 'follow', 'Posting', json, `${operation.charAt(0).toUpperCase() + operation.slice(1)} ${username}`, (response) => {
+                if (response.success) {
+                    profileActionButton.textContent = isFollowing ? 'Follow' : 'Unfollow';
+                    const countElement = document.querySelector('.followers-count');
+                    let count = parseInt(countElement.textContent);
+                    countElement.textContent = isFollowing ? count - 1 : count + 1;
+                } else {
+                    console.error('Error:', response.message);
+                    alert(`Failed to ${operation} user. Please try again.`);
+                }
+            });
+        });
+    }
+
+    function handleProfileSettings() {
+        const username = profileActionButton.dataset.username;
+        htmx.ajax('GET', `/profile/${username}/settings`, {target: '#postContent', swap: 'innerHTML'});
+    }
+
+    if (profileActionButton) {
+        const loggedInUser = localStorage.getItem('username');
+        const profileUser = profileActionButton.dataset.username;
+
+        if (loggedInUser && loggedInUser === profileUser) {
+            profileActionButton.textContent = 'Profile Settings';
+            profileActionButton.addEventListener('click', handleProfileSettings);
+        } else {
+            profileActionButton.addEventListener('click', handleFollowUnfollow);
+        }
+    }
+});
+
+function closeFollowModal() {
+    const modal = document.getElementById('followModal');
+    modal.close();
+}
+</script>

@@ -1,0 +1,47 @@
+<div class="bg-gray-800 p-6 rounded-lg">
+  <button
+    class="mb-4 text-bar-gold hover:text-white transition-colors duration-200"
+    hx-get="<%= sourcePage === 'profile' ? `/profile/${username}/blogs` : `/community/${communityName}/community-posts` %>"
+    hx-target="#postContent"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    Back
+  </button>
+  
+  <div class="border-b border-gray-700 pb-4 mb-4">
+    <div class="flex items-center mb-4">
+      <img src="https://images.hive.blog/u/<%= post.author %>/avatar" alt="<%= post.author %>'s avatar" class="w-12 h-12 rounded-full mr-4">
+      <div>
+        <a href="/profile/<%= post.author %>" class="text-lg font-semibold text-bar-gold"><%= post.author %></a>
+        <p class="text-sm text-gray-400"><%= new Date(post.created).toLocaleString() %></p>
+      </div>
+    </div>
+
+    <h3 class="text-xl font-bold mb-2"><a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a></h3>
+
+    <div class="prose prose-invert mb-4">
+      <%- post.parsedBody %>
+    </div>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center">
+        <%- include('../common/upvote-button', { post: post }) %>
+        <%- include('../common/comment-button', { post: post, isReply: false }) %>
+      </div>
+      <p class="text-bar-gold text-sm">Pending: $<%= parseFloat(post.pending_payout_value).toFixed(2) %></p>
+    </div>
+  </div>
+
+  <!-- Comments Section -->
+  <div class="mt-8">
+    <h4 class="text-lg font-bold mb-4">Comments</h4>
+    <% if (comments && comments.length > 0) { %>
+      <% comments.forEach(comment => { %>
+        <%- include('../common/comment', { comment: comment }) %>
+      <% }) %>
+    <% } else { %>
+      <p class="text-gray-400">No comments yet.</p>
+    <% } %>
+  </div>
+</div>

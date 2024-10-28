@@ -1,0 +1,69 @@
+<%
+function stripHtmlTags(str) {
+    if ((str===null) || (str===''))
+        return '';
+    else
+        str = str.toString();
+    return str.replace(/<[^>]*>/g, '');
+}
+
+function getProfileImage(userProfile, post) {
+    try {
+        if (userProfile?.posting_json_metadata) {
+            const metadata = JSON.parse(userProfile.posting_json_metadata);
+            if (metadata?.profile?.profile_image) {
+                return metadata.profile.profile_image;
+            }
+        }
+        return post.author ? `https://images.hive.blog/u/${post.author}/avatar` : 'https://hwchamber.co.uk/wp-content/uploads/2022/04/avatar-placeholder.gif';
+    } catch (e) {
+        return post.author ? `https://images.hive.blog/u/${post.author}/avatar` : 'https://hwchamber.co.uk/wp-content/uploads/2022/04/avatar-placeholder.gif';
+    }
+}
+
+function formatPendingPayout(post) {
+    if (post.pending_payout_value) {
+        return parseFloat(post.pending_payout_value.split(' ')[0]).toFixed(2);
+    } else if (post.estimated_payout) {
+        return parseFloat(post.estimated_payout).toFixed(2);
+    } else {
+        return '0.00';
+    }
+}
+%>
+<div class="border-b border-gray-700 pb-4 mb-4">
+    <div class="flex items-center mb-4">
+        <img src="<%= getProfileImage(userProfile, post) %>" alt="<%= post.author %>'s avatar" class="w-12 h-12 rounded-full mr-4">
+
+        <div>
+            <a href="/profile/<%= post.author %>" class="text-lg font-semibold text-bar-gold"><%= post.author %></a>
+            <p class="text-sm text-gray-400"><%= new Date(post.created).toLocaleString() %></p>
+        </div>
+    </div>
+    <h3 class="text-xl font-bold mb-2">
+        <a href="/post/<%= post.author %>/<%= post.permlink %>" 
+           hx-get="/post/<%= post.author %>/<%= post.permlink %>" 
+           hx-target="#postContent" 
+           hx-push-url="true">
+            <%= post.title %>
+        </a>
+    </h3>
+    <div class="mb-2">
+        <% if (post.parsedBody) { %>
+            <%= stripHtmlTags(post.parsedBody).substring(0, 200) %>...
+        <% } else if (post.body) { %>
+            <%= stripHtmlTags(post.body).substring(0, 200) %>...
+        <% } else { %>
+            No content available
+        <% } %>
+    </div>
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <%- include('upvote-button', { post: post }) %>
+            <%- include('comment-button', { post: post, isReply: false }) %>
+        </div>
+        <span class="text-bar-gold text-sm">
+            Pending: $<%= formatPendingPayout(post) %>
+        </span>
+    </div>
+</div>

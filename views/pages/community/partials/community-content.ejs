@@ -1,0 +1,36 @@
+<section class="py-8 bg-gray-900 flex flex-col flex-grow">
+    <div class="container mx-auto flex flex-col flex-grow">
+        <h1 class="text-4xl font-bold text-center mb-8 text-bar-gold"><%= communityInfo.title %></h1>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
+            <div class="lg:col-span-1">
+                <%- include('community-info-card') %>
+            </div>
+            <div class="lg:col-span-2 flex flex-col">
+                <div class="rounded-lg flex flex-col flex-grow overflow-hidden">
+                    <div class="bg-gray-800 flex mb-4 gap-1">
+                        <button hx-get="/community/threads" 
+                                hx-target="#postContent" 
+                                class="flex-1 py-2 px-4 bg-bar-gold text-black font-bold rounded-tl-lg rounded-tr-lg"
+                                hx-trigger="click, load"
+                                onclick="this.classList.add('bg-bar-gold', 'text-black'); this.classList.remove('bg-gray-700', 'text-white'); this.nextElementSibling.classList.remove('bg-bar-gold', 'text-black'); this.nextElementSibling.classList.add('bg-gray-700', 'text-white');">
+                            Threads
+                        </button>
+                        <button hx-get="/community/<%= communityInfo.name %>/community-posts" 
+                                hx-target="#postContent" 
+                                class="flex-1 py-2 px-4 bg-gray-700 text-white font-bold rounded-tl-lg rounded-tr-lg"
+                                hx-trigger="click"
+                                onclick="this.classList.add('bg-bar-gold', 'text-black'); this.classList.remove('bg-gray-700', 'text-white'); this.previousElementSibling.classList.remove('bg-bar-gold', 'text-black'); this.previousElementSibling.classList.add('bg-gray-700', 'text-white');">
+                            Community Posts
+                        </button>
+                    </div>
+                    <div id="postContent" class="space-y-6 overflow-y-auto flex-grow" style="max-height: calc(100vh - 350px);">
+                        <!-- Content will be loaded here by HTMX -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-8">
+        <%- include('create-new-button') %>
+    </div>
+</section>

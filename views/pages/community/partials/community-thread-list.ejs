@@ -1,0 +1,7 @@
+<% if (threads && threads.length > 0) { %>
+    <% threads.reverse().forEach(thread => { %>
+        <%- include('../../../common/comment', { comment: thread }) %>
+    <% }); %>
+<% } else { %>
+    <p class="text-gray-300">No threads found.</p>
+<% } %>

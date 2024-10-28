@@ -1,0 +1,21 @@
+<div id="blogPostsContainer">
+  <div class="htmx-indicator">
+    <p class="text-gray-400">Loading blog posts...</p>
+  </div>
+  
+  <% if (typeof userBlogPosts !== 'undefined') { %>
+    <% if (userBlogPosts && userBlogPosts.length > 0) { %>
+      <ul class="space-y-4">
+        <% userBlogPosts.forEach(post => { %>
+          <li class="bg-gray-700 p-4 rounded-lg">
+            <%- include('../../../common/post', { post: post, userProfile: userProfile }) %>
+          </li>
+        <% }); %>
+      </ul>
+    <% } else { %>
+      <p class="text-gray-400">No blog posts found.</p>
+    <% } %>
+  <% } else { %>
+    <p class="text-red-500">Error loading blog posts. Please try again later.</p>
+  <% } %>
+</div>

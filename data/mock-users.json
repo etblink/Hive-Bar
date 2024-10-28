@@ -1,0 +1,292 @@
+[
+  {
+    "id": 1,
+    "name": "alice_johnson",
+    "created": "2022-01-15T10:23:45",
+    "active": "2023-07-19T14:55:12",
+    "post_count": 12,
+    "reputation": 250,
+    "blacklists": [],
+    "stats": {
+      "rank": 1,
+      "following": 150,
+      "followers": 200
+    },
+    "metadata": {
+      "profile": {
+        "name": "Alice Johnson",
+        "about": "Enthusiastic developer and avid reader.",
+        "website": "https://alicejohnson.dev",
+        "location": "New York, USA",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=1",
+        "profile_image": "https://avatar.iran.liara.run/public/girl",
+        "blacklist_description": "",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": false
+    }
+  },
+  {
+    "id": 2,
+    "name": "bob_smith92",
+    "created": "2021-05-22T08:15:30",
+    "active": "2023-08-10T16:45:00",
+    "post_count": 34,
+    "reputation": 450,
+    "blacklists": ["spam", "ads"],
+    "stats": {
+      "rank": 2,
+      "following": 200,
+      "followers": 350
+    },
+    "metadata": {
+      "profile": {
+        "name": "Bob Smith",
+        "about": "Graphic designer and photographer.",
+        "website": "https://bobsmith.design",
+        "location": "San Francisco, USA",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=2",
+        "profile_image": "https://avatar.iran.liara.run/public/boy",
+        "blacklist_description": "Avoiding unsolicited promotions.",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": true
+    }
+  },
+  {
+    "id": 3,
+    "name": "carol_writer",
+    "created": "2020-11-30T12:00:00",
+    "active": "2023-09-05T09:30:25",
+    "post_count": 58,
+    "reputation": 750,
+    "blacklists": [],
+    "stats": {
+      "rank": 3,
+      "following": 300,
+      "followers": 500
+    },
+    "metadata": {
+      "profile": {
+        "name": "Carol Williams",
+        "about": "Content writer and blogger.",
+        "website": "https://carolwrites.com",
+        "location": "London, UK",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=3",
+        "profile_image": "https://avatar.iran.liara.run/public/girl",
+        "blacklist_description": "",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": false
+    }
+  },
+  {
+    "id": 4,
+    "name": "dave_b_tech",
+    "created": "2019-07-18T07:45:50",
+    "active": "2023-10-01T11:20:35",
+    "post_count": 23,
+    "reputation": 320,
+    "blacklists": ["trolling"],
+    "stats": {
+      "rank": 4,
+      "following": 120,
+      "followers": 180
+    },
+    "metadata": {
+      "profile": {
+        "name": "Dave Brown",
+        "about": "Tech enthusiast and gamer.",
+        "website": "https://davebrown.tech",
+        "location": "Berlin, Germany",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=4",
+        "profile_image": "https://avatar.iran.liara.run/public/boy",
+        "blacklist_description": "Preventing disruptive behavior.",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": true
+    }
+  },
+  {
+    "id": 5,
+    "name": "eve_artista",
+    "created": "2023-02-10T14:30:10",
+    "active": "2023-12-12T18:05:50",
+    "post_count": 8,
+    "reputation": 120,
+    "blacklists": [],
+    "stats": {
+      "rank": 5,
+      "following": 80,
+      "followers": 95
+    },
+    "metadata": {
+      "profile": {
+        "name": "Eve Davis",
+        "about": "Freelance illustrator.",
+        "website": "https://evedavis.art",
+        "location": "Sydney, Australia",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=5",
+        "profile_image": "https://avatar.iran.liara.run/public/girl",
+        "blacklist_description": "",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": false
+    }
+  },
+  {
+    "id": 6,
+    "name": "frank_miller",
+    "created": "2021-09-05T09:10:20",
+    "active": "2023-11-15T13:40:55",
+    "post_count": 45,
+    "reputation": 500,
+    "blacklists": [],
+    "stats": {
+      "rank": 6,
+      "following": 220,
+      "followers": 310
+    },
+    "metadata": {
+      "profile": {
+        "name": "Frank Miller",
+        "about": "Entrepreneur and startup founder.",
+        "website": "https://frankmiller.com",
+        "location": "Toronto, Canada",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=6",
+        "profile_image": "https://avatar.iran.liara.run/public/boy",
+        "blacklist_description": "",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": true
+    }
+  },
+  {
+    "id": 7,
+    "name": "grace_lee_marketing",
+    "created": "2020-03-22T16:25:35",
+    "active": "2023-10-20T10:15:00",
+    "post_count": 67,
+    "reputation": 820,
+    "blacklists": [],
+    "stats": {
+      "rank": 7,
+      "following": 350,
+      "followers": 600
+    },
+    "metadata": {
+      "profile": {
+        "name": "Grace Lee",
+        "about": "Digital marketer and SEO specialist.",
+        "website": "https://gracelee.marketing",
+        "location": "Seoul, South Korea",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=7",
+        "profile_image": "https://avatar.iran.liara.run/public/girl",
+        "blacklist_description": "",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": false
+    }
+  },
+  {
+    "id": 8,
+    "name": "henry_clark_music",
+    "created": "2018-12-01T11:50:05",
+    "active": "2023-09-25T17:30:40",
+    "post_count": 30,
+    "reputation": 410,
+    "blacklists": ["spam"],
+    "stats": {
+      "rank": 8,
+      "following": 180,
+      "followers": 250
+    },
+    "metadata": {
+      "profile": {
+        "name": "Henry Clark",
+        "about": "Music producer and DJ.",
+        "website": "https://henryclark.music",
+        "location": "Austin, USA",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=8",
+        "profile_image": "https://avatar.iran.liara.run/public/boy",
+        "blacklist_description": "Filtering out unsolicited messages.",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": true
+    }
+  },
+  {
+    "id": 9,
+    "name": "isabel_wellness",
+    "created": "2022-06-14T13:40:25",
+    "active": "2023-08-30T12:10:15",
+    "post_count": 19,
+    "reputation": 210,
+    "blacklists": [],
+    "stats": {
+      "rank": 9,
+      "following": 95,
+      "followers": 130
+    },
+    "metadata": {
+      "profile": {
+        "name": "Isabel Martinez",
+        "about": "Yoga instructor and wellness coach.",
+        "website": "https://isabelmartinez.wellness",
+        "location": "Madrid, Spain",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=9",
+        "profile_image": "https://avatar.iran.liara.run/public/girl",
+        "blacklist_description": "",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": false
+    }
+  },
+  {
+    "id": 10,
+    "name": "jack_w_travel",
+    "created": "2019-04-18T19:05:55",
+    "active": "2023-07-22T08:50:30",
+    "post_count": 27,
+    "reputation": 330,
+    "blacklists": [],
+    "stats": {
+      "rank": 10,
+      "following": 140,
+      "followers": 190
+    },
+    "metadata": {
+      "profile": {
+        "name": "Jack Wilson",
+        "about": "Travel blogger and photographer.",
+        "website": "https://jackwilson.travel",
+        "location": "Cape Town, South Africa",
+        "cover_image": "https://source.unsplash.com/random/800x600?sig=10",
+        "profile_image": "https://avatar.iran.liara.run/public/boy",
+        "blacklist_description": "",
+        "muted_list_description": ""
+      }
+    },
+    "context": {
+      "followed": true
+    }
+  }
+]

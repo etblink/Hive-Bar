@@ -1,0 +1,124 @@
+{
+  "posts": [
+    {
+      "title": "Weekly Trivia Night Announcement",
+      "content": "Join us every Thursday for our exciting trivia night! Great prizes, fun questions, and amazing drink specials.",
+      "author": "BarStaff",
+      "timeAgo": "2 days ago"
+    },
+    {
+      "title": "New Cocktail Menu Launch",
+      "content": "We're thrilled to announce our new summer cocktail menu! Come try our refreshing new creations.",
+      "author": "Mixologist",
+      "timeAgo": "5 days ago"
+    },
+    {
+      "title": "Live Music This Weekend",
+      "content": "Don't miss our live music event this Saturday featuring local band \"The Nightowls\". Show starts at 9 PM!",
+      "author": "EventCoordinator",
+      "timeAgo": "1 week ago"
+    },
+    {
+      "title": "Happy Hour Extended",
+      "content": "Due to popular demand, we're extending our happy hour! Now from 4 PM to 7 PM, Monday through Friday.",
+      "author": "Management",
+      "timeAgo": "3 days ago"
+    },
+    {
+      "title": "Craft Beer Tasting Event",
+      "content": "Join us next Tuesday for a craft beer tasting event. Sample 10 different local brews!",
+      "author": "BeerEnthusiast",
+      "timeAgo": "1 day ago"
+    },
+    {
+      "title": "Karaoke Night Returns",
+      "content": "Get your vocal cords ready! Karaoke night is back every Wednesday starting at 8 PM.",
+      "author": "EntertainmentTeam",
+      "timeAgo": "4 days ago"
+    },
+    {
+      "title": "St. Patrick's Day Celebration",
+      "content": "Join us for our annual St. Patrick's Day bash! Green beer, Irish whiskey specials, and live Celtic music.",
+      "author": "EventPlanner",
+      "timeAgo": "1 week ago"
+    },
+    {
+      "title": "New Pool Tables Installed",
+      "content": "We've just installed two brand new pool tables. Come check them out and show off your skills!",
+      "author": "Maintenance",
+      "timeAgo": "2 weeks ago"
+    },
+    {
+      "title": "Cocktail Making Workshop",
+      "content": "Learn to make your favorite cocktails with our expert mixologist. Limited spots available, sign up now!",
+      "author": "Bartender",
+      "timeAgo": "3 days ago"
+    },
+    {
+      "title": "Football Season Kick-off Party",
+      "content": "The new football season is here! Join us for our kick-off party with special game day menu and drink deals.",
+      "author": "SportsEnthusiast",
+      "timeAgo": "6 days ago"
+    },
+    {
+      "title": "Wine Wednesday Introduced",
+      "content": "Introducing Wine Wednesday! Half-price bottles of select wines every Wednesday.",
+      "author": "Sommelier",
+      "timeAgo": "1 week ago"
+    },
+    {
+      "title": "Local Artist Showcase",
+      "content": "We're proud to showcase local artists' work in our bar. New exhibitions every month!",
+      "author": "ArtCurator",
+      "timeAgo": "2 weeks ago"
+    },
+    {
+      "title": "Dart Tournament Announcement",
+      "content": "Think you've got skills? Join our monthly dart tournament! First prize: $100 bar tab.",
+      "author": "GameMaster",
+      "timeAgo": "5 days ago"
+    },
+    {
+      "title": "New Vegan Menu Options",
+      "content": "We've expanded our menu to include more vegan-friendly options. Come taste our new dishes!",
+      "author": "Chef",
+      "timeAgo": "1 week ago"
+    },
+    {
+      "title": "Throwback Thursday Theme Nights",
+      "content": "Every Thursday is now Throwback Thursday! Enjoy hits from a different decade each week.",
+      "author": "DJ",
+      "timeAgo": "4 days ago"
+    },
+    {
+      "title": "Bar Olympics Coming Soon",
+      "content": "Get ready for our first-ever Bar Olympics! Compete in various bar games for the grand prize.",
+      "author": "EventOrganizer",
+      "timeAgo": "2 days ago"
+    },
+    {
+      "title": "Charity Fundraiser Night",
+      "content": "Join us in supporting our local community. 10% of all sales this Friday will go to the city's food bank.",
+      "author": "CommunityLiaison",
+      "timeAgo": "1 week ago"
+    },
+    {
+      "title": "New Loyalty Program Launched",
+      "content": "Introducing our new loyalty program! Earn points with every purchase and redeem for great rewards.",
+      "author": "Marketing",
+      "timeAgo": "3 days ago"
+    },
+    {
+      "title": "Outdoor Patio Now Open",
+      "content": "Our newly renovated outdoor patio is now open! Enjoy your drinks under the stars.",
+      "author": "Management",
+      "timeAgo": "1 day ago"
+    },
+    {
+      "title": "Mixology Monday: Gin Special",
+      "content": "This Monday, we're featuring gin cocktails. Come try our specially crafted gin-based drinks!",
+      "author": "Bartender",
+      "timeAgo": "6 days ago"
+    }
+  ]
+}

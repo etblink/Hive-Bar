@@ -1,0 +1,91 @@
+<!-- beer-mug-upvote.ejs -->
+<div class="flex flex-col items-center space-y-4">
+  <svg
+    id="beerMugSvg-<%= typeof postId !== 'undefined' ? postId : 'default' %>"
+    width="240"
+    height="320"
+    viewBox="0 0 240 320"
+    class="cursor-ns-resize touch-none select-none"
+  >
+    <defs>
+      <linearGradient id="beerGradient-<%= typeof postId !== 'undefined' ? postId : 'default' %>" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#FFD700" />
+        <stop offset="100%" stop-color="#FFA500" />
+      </linearGradient>
+      <filter id="shadow-<%= typeof postId !== 'undefined' ? postId : 'default' %>">
+        <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3" />
+      </filter>
+      <clipPath id="beerClip-<%= typeof postId !== 'undefined' ? postId : 'default' %>">
+        <path id="beerClipPath-<%= typeof postId !== 'undefined' ? postId : 'default' %>" />
+      </clipPath>
+    </defs>
+
+    <!-- Mug shadow -->
+    <ellipse cx="120" cy="300" rx="70" ry="10" fill="rgba(0,0,0,0.3)" filter="url(#shadow-<%= typeof postId !== 'undefined' ? postId : 'default' %>)" />
+
+    <!-- Drag handle -->
+    <line
+      id="dragHandle-<%= typeof postId !== 'undefined' ? postId : 'default' %>"
+      stroke="#FFA500"
+      stroke-width="8"
+      stroke-linecap="round"
+      class="cursor-ns-resize"
+    />
+
+    <!-- Mug body -->
+    <path
+      d="M60 60 L60 260 Q60 280 80 280 L160 280 Q180 280 180 260 L180 60 Q180 40 160 40 L80 40 Q60 40 60 60Z"
+      fill="#f0f0f0"
+      stroke="#d0d0d0"
+      stroke-width="4"
+      filter="url(#shadow-<%= typeof postId !== 'undefined' ? postId : 'default' %>)"
+    />
+
+    <!-- Mug handle -->
+    <path
+      d="M180 80 C215 80 215 120 215 150 C215 180 215 220 180 220"
+      fill="none"
+      stroke="#d0d0d0"
+      stroke-width="12"
+      stroke-linecap="round"
+    />
+
+    <!-- Beer liquid -->
+    <path
+      id="beerLiquid-<%= typeof postId !== 'undefined' ? postId : 'default' %>"
+      fill="url(#beerGradient-<%= typeof postId !== 'undefined' ? postId : 'default' %>)"
+    />
+
+    <!-- Bubbles -->
+    <g clip-path="url(#beerClip-<%= typeof postId !== 'undefined' ? postId : 'default' %>)">
+      <circle class="beer-bubble" r="2" fill="rgba(255,255,255,0.7)">
+        <animate attributeName="cy" from="280" to="68" dur="3s" begin="0s" repeatCount="indefinite" />
+        <animate attributeName="cx" values="90;100;90" dur="3s" begin="0s" repeatCount="indefinite" />
+      </circle>
+      <circle class="beer-bubble" r="2" fill="rgba(255,255,255,0.7)">
+        <animate attributeName="cy" from="280" to="68" dur="3s" begin="1s" repeatCount="indefinite" />
+        <animate attributeName="cx" values="120;130;120" dur="3s" begin="1s" repeatCount="indefinite" />
+      </circle>
+      <circle class="beer-bubble" r="2" fill="rgba(255,255,255,0.7)">
+        <animate attributeName="cy" from="280" to="68" dur="3s" begin="2s" repeatCount="indefinite" />
+        <animate attributeName="cx" values="150;160;150" dur="3s" begin="2s" repeatCount="indefinite" />
+      </circle>
+    </g>
+
+    <!-- Foam -->
+    <path
+      id="beerFoam-<%= typeof postId !== 'undefined' ? postId : 'default' %>"
+      fill="white"
+      style="display: none;"
+    />
+
+    <!-- Mug highlights -->
+    <path
+      d="M70 70 L70 250 Q70 270 90 270 L150 270"
+      fill="none"
+      stroke="rgba(255,255,255,0.5)"
+      stroke-width="2"
+    />
+  </svg>
+  <p id="beerLevelText-<%= typeof postId !== 'undefined' ? postId : 'default' %>" class="text-lg font-semibold text-bar-gold"></p>
+</div>

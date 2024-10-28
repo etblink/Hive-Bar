@@ -1,0 +1,113 @@
+<div id="inboxContainer" class="space-y-4">
+    <h2 class="text-2xl font-bold text-bar-gold mb-4">Inbox</h2>
+    
+    <% if (messages && messages.length > 0) { %>
+        <div class="space-y-4">
+            <% messages.forEach(message => { %>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <a href="/profile/<%= message.from %>" class="flex items-center">
+                            <img src="https://images.hive.blog/u/<%= message.from %>/avatar" alt="<%= message.from %>'s avatar" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-bar-gold font-semibold"><%= message.from %></span>
+                        </a>
+                        <span class="text-gray-400 text-sm"><%= new Date(message.timestamp).toLocaleString() %></span>
+                    </div>
+                    <div class="bg-gray-800 p-3 rounded mt-2 flex items-center">
+                        <button onclick="decryptMemo(this, '<%= message.memo %>')" class="text-bar-gold hover:text-yellow-500 mr-2 p-2 rounded transition-colors duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <p class="text-gray-300 font-mono text-sm flex-grow message-content break-all"><%= message.memo %></p>
+                    </div>
+                    <div class="mt-2 text-gray-400 text-sm">
+                        Amount: <%= message.amount %>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% } else { %>
+        <p class="text-white text-center">No messages in inbox.</p>
+    <% } %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    var loggedInUser = localStorage.getItem('username');
+    console.log('Username from localStorage:', loggedInUser);
+
+    try {
+        const userProfile = await window.BarCache.profiles.getCachedProfile();
+        console.log('Cached user profile:', userProfile);
+        if (userProfile && userProfile.username) {
+            loggedInUser = userProfile.username;
+        }
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+    }
+
+    var messageCount = <%- messages ? messages.length : 0 %>;
+    var hasMessages = <%- messages && messages.length > 0 ? 'true' : 'false' %>;
+    
+    console.log('Inbox View:', {
+        loggedInUser: loggedInUser,
+        messageCount: messageCount,
+        hasMessages: hasMessages
+    });
+    
+    var inboxButton = document.getElementById('inboxButton');
+    if (inboxButton) {
+        console.log('Inbox tab is present');
+    } else {
+        console.log('Inbox tab not found - this might be expected if not viewing own profile');
+    }
+});
+
+async function decryptMemo(button, encryptedMemo) {
+    var loggedInUser = localStorage.getItem('username');
+    console.log('Attempting to decrypt memo for user:', loggedInUser);
+
+    if (!loggedInUser) {
+        try {
+            const userProfile = await window.BarCache.profiles.getCachedProfile();
+            console.log('Cached user profile:', userProfile);
+            if (userProfile && userProfile.username) {
+                loggedInUser = userProfile.username;
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+        }
+    }
+
+    if (!loggedInUser) {
+        console.error('No logged-in user found');
+        alert('Please log in to decrypt messages');
+        return;
+    }
+
+    var messageContent = button.closest('.flex').querySelector('.message-content');
+    
+    console.log('Requesting Hive Keychain to verify key');
+    // Use Hive Keychain callback style
+    hive_keychain.requestVerifyKey(
+        loggedInUser,
+        encryptedMemo,
+        'Memo',
+        function(response) {
+            console.log('Hive Keychain response:', response);
+            if (response.success) {
+                // Replace the encrypted message with the decrypted one
+                messageContent.textContent = response.result;
+                // Disable the decrypt button
+                button.disabled = true;
+                button.classList.add('text-gray-500');
+                button.classList.remove('hover:text-yellow-500');
+                console.log('Message decrypted successfully');
+            } else {
+                console.error('Decryption failed:', response.message);
+                alert('Failed to decrypt message. Please ensure you have the correct memo key.');
+            }
+        }
+    );
+}
+</script>

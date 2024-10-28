@@ -1,0 +1,12 @@
+<button class="flex items-center mr-4 text-gray-400 hover:text-bar-gold" onclick="showCommentDialog('<%= post.author %>', '<%= post.permlink %>', <%= isReply ? 'true' : 'false' %>)">
+    <i class="fas <%= isReply ? 'fa-reply' : 'fa-comment' %> mr-1"></i>
+    <span><%= isReply ? 'Reply' : 'Comment' %></span>
+</button>
+
+<dialog id="commentDialog-<%= post.author %>-<%= post.permlink %>" class="p-4 rounded-lg shadow-lg">
+    <h3 class="text-lg font-semibold mb-2">Add a <%= isReply ? 'Reply' : 'Comment' %></h3>
+    <textarea id="commentBody-<%= post.author %>-<%= post.permlink %>" class="w-full h-24 p-2 border rounded mb-2" placeholder="Write your <%= isReply ? 'reply' : 'comment' %> here..."></textarea>
+    <div class="flex justify-end">
+        <button onclick="submitComment('<%= post.author %>', '<%= post.permlink %>', <%= isReply ? 'true' : 'false' %>)" class="bg-bar-gold text-black px-4 py-2 rounded hover:bg-yellow-600">Submit <%= isReply ? 'Reply' : 'Comment' %></button>
+    </div>
+</dialog>

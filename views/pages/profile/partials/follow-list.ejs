@@ -1,0 +1,14 @@
+<% if (users && users.length > 0) { %>
+    <% users.forEach(user => { %>
+        <div class="flex items-center p-2 hover:bg-gray-700 rounded">
+            <a href="/profile/<%= user.name %>" class="flex items-center w-full">
+                <img src="<%= user.avatar %>" alt="<%= user.name %>'s avatar" class="w-10 h-10 rounded-full mr-3">
+                <span class="text-white"><%= user.name %></span>
+            </a>
+        </div>
+    <% }); %>
+<% } else if (error) { %>
+    <p class="text-red-500"><%= error %></p>
+<% } else { %>
+    <p class="text-gray-400"><%= emptyMessage || 'No users found.' %></p>
+<% } %>

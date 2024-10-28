@@ -1,0 +1,246 @@
+<div class="bg-gray-800 p-6 rounded-lg text-center">    
+    <img src="https://images.hive.blog/u/<%= communityInfo.name %>/avatar" alt="<%= communityInfo.title %> Logo" class="w-24 h-24 mx-auto mb-4 rounded-full">
+    <h2 class="text-2xl font-bold mb-2"><%= communityInfo.title %></h2>
+    <p class="text-gray-400 mb-4">@<%= communityInfo.name %></p>
+    <p class="text-sm mb-6"><%= communityInfo.about %></p>
+    <div class="flex justify-center space-x-8 mb-6">
+        <div>
+            <p class="font-bold text-xl subscribers-count cursor-pointer" data-community="<%= communityInfo.name %>" tabindex="0" role="button" aria-label="View subscribers"><%= communityInfo.subscribers %></p>
+            <p class="text-gray-400 text-sm subscribers-text cursor-pointer" data-community="<%= communityInfo.name %>" tabindex="0" role="button" aria-label="View subscribers">Subscribers</p>
+        </div>
+        <div>
+            <p class="font-bold text-xl">$<%= communityInfo.sum_pending %></p>
+            <p class="text-gray-400 text-sm">Pending Payouts</p>
+        </div>
+    </div>
+    <% if (communityInfo.description) { %>
+        <p class="text-sm mb-6">
+            <a href="<%= communityInfo.description %>" target="_blank" class="text-bar-gold hover:underline">
+                Visit Community Website
+            </a>
+        </p>
+    <% } %>
+    <button id="joinLeaveButton" class="w-full bg-bar-gold text-black font-bold py-3 px-4 rounded hover:bg-opacity-80" data-community="<%= communityInfo.name %>">
+        Join Community
+    </button>
+</div>
+
+<!-- Subscribers Dialog -->
+<dialog id="subscribersDialog" class="p-0 rounded-lg shadow-xl w-full max-w-md" aria-labelledby="dialogTitle">
+    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <h3 id="dialogTitle" class="text-lg leading-6 font-medium text-gray-900 mb-4">Subscribers</h3>
+        <div id="subscribersContent">
+            <div id="loadingIndicator" class="text-center py-4 hidden" aria-live="polite">
+                <svg class="animate-spin h-5 w-5 mx-auto text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2 text-sm text-gray-500">Loading subscribers...</p>
+            </div>
+            <div id="errorMessage" class="text-center py-4 text-red-500 hidden" aria-live="assertive"></div>
+            <ul id="subscribersList" class="divide-y divide-gray-200 max-h-96 overflow-y-auto" role="list">
+                <!-- Subscribers will be dynamically added here -->
+            </ul>
+        </div>
+    </div>
+    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" id="closeDialog">
+            Close
+        </button>
+    </div>
+</dialog>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const subscribersCount = document.querySelector('.subscribers-count');
+    const subscribersText = document.querySelector('.subscribers-text');
+    const dialog = document.getElementById('subscribersDialog');
+    const closeDialog = document.getElementById('closeDialog');
+    const subscribersList = document.getElementById('subscribersList');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    const joinLeaveButton = document.getElementById('joinLeaveButton');
+
+    async function fetchSubscribers(community) {
+        try {
+            loadingIndicator.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            subscribersList.innerHTML = '';
+
+            const response = await fetch(`/community/api/community/${community}/subscribers`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch subscribers');
+            }
+            const subscribers = await response.json();
+            return subscribers;
+        } catch (error) {
+            console.error('Error fetching subscribers:', error);
+            throw error;
+        } finally {
+            loadingIndicator.classList.add('hidden');
+        }
+    }
+
+    function renderSubscribers(subscribers) {
+        subscribersList.innerHTML = '';
+        subscribers.forEach(subscriber => {
+            const li = document.createElement('li');
+            li.className = 'py-4 flex items-center';
+            li.innerHTML = `
+                <a href="profile/${subscriber.name}" class="flex items-center">
+                    <img class="h-10 w-10 rounded-full" src="https://images.hive.blog/u/${subscriber.name}/avatar" alt="${subscriber.name}'s avatar">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900 hover:underline">${subscriber.name}</p>
+                        <p class="text-xs text-gray-500">Role: ${subscriber.role}</p>
+                        <p class="text-xs text-gray-500">Joined: ${new Date(subscriber.date).toLocaleDateString()}</p>
+                    </div>
+                </a>
+            `;
+            subscribersList.appendChild(li);
+        });
+    }
+
+    async function showSubscribers(event) {
+        const community = event.target.dataset.community;
+        dialog.showModal();
+        try {
+            const subscribers = await fetchSubscribers(community);
+            renderSubscribers(subscribers);
+        } catch (error) {
+            errorMessage.textContent = 'Failed to load subscribers. Please try again later.';
+            errorMessage.classList.remove('hidden');
+        }
+        trapFocus(dialog);
+    }
+
+    function trapFocus(element) {
+        const focusableElements = element.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const firstFocusableElement = focusableElements[0];
+        const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+        element.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusableElement) {
+                        lastFocusableElement.focus();
+                        e.preventDefault();
+                    }
+                } else {
+                    if (document.activeElement === lastFocusableElement) {
+                        firstFocusableElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            }
+        });
+
+        firstFocusableElement.focus();
+    }
+
+    function handleSubscriberClick(event) {
+        if (event.type === 'click' || (event.type === 'keydown' && (event.key === 'Enter' || event.key === ' '))) {
+            showSubscribers(event);
+        }
+    }
+
+    if (subscribersCount) {
+        subscribersCount.addEventListener('click', handleSubscriberClick);
+        subscribersCount.addEventListener('keydown', handleSubscriberClick);
+    }
+
+    if (subscribersText) {
+        subscribersText.addEventListener('click', handleSubscriberClick);
+        subscribersText.addEventListener('keydown', handleSubscriberClick);
+    }
+
+    if (closeDialog) {
+        closeDialog.addEventListener('click', () => dialog.close());
+    }
+
+    // Close dialog when clicking outside or pressing Escape
+    dialog.addEventListener('click', (event) => {
+        const rect = dialog.getBoundingClientRect();
+        const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+        if (!isInDialog) {
+            dialog.close();
+        }
+    });
+
+    dialog.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            dialog.close();
+        }
+    });
+
+    // Check community membership and update button text
+    async function checkCommunityMembership() {
+        const username = localStorage.getItem('username');
+        const community = joinLeaveButton.dataset.community;
+
+        if (!username) {
+            joinLeaveButton.textContent = 'Join Community';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/community/check-membership?username=${username}&community=${community}`);
+            const data = await response.json();
+            joinLeaveButton.textContent = data.isMember ? 'Leave Community' : 'Join Community';
+        } catch (error) {
+            console.error('Error checking community membership:', error);
+            joinLeaveButton.textContent = 'Join Community';
+        }
+    }
+
+    // Join/Leave Community functionality
+    if (joinLeaveButton) {
+        joinLeaveButton.addEventListener('click', async function() {
+            const community = this.dataset.community;
+            const username = localStorage.getItem('username');
+
+            if (!username) {
+                alert('Please log in to join or leave the community');
+                return;
+            }
+
+            window.waitForHiveKeychain(() => {
+                const isJoining = this.textContent.trim() === 'Join Community';
+                const operation = isJoining ? 'join' : 'leave';
+
+                window.hive_keychain.requestCustomJson(
+                    username,
+                    'community',
+                    'Posting',
+                    JSON.stringify(['community', {
+                        community: community,
+                        account: username,
+                        action: operation
+                    }]),
+                    `${operation} community`,
+                    (response) => {
+                        if (response.success) {
+                            console.log(`Successfully ${operation}ed community:`, response);
+                            
+                            // Update button text and subscribers count
+                            this.textContent = isJoining ? 'Leave Community' : 'Join Community';
+                            const subscribersCountElement = document.querySelector('.subscribers-count');
+                            if (subscribersCountElement) {
+                                let count = parseInt(subscribersCountElement.textContent);
+                                count = isJoining ? count + 1 : count - 1;
+                                subscribersCountElement.textContent = count;
+                            }
+                        } else {
+                            console.error(`Failed to ${operation} community:`, response.message);
+                            alert(`Failed to ${operation} community: ${response.message}`);
+                        }
+                    }
+                );
+            });
+        });
+
+        // Check membership status when the page loads
+        checkCommunityMembership();
+    }
+});
+</script>

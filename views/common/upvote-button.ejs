@@ -1,0 +1,17 @@
+<button id="likeButton-<%= post.author %>-<%= post.permlink %>" 
+        class="flex items-center mr-4 text-gray-400 hover:text-bar-gold"
+        data-author="<%= post.author %>"
+        data-permlink="<%= post.permlink %>"
+        onclick="showUpvoteDialog(this)">
+    <i class="fas fa-thumbs-up mr-1"></i>
+    <span>Like</span>
+    <span id="likeCount-<%= post.author %>-<%= post.permlink %>" class="ml-1">(<%= post.likes || 0 %>)</span>
+</button>
+
+<dialog id="upvoteDialog-<%= post.author %>-<%= post.permlink %>" class="p-4 rounded shadow-lg bg-gray-800 border border-white">
+    <h3 class="text-lg font-semibold mb-2 text-bar-gold">Choose Upvote Weight</h3>
+    <%- include('beer-mug-upvote', { postId: `${post.author}-${post.permlink}` }) %>
+    <div class="flex justify-between mt-4">
+        <button onclick="submitUpvote('<%= post.author %>', '<%= post.permlink %>')" class="bg-bar-gold text-black px-4 py-2 rounded hover:bg-yellow-600 transition-colors">Submit Upvote</button>
+    </div>
+</dialog>

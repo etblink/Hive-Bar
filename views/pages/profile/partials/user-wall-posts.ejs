@@ -1,0 +1,45 @@
+<div id="wallPostsContainer">
+    <% if (wallPosts && wallPosts.length > 0) { %>
+        <div class="space-y-4">
+            <% wallPosts.forEach(post => { %>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <a href="/profile/<%= post.from %>" class="flex items-center">
+                            <img src="https://images.hive.blog/u/<%= post.from %>/avatar" alt="<%= post.from %>'s avatar" class="w-8 h-8 rounded-full mr-2">
+                            <span class="text-bar-gold font-semibold"><%= post.from %></span>
+                        </a>
+                        <span class="text-gray-400 text-sm"><%= new Date(post.timestamp).toLocaleString() %></span>
+                    </div>
+                    <p class="text-white"><%= post.memo %></p>
+                    <div class="mt-2 text-gray-400 text-sm">
+                        Amount: <%= post.amount %>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+
+        <!-- Load More Button -->
+        <div id="loadMoreContainer" class="flex justify-center py-4">
+            <button class="bg-bar-gold text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition-colors"
+                    hx-get="/profile/<%= wallPosts[0].to %>/wall-posts/more?lastId=<%= wallPosts[wallPosts.length - 1].id %>"
+                    hx-target="#wallPostsContainer"
+                    hx-swap="beforeend"
+                    hx-indicator=".loading-indicator"
+                    hx-on::before-request="console.log('Loading more posts...', { lastId: '<%= wallPosts[wallPosts.length - 1].id %>' })"
+                    hx-on::after-request="console.log('Request completed', event.detail); this.closest('#loadMoreContainer').remove();"
+                    hx-on::error="console.error('Error loading posts', event.detail)">
+                <span>Load More Posts</span>
+                <span class="loading-indicator ml-2 htmx-indicator">Loading...</span>
+            </button>
+        </div>
+
+        <script>
+            console.log('Initial wall posts loaded:', {
+                postsCount: <%= wallPosts.length %>,
+                lastPostId: '<%= wallPosts[wallPosts.length - 1].id %>'
+            });
+        </script>
+    <% } else { %>
+        <p class="text-white text-center">No wall posts yet.</p>
+    <% } %>
+</div>
