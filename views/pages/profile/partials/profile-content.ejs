@@ -1,13 +1,13 @@
-<section class="py-16 bg-gray-900 h-screen flex flex-col">
-    <div class="container mx-auto flex-grow flex flex-col">
+<section class="py-8 bg-gray-900 flex flex-col flex-grow">
+    <div class="container mx-auto flex flex-col flex-grow">
         <h1 class="text-4xl font-bold text-center mb-8 text-bar-gold">User Profile</h1>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 flex-grow overflow-hidden">
-            <div class="col-span-1">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
+            <div class="lg:col-span-1">
                 <%- include('profile-info-card') %>
             </div>
-            <div class="col-span-2 flex flex-col">
-                <div class="h-[500px] flex flex-col flex-grow overflow-hidden">
-                    <div id="profileTabNavigation" class="bg-gray-800 rounded-lg flex gap-1 profile-tab-navigation">
+            <div class="lg:col-span-2 flex flex-col">
+                <div class="rounded-lg flex flex-col flex-grow overflow-hidden">
+                    <div id="profileTabNavigation" class="bg-gray-800 flex mb-4 gap-1 profile-tab-navigation">
                         <button id="blogsButton"
                                 hx-get="/profile/<%= userProfile.name %>/blogs" 
                                 hx-target="#postContent" 
@@ -27,14 +27,14 @@
                             Wall Posts
                         </button>
                     </div>
-                    <div id="postContent" class="space-y-6 overflow-y-auto flex-grow">
+                    <div id="postContent" class="space-y-6 overflow-y-auto flex-grow" style="max-height: calc(100vh - 350px);">
                         <%- include('user-blog-posts', { userBlogPosts: userBlogPosts }) %>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div id="createNewButtonContainer" style="display: none;">
+    <div id="createNewButtonContainer" class="mt-8" style="display: none;">
         <button id="createNewButton" class="fixed bottom-8 right-8 w-14 h-14 bg-bar-gold text-black rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-500 transition-colors duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
