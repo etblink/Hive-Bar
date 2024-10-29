@@ -188,9 +188,22 @@
         const username = localStorage.getItem('username');
         const profileUser = '<%= userProfile.name %>';
         const memo = isEncrypted ? '#' + message : message;
-        const amount = '0.010'; // Default amount, can be adjusted based on user settings
 
-        window.hive_keychain.requestTransfer(username, profileUser, amount, memo, 'HBD', function(response) {
+        // Get wall post fee from profile metadata
+        let wallPostFee = "0.010"; // Default fee
+        try {
+            const profileMetadata = <%- JSON.stringify(userProfile.posting_json_metadata) %>;
+            if (profileMetadata) {
+                const metadata = JSON.parse(profileMetadata);
+                if (metadata.profile && metadata.profile.wall_post_fee) {
+                    wallPostFee = metadata.profile.wall_post_fee;
+                }
+            }
+        } catch (error) {
+            console.error('Error parsing profile metadata:', error);
+        }
+
+        window.hive_keychain.requestTransfer(username, profileUser, wallPostFee, memo, 'HBD', function(response) {
             if (response.success) {
                 alert('Wall post created successfully!');
                 document.getElementById('newWallPostModal').close();
