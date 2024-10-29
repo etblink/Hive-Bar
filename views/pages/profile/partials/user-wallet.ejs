@@ -78,7 +78,6 @@
             <span class="text-white">HBD Balance:</span>
             <span class="text-bar-gold font-bold"><%= parseFloat(account.hbd_balance).toFixed(3) %> HBD</span>
         </div>
-
         <% if (parseFloat(account.reward_hbd_balance) > 0 || 
                parseFloat(account.reward_hive_balance) > 0 || 
                parseFloat(account.reward_vesting_balance) > 0) { %>
@@ -95,7 +94,16 @@
                     <span class="text-bar-gold">
                         <%= parseFloat(account.reward_hbd_balance) > 0 ? `${parseFloat(account.reward_hbd_balance).toFixed(3)} HBD` : '' %>
                         <%= parseFloat(account.reward_hive_balance) > 0 ? `${parseFloat(account.reward_hive_balance).toFixed(3)} HIVE` : '' %>
-                        <%= parseFloat(account.reward_vesting_balance) > 0 ? `${parseFloat(account.reward_vesting_balance).toFixed(6)} VESTS` : '' %>
+                        <% if (parseFloat(account.reward_vesting_balance) > 0) { %>
+                            <% 
+                                const rewardVests = parseFloat(account.reward_vesting_balance);
+                                const totalVestingFundHive = parseFloat(globalProps.total_vesting_fund_hive);
+                                const globalTotalVestingShares = parseFloat(globalProps.total_vesting_shares);
+                                const vestsToHiveRatio = totalVestingFundHive / globalTotalVestingShares;
+                                const rewardHP = rewardVests * vestsToHiveRatio;
+                            %>
+                            <%= `${rewardHP.toFixed(3)} HP` %>
+                        <% } %>
                     </span>
                 </div>
             </div>
