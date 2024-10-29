@@ -60,55 +60,42 @@ document.getElementById('profileSettingsForm').addEventListener('submit', functi
     // Collect form data
     const displayName = document.getElementById('displayName').value;
     const about = document.getElementById('about').value;
+    const profileImage = document.getElementById('profileImage').value;
     const wallPostFee = document.getElementById('wallPostFee').value;
     // Construct the posting_json_metadata
-    const postingJsonMetadata = JSON.stringify({
+    const postingJsonMetadata = {
         profile: {
             name: displayName,
             about: about,
-            wall_post_fee: wallPostFee
-        },
-        version: '1.0',
-        app: '4thstreetbar/1.0'
-    });
+            profile_image: profileImage,
+            wall_post_fee: wallPostFee,
+            version: '1.0'
+        }
+    };
     // Get username from localStorage
-    const account = localStorage.getItem('username');
-    
-    if (!account) {
-        alert("You must be logged in to update your profile.");
-        return;
-    }
-    // Verify Hive Keychain is installed
-    if (!window.hive_keychain) {
-        alert("Hive Keychain extension is not installed.");
-        return;
-    }
-    // Create the operation
+    const account = localStorage.getItem('username');    
+
+    // Create the account_update2 operation
     const operation = [
-        "account_update",
+        "account_update2",
         {
             account: account,
-            posting_json_metadata: postingJsonMetadata,
-            posting: {
-                weight_threshold: 1,
-                account_auths: [],
-                key_auths: []
-            }
+            json_metadata: "", // Empty string as we're not updating this
+            posting_json_metadata: JSON.stringify(postingJsonMetadata),
+            extensions: []
         }
     ];
-    // Request Hive Keychain to sign and broadcast the transaction
-    window.hive_keychain.requestCustomJson(
+    // Request Hive Keychain to sign and broadcast the operation
+    window.hive_keychain.requestBroadcast(
         account,
-        "4thstreetbar", // Custom identifier for your app
+        [operation],
         "Posting",
-        JSON.stringify([operation]),
-        "Update profile settings",
-        (response) => {
+        function(response) {
             if (response.success) {
                 alert("Profile updated successfully!");
                 window.location.reload();
             } else {
-                alert("Failed to update profile: " + response.error);
+                alert("Failed to update profile: " + response.message);
                 console.error("Error:", response.error);
             }
         }
