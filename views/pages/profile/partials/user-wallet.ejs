@@ -71,12 +71,12 @@
 
     <div class="space-y-4">
         <div class="flex justify-between items-center">
-            <span class="text-white">HBD Balance:</span>
-            <span class="text-bar-gold font-bold"><%= parseFloat(account.hbd_balance).toFixed(3) %> HBD</span>
-        </div>
-        <div class="flex justify-between items-center">
             <span class="text-white">Voting Power:</span>
             <%- include('./beer-pitcher-display', { votingPower: votingPower }) %>
+        </div>
+        <div class="flex justify-between items-center">
+            <span class="text-white">HBD Balance:</span>
+            <span class="text-bar-gold font-bold"><%= parseFloat(account.hbd_balance).toFixed(3) %> HBD</span>
         </div>
         <%- include('pay-tab-modal') %>
     </div>

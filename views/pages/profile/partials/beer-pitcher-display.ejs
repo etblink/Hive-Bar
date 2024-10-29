@@ -1,6 +1,7 @@
 <!-- beer-pitcher-display.ejs -->
 <div class="flex flex-col items-center justify-center p-4">
   <div class="flex items-center justify-center w-full max-w-3xl gap-8">
+    <div id="debug-container">
     <svg
       id="beerPitcherSvg"
       width="272"
@@ -56,6 +57,31 @@
         </circle>
       </g>
     </svg>
+    </div>
     <div id="pitcherInfo" class="text-lg font-semibold text-bar-gold"></div>
   </div>
 </div>
+<!-- At the bottom of beer-pitcher-display.ejs -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM Content Loaded, checking for SVG');
+  setTimeout(() => {  // Add a small delay to ensure SVG is rendered
+    const svg = document.getElementById('beerPitcherSvg');
+    console.log('Found SVG element:', svg);
+
+    if (svg) {
+      const votingPower = parseFloat(svg.dataset.votingPower) || 0;
+      console.log('Parsed voting power:', votingPower);
+
+      try {
+        window.beerPitcher = new BeerPitcher(votingPower);
+        console.log('BeerPitcher initialized successfully');
+      } catch (error) {
+        console.error('Error initializing BeerPitcher:', error);
+      }
+    } else {
+      console.error('SVG element not found during initialization');
+    }
+  }, 100);  // 100ms delay
+});
+</script>
