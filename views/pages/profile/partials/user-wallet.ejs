@@ -88,6 +88,9 @@
                         id="claimRewardsBtn"
                         class="px-3 py-1 bg-bar-gold text-black rounded hover:bg-opacity-80 text-sm font-medium"
                         onclick="claimRewards('<%= account.name %>')"
+                        data-reward-hive="<%= account.reward_hive_balance %>"
+                        data-reward-hbd="<%= account.reward_hbd_balance %>"
+                        data-reward-vests="<%= account.reward_vesting_balance %>"
                     >
                         Claim Rewards
                     </button>
@@ -119,12 +122,21 @@ function claimRewards(username) {
         return;
     }
 
+    // Get reward balances from data attributes
+    const rewardHive = document.getElementById('claimRewardsBtn').dataset.rewardHive;
+    const rewardHbd = document.getElementById('claimRewardsBtn').dataset.rewardHbd;
+    const rewardVests = document.getElementById('claimRewardsBtn').dataset.rewardVests;
+
+    console.log(rewardHive);
+    console.log(rewardHbd);
+    console.log(rewardVests);
+    
     const operations = [
         ["claim_reward_balance", {
             account: username,
-            reward_hive: account.reward_hive_balance,
-            reward_hbd: account.reward_hbd_balance,
-            reward_vests: account.reward_vesting_balance
+            reward_hive: rewardHive,
+            reward_hbd: rewardHbd,
+            reward_vests: rewardVests
         }]
     ];
 
