@@ -78,6 +78,60 @@
             <span class="text-white">HBD Balance:</span>
             <span class="text-bar-gold font-bold"><%= parseFloat(account.hbd_balance).toFixed(3) %> HBD</span>
         </div>
+
+        <% if (parseFloat(account.reward_hbd_balance) > 0 || 
+               parseFloat(account.reward_hive_balance) > 0 || 
+               parseFloat(account.reward_vesting_balance) > 0) { %>
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-white">Available Rewards:</span>
+                <div class="flex justify-end gap-2">
+                    <button 
+                        id="claimRewardsBtn"
+                        class="px-3 py-1 bg-bar-gold text-black rounded hover:bg-opacity-80 text-sm font-medium"
+                        onclick="claimRewards('<%= account.name %>')"
+                    >
+                        Claim Rewards
+                    </button>
+                    <span class="text-bar-gold">
+                        <%= parseFloat(account.reward_hbd_balance) > 0 ? `${parseFloat(account.reward_hbd_balance).toFixed(3)} HBD` : '' %>
+                        <%= parseFloat(account.reward_hive_balance) > 0 ? `${parseFloat(account.reward_hive_balance).toFixed(3)} HIVE` : '' %>
+                        <%= parseFloat(account.reward_vesting_balance) > 0 ? `${parseFloat(account.reward_vesting_balance).toFixed(6)} VESTS` : '' %>
+                    </span>
+                </div>
+            </div>
+        <% } %>
         <%- include('pay-tab-modal') %>
     </div>
 </div>
+
+<script>
+function claimRewards(username) {
+    if (!window.hive_keychain) {
+        alert("Hive Keychain extension is required to claim rewards");
+        return;
+    }
+
+    const operations = [
+        ["claim_reward_balance", {
+            account: username,
+            reward_hive: account.reward_hive_balance,
+            reward_hbd: account.reward_hbd_balance,
+            reward_vests: account.reward_vesting_balance
+        }]
+    ];
+
+    window.hive_keychain.requestBroadcast(
+        username,
+        operations,
+        "Posting",
+        function(response) {
+            if (response.success) {
+                alert("Rewards claimed successfully!");
+                window.location.reload();
+            } else {
+                alert("Failed to claim rewards: " + response.message);
+            }
+        }
+    );
+}
+</script>
