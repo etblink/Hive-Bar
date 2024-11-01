@@ -8,16 +8,95 @@ const hiveClient = require('../utils/hiveClient');
 const { cacheThreads, getCachedThreads, getCachedCommunityPosts, cacheCommunityPosts } = require('../utils/cacheOperations');
 const { checkCommunityMembership } = require('../utils/hiveApi');
 
+// Markdown cache with LRU structure
+const markdownCache = new Map();
+const voteCache = new Map();
+const MAX_CACHE_SIZE = 1000;
+const VOTE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 async function parseMarkdown(posts) {
-  const parsedPosts = await Promise.all(posts.map(async post => {
-    const votes = await hiveClient.call('condenser_api', 'get_active_votes', [post.author, post.permlink]);
+  // First pass: Process markdown and return immediately
+  const processedPosts = posts.map(post => {
+    const cacheKey = `${post.author}_${post.permlink}`;
+    let parsedBody;
+
+    // Check markdown cache
+    if (markdownCache.has(cacheKey)) {
+      parsedBody = markdownCache.get(cacheKey);
+    } else {
+      parsedBody = md.render(post.body);
+      
+      // Implement LRU caching
+      if (markdownCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = markdownCache.keys().next().value;
+        markdownCache.delete(firstKey);
+      }
+      markdownCache.set(cacheKey, parsedBody);
+    }
+
+    // Check vote cache first
+    const cachedVotes = voteCache.get(cacheKey);
+    const now = Date.now();
+    if (cachedVotes && (now - cachedVotes.timestamp) < VOTE_CACHE_DURATION) {
+      return {
+        ...post,
+        parsedBody,
+        likes: cachedVotes.count
+      };
+    }
+
     return {
       ...post,
-      parsedBody: md.render(post.body),
-      likes: votes.length
+      parsedBody,
+      likes: 0, // Initialize with 0, will be updated by fetchVoteCounts
+      needsVoteCount: true
     };
-  }));
-  return parsedPosts;
+  });
+
+  // Second pass: Fetch vote counts in background for posts that need them
+  const postsNeedingVotes = processedPosts.filter(post => post.needsVoteCount);
+  if (postsNeedingVotes.length > 0) {
+    fetchVoteCounts(postsNeedingVotes).catch(console.error);
+  }
+
+  return processedPosts;
+}
+
+async function fetchVoteCounts(posts) {
+  const batchSize = 5; // Reduced batch size to avoid rate limits
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  for (let i = 0; i < posts.length; i += batchSize) {
+    const batch = posts.slice(i, i + batchSize);
+    
+    const votePromises = batch.map(async post => {
+      try {
+        const votes = await hiveClient.call('condenser_api', 'get_active_votes', [post.author, post.permlink]);
+        const cacheKey = `${post.author}_${post.permlink}`;
+        const voteCount = votes.length;
+        
+        // Update vote cache
+        voteCache.set(cacheKey, {
+          count: voteCount,
+          timestamp: Date.now()
+        });
+
+        // Emit server-side event or use WebSocket to update client
+        // This part would need WebSocket implementation
+        return { author: post.author, permlink: post.permlink, likes: voteCount };
+      } catch (error) {
+        console.error(`Error fetching votes for ${post.author}/${post.permlink}:`, error);
+        return null;
+      }
+    });
+
+    await Promise.all(votePromises);
+    
+    // Add delay between batches to avoid rate limits
+    if (i + batchSize < posts.length) {
+      await delay(1000);
+    }
+  }
 }
 
 async function fetchLatestThreadContainer() {
@@ -76,12 +155,20 @@ router.get('/threads', async (req, res) => {
     let cachedThreads = await getCachedThreads();
     let parsedThreads;
 
-    if (cachedThreads) {
+    if (0) {
       parsedThreads = cachedThreads;
     } else {
       const latestThreadContainer = await fetchLatestThreadContainer();
+
+      const startTime = performance.now();
       const threads = await fetchThreads(latestThreadContainer.author, latestThreadContainer.permlink);
+      const endTime = performance.now();
+      console.log(`Time taken to fetch threads: ${endTime - startTime} ms`);
+
+      const startTime2 = performance.now();
       parsedThreads = await parseMarkdown(threads);
+      const endTime2 = performance.now();
+      console.log(`Time taken to parse threads: ${endTime2 - startTime2} ms`);
       
       await cacheThreads(parsedThreads);
     }
