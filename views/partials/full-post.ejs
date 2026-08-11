@@ -1,47 +1,53 @@
-<div class="bg-gray-800 p-6 rounded-lg">
-  <button
-    class="mb-4 text-bar-gold hover:text-white transition-colors duration-200"
-    hx-get="<%= sourcePage === 'profile' ? `/profile/${username}/blogs` : `/community/${communityName}/community-posts` %>"
-    hx-target="#postContent"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-    </svg>
-    Back
-  </button>
-  
-  <div class="border-b border-gray-700 pb-4 mb-4">
-    <div class="flex items-center mb-4">
-      <img src="https://images.hive.blog/u/<%= post.author %>/avatar" alt="<%= post.author %>'s avatar" class="w-12 h-12 rounded-full mr-4">
+<article class="rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-8">
+  <header>
+    <p class="eyebrow">Hive post</p>
+    <h1 class="mt-2 break-words text-3xl font-bold text-white sm:text-4xl"><%= post.title %></h1>
+    <div class="mt-5 flex min-w-0 items-center gap-3">
+      <img
+        src="<%= profiles[post.author]?.profileImage || `https://images.hive.blog/u/${post.author}/avatar` %>"
+        alt=""
+        class="h-12 w-12 shrink-0 rounded-full bg-gray-800"
+        width="48"
+        height="48">
+      <div class="min-w-0">
+        <a href="/profile/<%= post.author %>" class="block truncate font-bold text-bar-gold">@<%= post.author %></a>
+        <time datetime="<%= post.created %>" class="block text-sm text-gray-400"><%= formatHiveDate(post.created) %></time>
+      </div>
+    </div>
+  </header>
+  <div class="prose mt-8 max-w-none break-words text-gray-200">
+    <%- post.bodyHtml %>
+  </div>
+  <footer class="mt-8 flex flex-wrap gap-4 border-t border-gray-700 pt-5 text-sm text-gray-400">
+    <span><%= post.positiveVotes.toLocaleString() %> positive votes</span>
+    <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
+    <span class="text-bar-gold">$<%= formatPayout(post) %></span>
+  </footer>
+  <%- include('../common/vote-form', { item: post }) %>
+</article>
+
+<section class="mt-8" aria-labelledby="comments-heading">
+  <h2 id="comments-heading" class="text-2xl font-bold text-white">Comments <span class="text-gray-400">(<%= comments.length %>)</span></h2>
+  <% if (hiveSession && writesEnabled) { %>
+    <form class="mt-5 space-y-4 rounded-xl border border-gray-700 bg-gray-900 p-5" data-social-action="comment">
+      <input type="hidden" name="parentAuthor" value="<%= post.author %>">
+      <input type="hidden" name="parentPermlink" value="<%= post.permlink %>">
       <div>
-        <a href="/profile/<%= post.author %>" class="text-lg font-semibold text-bar-gold"><%= post.author %></a>
-        <p class="text-sm text-gray-400"><%= new Date(post.created).toLocaleString() %></p>
+        <label class="block text-sm font-bold text-gray-200" for="new-comment-body">Add a comment</label>
+        <textarea id="new-comment-body" name="body" required rows="5" data-max-bytes="8192" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 UTF-8 bytes</p>
       </div>
+      <button type="submit" class="button-primary">Review comment</button>
+      <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
+    </form>
+  <% } %>
+  <% if (comments.length > 0) { %>
+    <div class="mt-5 space-y-4">
+      <% comments.forEach((comment) => { %>
+        <%- include('../common/comment', { comment, userProfile: profiles[comment.author] }) %>
+      <% }); %>
     </div>
-
-    <h3 class="text-xl font-bold mb-2"><a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a></h3>
-
-    <div class="prose prose-invert mb-4">
-      <%- post.parsedBody %>
-    </div>
-    <div class="flex items-center justify-between">
-      <div class="flex items-center">
-        <%- include('../common/upvote-button', { post: post }) %>
-        <%- include('../common/comment-button', { post: post, isReply: false }) %>
-      </div>
-      <p class="text-bar-gold text-sm">Pending: $<%= parseFloat(post.pending_payout_value).toFixed(2) %></p>
-    </div>
-  </div>
-
-  <!-- Comments Section -->
-  <div class="mt-8">
-    <h4 class="text-lg font-bold mb-4">Comments</h4>
-    <% if (comments && comments.length > 0) { %>
-      <% comments.forEach(comment => { %>
-        <%- include('../common/comment', { comment: comment }) %>
-      <% }) %>
-    <% } else { %>
-      <p class="text-gray-400">No comments yet.</p>
-    <% } %>
-  </div>
-</div>
+  <% } else { %>
+    <p class="mt-4 rounded-xl border border-gray-700 bg-gray-900 p-6 text-gray-300">No comments have been posted yet.</p>
+  <% } %>
+</section>

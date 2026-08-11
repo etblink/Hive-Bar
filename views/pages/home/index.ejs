@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4th Street Bar</title>
-    <link rel="stylesheet" href="/css/style.css">
+  <%- include('../../common/head') %>
 </head>
-<body class="bg-black text-white">
-    <%- include('../../common/header') %>
+<body class="flex min-h-screen flex-col bg-black text-white">
+  <%- include('../../common/header') %>
+  <main id="main-content">
     <%- include('partials/hero') %>
-    <%- include('partials/reviews') %>
-    <%- include('partials/gallery') %>
-    <%- include('partials/map') %>
-    <%- include('../../common/footer') %>
-    <script src="/js/main.js"></script>
+    <%- include('partials/visit') %>
+    <%- include('partials/community') %>
+    <%- include('partials/photos-pending') %>
+  </main>
+  <%- include('../../common/footer') %>
 </body>
 </html>

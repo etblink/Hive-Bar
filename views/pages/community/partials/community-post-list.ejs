@@ -1,31 +1,67 @@
-<div class="mb-4">
-  <select id="sortSelect" class="bg-gray-700 text-white border border-gray-600 rounded px-2 py-1">
-    <option value="trending">Trending</option>
-    <option value="created">New</option>
-    <option value="hot">Hot</option>
-    <option value="promoted">Promoted</option>
-  </select>
-</div>
+<% if (hiveSession && writesEnabled) { %>
+  <details class="mb-5 rounded-xl border border-gray-700 bg-gray-900 p-4">
+    <summary class="cursor-pointer font-bold text-bar-gold">Create a community post</summary>
+    <form class="mt-4 space-y-4" data-social-action="post">
+      <div>
+        <label class="block text-sm font-bold text-gray-200" for="new-post-title">Title</label>
+        <input id="new-post-title" name="title" type="text" required data-max-bytes="256" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white">
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 256 UTF-8 bytes</p>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-200" for="new-post-body">Post body</label>
+        <textarea id="new-post-body" name="body" required rows="8" data-max-bytes="32768" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 32,768 UTF-8 bytes</p>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-200" for="new-post-tags">Tags</label>
+        <input id="new-post-tags" name="tags" type="text" placeholder="reno, nightlife" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white">
+        <p class="mt-1 text-xs text-gray-400">Comma-separated; the configured community tag is added automatically.</p>
+      </div>
+      <button type="submit" class="button-primary">Review post</button>
+      <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
+    </form>
+  </details>
+<% } %>
+<form
+  action="/community"
+  method="get"
+  hx-get="/community/<%= communityName %>/community-posts"
+  hx-target="#community-feed"
+  class="mb-5 flex flex-col gap-3 rounded-xl border border-gray-700 bg-gray-900 p-4 sm:flex-row sm:items-end">
+  <div class="flex-1">
+    <label for="community-sort" class="block text-sm font-semibold text-gray-200">Sort posts</label>
+    <select id="community-sort" name="sort" data-community-sort class="mt-2 w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white">
+      <% for (const sort of ['created', 'trending', 'hot', 'payout']) { %>
+        <option value="<%= sort %>" <%= postsPage.sort === sort ? 'selected' : '' %>><%= sort[0].toUpperCase() + sort.slice(1) %></option>
+      <% } %>
+    </select>
+  </div>
+  <button type="submit" class="button-secondary">Apply sort</button>
+</form>
 
-<% if (posts && posts.length > 0) { %>
-  <ul class="space-y-4">
-    <% posts.forEach(post => { %>
-      <li class="bg-gray-700 p-4 rounded-lg">
-        <%- include('../../../common/post', { 
-          post: post,
-          userProfile: userProfile[post.author]
-        }) %>
+<% if (postsPage.items.length > 0) { %>
+  <ul class="space-y-4" aria-label="Community posts">
+    <% postsPage.items.forEach((post) => { %>
+      <li class="rounded-2xl border border-gray-700 bg-gray-900 p-4 sm:p-6">
+        <%- include('../../../common/post', { post, userProfile: postsPage.profiles[post.author] }) %>
       </li>
     <% }); %>
   </ul>
+  <% if (postsPage.nextCursor) { %>
+    <nav class="mt-6 flex justify-center" aria-label="Community post pagination">
+      <a
+        href="/community?sort=<%= postsPage.sort %>&after=<%= postsPage.nextCursor %>"
+        hx-get="/community/<%= communityName %>/community-posts?sort=<%= postsPage.sort %>&after=<%= postsPage.nextCursor %>"
+        hx-target="#community-feed"
+        class="button-secondary">
+        Next page
+      </a>
+    </nav>
+  <% } %>
 <% } else { %>
-  <p class="text-gray-400">No community posts found.</p>
+  <section class="state-card">
+    <p class="eyebrow">A fresh tap</p>
+    <h2>The conversation is just getting started</h2>
+    <p>There are no posts in this view yet. This is the live 4th Street Bar community—not substitute content from another community.</p>
+  </section>
 <% } %>
-
-<script>
-document.getElementById('sortSelect').addEventListener('change', function() {
-  const sortValue = this.value;
-  const communityName = '<%= communityName %>'; // Make sure to pass communityName to this template
-  htmx.ajax('GET', `/community/${communityName}/community-posts?sort=${sortValue}`, '#postContent');
-});
-</script>

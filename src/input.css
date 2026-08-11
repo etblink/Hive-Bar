@@ -1,45 +1,272 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../views";
+@source "../public/js";
 
-/* Custom styles */
-@layer components {
-    .container {
-        @apply px-6;
-    }
+@theme {
+  --color-bar-gold: #f4a460;
 }
 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-width: 320px;
+  }
+
+  :focus-visible {
+    outline: 3px solid #f4a460;
+    outline-offset: 3px;
+  }
+
+  a,
+  button,
+  select {
+    touch-action: manipulation;
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply fixed left-3 top-3 z-50 -translate-y-24 rounded-lg bg-white px-4 py-3 font-bold text-black transition-transform;
+  }
+
+  .skip-link:focus {
+    @apply translate-y-0;
+  }
+
+  .bar-mark {
+    @apply grid h-11 w-11 shrink-0 place-items-center rounded-lg border-2 border-bar-gold bg-gray-950 text-2xl font-black text-bar-gold;
+  }
+
+  .nav-link {
+    @apply inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800 hover:text-bar-gold;
+  }
+
+  .eyebrow {
+    @apply text-sm font-bold uppercase tracking-[0.18em] text-bar-gold;
+  }
+
+  .button-primary,
+  .button-secondary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-lg px-5 py-3 text-center font-bold no-underline;
+  }
+
+  .button-primary {
+    @apply bg-bar-gold text-black hover:bg-amber-300;
+  }
+
+  .button-secondary {
+    @apply border border-gray-500 bg-gray-900 text-white hover:border-bar-gold hover:text-bar-gold;
+  }
+
+  .hero-grid {
+    background-image:
+      radial-gradient(circle at 15% 15%, rgb(244 164 96 / 0.12), transparent 28rem),
+      linear-gradient(135deg, #030712 0%, #111827 100%);
+  }
+
+  .brand-poster {
+    @apply mx-auto grid aspect-[4/5] w-full max-w-sm place-content-center overflow-hidden rounded-3xl border border-amber-500/50 bg-black p-6 text-center shadow-2xl;
+    background-image:
+      linear-gradient(135deg, transparent 0 45%, rgb(244 164 96 / 0.08) 45% 55%, transparent 55%),
+      radial-gradient(circle at center, #1f2937, #030712 70%);
+  }
+
+  .brand-poster__number {
+    @apply block text-[9rem] font-black leading-[0.72] text-bar-gold sm:text-[12rem];
+  }
+
+  .brand-poster__street {
+    @apply mt-4 block text-xl font-black tracking-[0.24em] text-white sm:text-2xl;
+  }
+
+  .brand-poster__bar {
+    @apply mt-2 block text-5xl font-black tracking-[0.2em] text-white sm:text-6xl;
+  }
+
+  .brand-poster__reno {
+    @apply mt-5 block text-xs font-bold tracking-[0.3em] text-gray-400;
+  }
+
+  .fact-card {
+    @apply flex min-h-48 flex-col rounded-2xl border border-gray-700 bg-gray-950 p-6;
+  }
+
+  .fact-card h3 {
+    @apply text-sm font-bold uppercase tracking-wider text-bar-gold;
+  }
+
+  .fact-card > p {
+    @apply mt-3 text-xl font-bold leading-8 text-white;
+  }
+
+  .fact-card a,
+  .fact-card span {
+    @apply mt-auto pt-5 text-sm text-gray-400;
+  }
+
+  .fact-card a {
+    @apply underline hover:text-bar-gold;
+  }
+
+  .photo-placeholder {
+    @apply grid aspect-[4/3] place-items-center rounded-2xl border border-dashed border-gray-600 bg-gray-900;
+    background-image: linear-gradient(135deg, rgb(244 164 96 / 0.08), transparent);
+  }
+
+  .photo-placeholder span {
+    @apply text-xl font-black tracking-[0.25em] text-gray-500;
+  }
+
+  .content-tab {
+    @apply inline-flex min-h-12 items-center justify-center rounded-lg border border-gray-700 bg-gray-900 px-3 py-3 text-center text-sm font-bold text-gray-200 hover:border-bar-gold hover:text-bar-gold;
+  }
+
+  .content-tab--active {
+    @apply border-bar-gold bg-bar-gold text-black hover:text-black;
+  }
+
+  .state-card {
+    @apply rounded-2xl border border-gray-700 bg-gray-900 p-7 text-center sm:p-10;
+  }
+
+  .state-card h2 {
+    @apply mt-2 text-2xl font-bold text-white;
+  }
+
+  .state-card p:not(.eyebrow) {
+    @apply mx-auto mt-3 max-w-xl leading-7 text-gray-300;
+  }
+
+  .stat-tile {
+    @apply rounded-lg bg-black/40 p-3;
+  }
+
+  .stat-tile dt,
+  .wallet-value dt {
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-400;
+  }
+
+  .stat-tile dd {
+    @apply mt-1 text-lg font-bold text-white;
+  }
+
+  .comment-card {
+    @apply min-w-0 rounded-2xl border border-gray-700 bg-gray-900 p-4 sm:p-6;
+  }
+
+  .wallet-value,
+  .wallet-panel {
+    @apply rounded-xl border border-gray-700 bg-black/35 p-4;
+  }
+
+  .wallet-value dd {
+    @apply mt-2 break-words text-lg font-bold text-white;
+  }
+
+  .wallet-meter {
+    @apply block h-5 w-full overflow-hidden rounded-full bg-gray-700 accent-amber-400;
+  }
+
+  .beer-pitcher {
+    @apply relative w-32 shrink-0 rounded-b-3xl rounded-t-lg border-4 border-gray-400 bg-gray-800 p-2 pt-5;
+    min-height: 12rem;
+    box-shadow: 1.25rem 1.5rem 0 -0.75rem #030712, 1.25rem 1.5rem 0 -0.55rem #9ca3af;
+  }
+
+  .beer-foam {
+    @apply absolute left-2 right-2 top-2 h-5 rounded-full bg-amber-50;
+  }
+
+  .beer-segments {
+    @apply flex h-36 flex-col gap-0.5 overflow-hidden rounded-b-2xl bg-gray-900;
+  }
+
+  .beer-segment {
+    @apply min-h-0 flex-1 bg-gray-700;
+  }
+
+  .beer-segment--filled {
+    @apply bg-gradient-to-r from-amber-500 via-amber-300 to-yellow-500;
+  }
+
+  .prose {
+    @apply leading-7;
+  }
+
+  .prose > * + * {
+    @apply mt-4;
+  }
+
+  .prose a {
+    @apply break-words text-bar-gold underline;
+  }
+
+  .prose img {
+    @apply my-4 h-auto max-w-full rounded-lg;
+  }
+
+  .prose pre {
+    @apply my-4 max-w-full overflow-x-auto rounded-lg bg-black p-4;
+  }
+
+  .prose code {
+    @apply break-words;
+  }
+
+  .prose blockquote {
+    @apply my-4 border-l-4 border-bar-gold pl-4 text-gray-300;
+  }
+
+  .prose ul {
+    @apply list-disc pl-6;
+  }
+
+  .prose ol {
+    @apply list-decimal pl-6;
+  }
+
+  .prose table {
+    @apply block max-w-full overflow-x-auto;
+  }
+}
+
+@media (min-width: 640px) {
+  .comment-depth-1 {
+    margin-left: 1.5rem;
+  }
+
+  .comment-depth-2 {
+    margin-left: 3rem;
+  }
+
+  .comment-depth-3,
+  .comment-depth-4 {
+    margin-left: 4.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
-::-webkit-scrollbar-button {
-  width: 0px;
-  height: 0px;
-}
+
 ::-webkit-scrollbar-thumb {
-  background: #111827;
-  border: 0px none #000000;
-  border-radius: 50px;
+  border-radius: 999px;
+  background: #374151;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #111827;
-}
-::-webkit-scrollbar-thumb:active {
-  background: #111827;
-}
+
 ::-webkit-scrollbar-track {
-  background: #1f2937;
-  border: 0px none #ffffff;
-  border-radius: 50px;
-}
-::-webkit-scrollbar-track:hover {
-  background: #1f2937;
-}
-::-webkit-scrollbar-track:active {
-  background: #1f2937;
-}
-::-webkit-scrollbar-corner {
-  background: transparent;
+  background: #111827;
 }

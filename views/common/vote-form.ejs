@@ -1,0 +1,21 @@
+<% if (hiveSession && writesEnabled) { %>
+  <form class="mt-4 flex flex-wrap items-end gap-3" data-social-action="vote">
+    <input type="hidden" name="author" value="<%= item.author %>">
+    <input type="hidden" name="permlink" value="<%= item.permlink %>">
+    <div>
+      <label class="block text-xs font-bold text-gray-300" for="vote-<%= item.author %>-<%= item.permlink %>">Vote percentage</label>
+      <input
+        id="vote-<%= item.author %>-<%= item.permlink %>"
+        type="number"
+        name="percent"
+        value="100"
+        min="1"
+        max="100"
+        step="1"
+        required
+        class="mt-1 w-24 rounded border border-gray-600 bg-black px-3 py-2 text-white">
+    </div>
+    <button type="submit" class="button-secondary">Review vote</button>
+    <p class="w-full text-xs text-gray-300" aria-live="polite" data-social-status></p>
+  </form>
+<% } %>

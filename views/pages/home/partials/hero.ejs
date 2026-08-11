@@ -1,12 +1,23 @@
-<section id="home" class="bg-[url('/images/bar-background.jpg')] bg-cover bg-center h-screen flex items-center justify-between">
-    <div class="container mx-auto px-10 flex items-center justify-between">
-        <div class="max-w-lg">
-            <h1 class="text-5xl font-bold mb-4">Welcome to 4th Street Bar</h1>
-            <p class="text-xl mb-6">Your friendly neighborhood spot for great drinks and even better company.</p>
-            <a href="/community" class="bg-bar-gold text-black font-bold py-2 px-4 rounded hover:bg-opacity-80">Join Our Community</a>
-        </div>
-        <div class="max-w-sm">
-            <img src="https://fourthstreetbar.com/images/bar-logo.svg" alt="4th Street Bar Logo" class="w-full">
-        </div>
+<section class="hero-grid border-b border-gray-800 bg-gray-950 py-16 sm:py-24" aria-labelledby="home-heading">
+  <div class="container mx-auto grid items-center gap-10 px-4 sm:px-6 lg:grid-cols-2">
+    <div>
+      <p class="eyebrow">Reno, Nevada</p>
+      <h1 id="home-heading" class="mt-3 text-4xl font-black tracking-tight text-white sm:text-6xl">
+        4th Street Bar,<br><span class="text-bar-gold">on the block and on Hive.</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-lg leading-8 text-gray-300">
+        Find the bar, check today’s hours, and browse the public 4th Street Bar community without creating an account.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="/community" class="button-primary">Browse the Hive community</a>
+        <a href="#visit" class="button-secondary">Plan a visit</a>
+      </div>
     </div>
+    <div class="brand-poster" role="img" aria-label="4th Street Bar, Reno, Nevada">
+      <span class="brand-poster__number" aria-hidden="true">4</span>
+      <span class="brand-poster__street">TH STREET</span>
+      <span class="brand-poster__bar">BAR</span>
+      <span class="brand-poster__reno">RENO · NEVADA</span>
+    </div>
+  </div>
 </section>

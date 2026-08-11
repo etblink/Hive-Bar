@@ -1,20 +1,27 @@
-<footer class="bg-black py-4">
-    <div class="container mx-auto text-center">
-        <p>&copy; 2023 4th Street Bar. All rights reserved.</p>
-    </div>
+<footer class="mt-auto border-t border-gray-800 bg-black py-5">
+  <div class="container mx-auto px-6 text-center text-sm text-gray-400">
+    <p>&copy; <%= currentYear %> <%= siteName %>. Hive community and wallet summaries come from public blockchain data.</p>
+    <p class="mt-2">Hive-Bar never asks for or stores private keys.</p>
+  </div>
 </footer>
-
-<!-- Scripts -->
-<script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/dexie@3.2.3/dist/dexie.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hive-keychain@1.1.16/dist/hive-keychain.min.js"></script>
-<script src="/js/beer-mug-upvote.js"></script>
-<script src="/js/beer-pitcher-display.js"></script>
-<script src="/js/voting.js"></script>
-<script src="/js/main.js"></script>
-<script type="module">
-    import QrScanner from '/js/qr-scanner.min.js';
-    window.QrScanner = QrScanner;
-</script>
-</body>
-</html>
+<dialog class="w-full max-w-2xl rounded-2xl border border-gray-600 bg-gray-950 p-6 text-white" data-social-confirm aria-labelledby="social-confirm-heading">
+  <h2 id="social-confirm-heading" class="text-2xl font-bold text-bar-gold">Review exact Hive operation</h2>
+  <p class="mt-3 text-sm text-gray-300">
+    Signing account: <strong class="text-white" data-social-account></strong>. Authority: <strong class="text-white">Posting</strong>.
+    This is the final review before Hive Keychain opens.
+  </p>
+  <pre class="mt-4 max-h-48 overflow-x-auto rounded-lg bg-black p-4 text-xs text-gray-200" data-social-summary></pre>
+  <details class="mt-4">
+    <summary class="cursor-pointer font-bold text-gray-200">Exact operation JSON</summary>
+    <pre class="mt-3 max-h-64 overflow-x-auto rounded-lg bg-black p-4 text-xs text-gray-200" data-social-operations></pre>
+  </details>
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+    <button type="button" class="button-primary" data-social-confirm-button>Continue to Keychain</button>
+    <button type="button" class="button-secondary" data-social-cancel-button>Cancel</button>
+  </div>
+</dialog>
+<script src="/htmx/htmx.min.js" defer></script>
+<script src="/js/keychain-adapter.js" defer></script>
+<script src="/js/auth.js" defer></script>
+<script src="/js/social-actions.js" defer></script>
+<script src="/js/main.js" defer></script>

@@ -1,36 +1,26 @@
-<%
-function stripHtmlTags(str) {
-    if ((str===null) || (str===''))
-        return '';
-    else
-        str = str.toString();
-    return str.replace(/<[^>]*>/g, '');
-}
-%>
-<div class="border-b border-gray-700 bg-gray-700 p-4 rounded-lg mb-4">
-    <div class="flex items-center mb-4">
-        <img src="https://images.hive.blog/u/<%= comment.author %>/avatar" alt="<%= comment.author %>'s avatar" class="w-10 h-10 rounded-full mr-4">
-        <div>
-            <a href="/profile/<%= comment.author %>" class="text-lg font-semibold text-bar-gold"><%= comment.author %></a>
-            <p class="text-sm text-gray-400"><%= new Date(comment.created).toLocaleString() %></p>
-        </div>
+<article class="comment-card comment-depth-<%= Math.min(4, comment.depth || 0) %>">
+  <header class="flex min-w-0 items-center gap-3">
+    <img
+      src="<%= userProfile?.profileImage || `https://images.hive.blog/u/${comment.author}/avatar` %>"
+      alt=""
+      class="h-10 w-10 shrink-0 rounded-full bg-gray-800"
+      width="40"
+      height="40"
+      loading="lazy">
+    <div class="min-w-0">
+      <a href="/profile/<%= comment.author %>" class="block truncate font-bold text-white hover:text-bar-gold">
+        <%= userProfile?.displayName || `@${comment.author}` %>
+      </a>
+      <time datetime="<%= comment.created %>" class="block text-xs text-gray-400"><%= formatHiveDate(comment.created) %></time>
     </div>
-    <a href="/post/<%= comment.author %>/<%= comment.permlink %>" 
-       hx-get="/post/<%= comment.author %>/<%= comment.permlink %>" 
-       hx-target="#postContent" 
-       hx-push-url="true"
-       class="block mb-2 break-all hover:bg-gray-600 transition-colors duration-200 rounded p-2">
-        <%- comment.parsedBody %>
-    </a>
-    <div class="flex items-center justify-between">
-        <div class="flex items-center">
-            <%- include('upvote-button', { post: comment }) %>
-            <%- include('comment-button', { post: comment, isReply: true }) %>
-        </div>
-        <% if (comment.pending_payout_value) { %>
-        <span class="text-bar-gold text-sm">
-            Pending: $<%= parseFloat(comment.pending_payout_value).toFixed(2) %>
-        </span>
-        <% } %>
-    </div>
-</div>
+  </header>
+  <div class="prose mt-4 max-w-none break-words text-gray-200">
+    <%- comment.bodyHtml %>
+  </div>
+  <footer class="mt-4 flex flex-wrap gap-4 text-sm text-gray-400">
+    <span><%= comment.positiveVotes.toLocaleString() %> positive votes</span>
+    <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
+    <span class="text-bar-gold">$<%= formatPayout(comment) %></span>
+  </footer>
+  <%- include('vote-form', { item: comment }) %>
+</article>
