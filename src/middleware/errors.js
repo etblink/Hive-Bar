@@ -61,6 +61,10 @@ function errorHandler(error, req, res, next) {
     errorCode: code,
     message,
     requestId: req.id,
+    retryUrl:
+      req.originalUrl.startsWith('/') && !req.originalUrl.startsWith('//')
+        ? req.originalUrl
+        : '/',
   });
 }
 

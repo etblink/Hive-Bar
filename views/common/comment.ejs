@@ -1,16 +1,25 @@
-<article class="mb-4 rounded-lg border-b border-gray-600 bg-gray-700 p-4">
-  <header class="mb-4 flex items-center">
-    <img src="https://images.hive.blog/u/<%= comment.author %>/avatar" alt="" class="mr-4 h-10 w-10 rounded-full" width="40" height="40" loading="lazy">
-    <div>
-      <a href="/profile/<%= comment.author %>" class="text-lg font-semibold text-bar-gold hover:underline">@<%= comment.author %></a>
-      <p class="text-sm text-gray-400"><%= new Date(comment.created).toLocaleString() %></p>
+<article class="comment-card comment-depth-<%= Math.min(4, comment.depth || 0) %>">
+  <header class="flex min-w-0 items-center gap-3">
+    <img
+      src="<%= userProfile?.profileImage || `https://images.hive.blog/u/${comment.author}/avatar` %>"
+      alt=""
+      class="h-10 w-10 shrink-0 rounded-full bg-gray-800"
+      width="40"
+      height="40"
+      loading="lazy">
+    <div class="min-w-0">
+      <a href="/profile/<%= comment.author %>" class="block truncate font-bold text-white hover:text-bar-gold">
+        <%= userProfile?.displayName || `@${comment.author}` %>
+      </a>
+      <time datetime="<%= comment.created %>" class="block text-xs text-gray-400"><%= formatHiveDate(comment.created) %></time>
     </div>
   </header>
-  <div class="prose prose-invert max-w-none break-words">
-    <%- comment.parsedBody %>
+  <div class="prose mt-4 max-w-none break-words text-gray-200">
+    <%- comment.bodyHtml %>
   </div>
-  <footer class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
-    <span class="text-gray-300"><%= Number(comment.likes || 0).toLocaleString() %> positive votes</span>
-    <span class="text-bar-gold">Pending: $<%= formatPayout(comment) %></span>
+  <footer class="mt-4 flex flex-wrap gap-4 text-sm text-gray-400">
+    <span><%= comment.positiveVotes.toLocaleString() %> positive votes</span>
+    <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
+    <span class="text-bar-gold">$<%= formatPayout(comment) %></span>
   </footer>
 </article>

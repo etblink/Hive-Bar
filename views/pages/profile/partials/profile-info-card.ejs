@@ -1,21 +1,29 @@
-<section class="rounded-lg bg-gray-800 p-6 text-center">
-  <img src="<%= userProfile.profile.profileImage %>" alt="<%= userProfile.name %> profile picture" class="mx-auto mb-4 h-24 w-24 rounded-full" width="96" height="96">
-  <h2 class="mb-2 text-2xl font-bold"><%= userProfile.profile.name %></h2>
-  <p class="mb-4 text-gray-400">@<%= userProfile.name %></p>
-  <% if (userProfile.profile.about) { %>
-    <p class="mb-6 text-sm text-gray-200"><%= userProfile.profile.about %></p>
+<section class="rounded-2xl border border-gray-700 bg-gray-900 p-6 text-center" aria-labelledby="profile-name-heading">
+  <img src="<%= userProfile.profileImage %>" alt="" class="mx-auto mb-4 h-24 w-24 rounded-full bg-gray-800" width="96" height="96">
+  <h2 id="profile-name-heading" class="text-2xl font-bold"><%= userProfile.displayName %></h2>
+  <p class="mt-1 text-gray-400">@<%= userProfile.name %></p>
+  <% if (userProfile.about) { %>
+    <p class="mt-5 break-words text-sm leading-6 text-gray-200"><%= userProfile.about %></p>
   <% } %>
-  <dl class="mb-6 flex justify-center gap-10">
-    <div>
-      <dt class="text-sm text-gray-400">Followers</dt>
-      <dd class="text-xl font-bold"><%= userProfile.follower_count.toLocaleString() %></dd>
+  <dl class="mt-6 grid grid-cols-2 gap-3">
+    <div class="stat-tile">
+      <dt>Followers</dt>
+      <dd><%= userProfile.followerCount.toLocaleString() %></dd>
     </div>
-    <div>
-      <dt class="text-sm text-gray-400">Following</dt>
-      <dd class="text-xl font-bold"><%= userProfile.following_count.toLocaleString() %></dd>
+    <div class="stat-tile">
+      <dt>Following</dt>
+      <dd><%= userProfile.followingCount.toLocaleString() %></dd>
+    </div>
+    <div class="stat-tile">
+      <dt>Posts</dt>
+      <dd><%= userProfile.postCount.toLocaleString() %></dd>
+    </div>
+    <div class="stat-tile">
+      <dt>Reputation</dt>
+      <dd><%= userProfile.reputation %></dd>
     </div>
   </dl>
-  <p class="rounded border border-gray-600 bg-gray-900 p-3 text-sm text-gray-300">
-    Verified owner controls and follow actions return with the secure Keychain session milestone.
+  <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
+    Follow actions and verified owner controls begin after secure Keychain identity is available.
   </p>
 </section>

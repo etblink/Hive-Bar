@@ -7,12 +7,15 @@ const nodeGlobals = {
   console: 'readonly',
   fetch: 'readonly',
   __dirname: 'readonly',
+  __filename: 'readonly',
   module: 'readonly',
   process: 'readonly',
   ReadableStream: 'readonly',
+  Response: 'readonly',
   require: 'readonly',
   setTimeout: 'readonly',
   clearTimeout: 'readonly',
+  structuredClone: 'readonly',
   URL: 'readonly',
 };
 
@@ -37,7 +40,14 @@ module.exports = [
     ],
   },
   {
-    files: ['src/**/*.js', 'routes/**/*.js', 'utils/**/*.js', 'index.js', 'eslint.config.js'],
+    files: [
+      'src/**/*.js',
+      'routes/**/*.js',
+      'test/**/*.js',
+      'scripts/**/*.js',
+      'index.js',
+      'eslint.config.js',
+    ],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'commonjs',

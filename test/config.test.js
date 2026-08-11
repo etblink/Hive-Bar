@@ -15,13 +15,16 @@ function configFrom(overrides = {}) {
   );
 }
 
-test('loads the approved M1 identifiers and safe defaults', () => {
+test('loads the approved M2 identifiers, business facts, and safe defaults', () => {
   const config = configFrom();
 
   assert.equal(config.hive.communityId, 'hive-108590');
   assert.equal(config.hive.threadsContainerAccount, 'fourthst.threads');
   assert.equal(config.hive.writeMode, 'disabled');
   assert.equal(config.hive.writesEnabled, false);
+  assert.equal(config.site.business.address, '1114 E. 4th Street, Reno, NV 89512');
+  assert.equal(config.site.business.phone, '(775) 324-7827');
+  assert.equal(config.site.business.websiteUrl, 'https://4thstreetbarreno.com/');
   assert.equal(config.server.port, 3000);
   assert.equal(config.hive.rpcNodes.length, 3);
 });
@@ -32,6 +35,11 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
       configFrom({
         NODE_ENV: 'production',
         SITE_NAME: '4th Street Bar',
+        BAR_ADDRESS: '1114 E. 4th Street, Reno, NV 89512',
+        BAR_PHONE: '(775) 324-7827',
+        BAR_HOURS: 'Daily, noon–2:00 a.m.',
+        BAR_WEBSITE_URL: 'https://4thstreetbarreno.com/',
+        BAR_MAP_URL: 'https://www.google.com/maps/search/?api=1&query=4th+Street+Bar+Reno',
         HIVE_COMMUNITY_ID: 'hive-108590',
         THREADS_CONTAINER_ACCOUNT: 'fourthst.threads',
         HIVE_RPC_NODES: 'https://api.hive.blog',
@@ -43,14 +51,14 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
 test('fails closed when production settings are only implicit defaults', () => {
   assert.throws(
     () => loadConfig({ NODE_ENV: 'production' }, { loadDotenv: false }),
-    /production requires explicit SITE_NAME, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE/,
+    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE/,
   );
 });
 
-test('rejects write-enabled modes during M1', () => {
+test('rejects write-enabled modes during the authorized read-only milestone', () => {
   assert.throws(
     () => configFrom({ HIVE_WRITE_MODE: 'controlled' }),
-    /M1 permits only HIVE_WRITE_MODE=disabled/,
+    /authorized read-only milestone permits only HIVE_WRITE_MODE=disabled/,
   );
 });
 

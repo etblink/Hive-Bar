@@ -1,12 +1,14 @@
 # M1 acceptance evidence
 
-Status: implementation complete; awaiting product-owner acceptance
+Status: accepted by the product owner on 2026-08-11
 
 Baseline: Hive-Bar V1 specification 0.1.1
 
 Evidence date: 2026-08-11
 
 Branch: `codex/m1-foundation`
+
+Accepted commit: `ab4a036`
 
 ## Deliverable evidence
 

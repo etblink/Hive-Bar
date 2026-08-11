@@ -38,9 +38,34 @@ function requireCommunitySort(value) {
   return normalized;
 }
 
+function requirePageCursor(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const encoded = String(value).trim();
+  if (encoded.length > 512 || !/^[A-Za-z0-9_-]+$/.test(encoded)) {
+    throw new ValidationError('Pagination cursor is invalid');
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+  } catch {
+    throw new ValidationError('Pagination cursor is invalid');
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new ValidationError('Pagination cursor is invalid');
+  }
+
+  return {
+    author: requireHiveAccount(parsed.author, 'Pagination author'),
+    permlink: requirePermlink(parsed.permlink),
+  };
+}
+
 module.exports = {
   requireCommunitySort,
   requireConfiguredCommunity,
   requireHiveAccount,
+  requirePageCursor,
   requirePermlink,
 };

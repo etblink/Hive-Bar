@@ -1,17 +1,18 @@
+<a href="#main-content" class="skip-link">Skip to main content</a>
 <header class="w-full border-b border-gray-800 bg-black">
-  <div class="container mx-auto flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
+  <div class="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:px-6">
     <a href="/" class="flex min-w-0 items-center gap-3" aria-label="<%= siteName %> home">
-      <img src="https://fourthstreetbar.com/images/bar-logo.svg" alt="" class="h-10 w-10 shrink-0" width="40" height="40">
+      <span class="bar-mark" aria-hidden="true">4</span>
       <span class="truncate text-xl font-bold text-white sm:text-2xl"><%= siteName %></span>
     </a>
     <nav aria-label="Primary navigation">
-      <ul class="flex items-center gap-2 sm:gap-4">
-        <li><a href="/" class="rounded px-3 py-2 text-sm text-gray-200 hover:bg-gray-800 hover:text-bar-gold">Home</a></li>
-        <li><a href="/community" class="rounded px-3 py-2 text-sm text-gray-200 hover:bg-gray-800 hover:text-bar-gold">Community</a></li>
+      <ul class="flex flex-wrap items-center justify-center gap-1 sm:gap-3">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/community" class="nav-link">Community</a></li>
         <li>
-          <button type="button" disabled class="cursor-not-allowed rounded bg-gray-700 px-3 py-2 text-sm text-gray-300" title="Verified Keychain login returns in M3">
-            Login unavailable
-          </button>
+          <span class="rounded border border-gray-700 px-3 py-2 text-xs text-gray-400" title="Verified Keychain login begins in M3">
+            Public preview
+          </span>
         </li>
       </ul>
     </nav>

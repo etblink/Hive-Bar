@@ -1,11 +1,23 @@
-<% if (threads && threads.length > 0) { %>
-  <p class="mb-4 text-sm text-gray-400">Current container: @<%= threadContainer.author %>/<%= threadContainer.permlink %></p>
-  <% threads.slice().reverse().forEach((thread) => { %>
-    <%- include('../../../common/comment', { comment: thread }) %>
-  <% }); %>
+<% if (threads.length > 0) { %>
+  <section class="mb-5 rounded-xl border border-gray-700 bg-gray-900 p-4" aria-labelledby="thread-container-heading">
+    <h2 id="thread-container-heading" class="font-bold text-bar-gold">Current thread container</h2>
+    <a href="/post/<%= container.author %>/<%= container.permlink %>" class="mt-1 block break-words text-gray-200 underline">
+      @<%= container.author %>/<%= container.permlink %>
+    </a>
+  </section>
+  <div class="space-y-4">
+    <% threads.forEach((thread) => { %>
+      <%- include('../../../common/comment', { comment: thread, userProfile: profiles[thread.author] }) %>
+    <% }); %>
+  </div>
 <% } else { %>
-  <section class="rounded-lg border border-gray-700 bg-gray-800 p-8 text-center">
-    <h2 class="text-xl font-bold text-bar-gold">No threads yet</h2>
-    <p class="mt-2 text-gray-300">Short-form discussion will appear here after @<%= threadsContainerAccount %> publishes its first container post.</p>
+  <section class="state-card">
+    <p class="eyebrow">Short-form community</p>
+    <h2>No threads yet</h2>
+    <% if (container) { %>
+      <p>The container exists, but nobody has replied to it yet.</p>
+    <% } else { %>
+      <p>Short-form discussion will appear here after @<%= threadsContainerAccount %> publishes its first container post.</p>
+    <% } %>
   </section>
 <% } %>

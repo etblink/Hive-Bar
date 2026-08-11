@@ -35,5 +35,38 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund
 
-      - name: Run M1 quality gate
+      - name: Run M2 quality gate
         run: npm run check
+
+  live-read-smoke:
+    name: Live Hive read-only smoke
+    if: github.event_name == 'workflow_dispatch'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-fund
+
+      - name: Verify production targets through read-only RPC calls
+        env:
+          NODE_ENV: development
+          SITE_NAME: 4th Street Bar
+          HIVE_COMMUNITY_ID: hive-108590
+          THREADS_CONTAINER_ACCOUNT: fourthst.threads
+          HIVE_RPC_NODES: https://api.hive.blog,https://api.deathwing.me,https://api.openhive.network
+          HIVE_WRITE_MODE: disabled
+          LOG_LEVEL: info
+        run: npm run smoke:live

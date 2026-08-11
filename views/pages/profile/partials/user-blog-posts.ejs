@@ -1,21 +1,26 @@
-<div id="blogPostsContainer">
-  <div class="htmx-indicator">
-    <p class="text-gray-400">Loading blog posts...</p>
-  </div>
-  
-  <% if (typeof userBlogPosts !== 'undefined') { %>
-    <% if (userBlogPosts && userBlogPosts.length > 0) { %>
-      <ul class="space-y-4">
-        <% userBlogPosts.forEach(post => { %>
-          <li class="bg-gray-700 p-4 rounded-lg">
-            <%- include('../../../common/post', { post: post, userProfile: userProfile }) %>
-          </li>
-        <% }); %>
-      </ul>
-    <% } else { %>
-      <p class="text-gray-400">No blog posts found.</p>
-    <% } %>
-  <% } else { %>
-    <p class="text-red-500">Error loading blog posts. Please try again later.</p>
+<% if (postsPage.items.length > 0) { %>
+  <ul class="space-y-4" aria-label="Blog posts by <%= userProfile.name %>">
+    <% postsPage.items.forEach((post) => { %>
+      <li class="rounded-2xl border border-gray-700 bg-gray-900 p-4 sm:p-6">
+        <%- include('../../../common/post', { post, userProfile: postsPage.profiles[post.author] || userProfile }) %>
+      </li>
+    <% }); %>
+  </ul>
+  <% if (postsPage.nextCursor) { %>
+    <nav class="mt-6 flex justify-center" aria-label="Profile post pagination">
+      <a
+        href="/profile/<%= userProfile.name %>?after=<%= postsPage.nextCursor %>"
+        hx-get="/profile/<%= userProfile.name %>/blogs?after=<%= postsPage.nextCursor %>"
+        hx-target="#profile-content"
+        class="button-secondary">
+        Next page
+      </a>
+    </nav>
   <% } %>
-</div>
+<% } else { %>
+  <section class="state-card">
+    <p class="eyebrow">Public blog</p>
+    <h2>No blog posts yet</h2>
+    <p>@<%= userProfile.name %> has not published a top-level Hive post in this view.</p>
+  </section>
+<% } %>

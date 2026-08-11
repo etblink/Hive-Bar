@@ -1,27 +1,43 @@
-<div class="mb-4 flex items-center justify-between gap-4">
-  <label for="sortSelect" class="text-sm font-semibold text-gray-300">Sort posts</label>
-  <select
-    id="sortSelect"
-    data-community-sort
-    data-community-id="<%= communityName %>"
-    class="rounded border border-gray-600 bg-gray-700 px-3 py-2 text-white">
-    <% for (const sort of ['trending', 'created', 'hot', 'promoted']) { %>
-      <option value="<%= sort %>" <%= activeSort === sort ? 'selected' : '' %>><%= sort[0].toUpperCase() + sort.slice(1) %></option>
-    <% } %>
-  </select>
-</div>
+<form
+  action="/community"
+  method="get"
+  hx-get="/community/<%= communityName %>/community-posts"
+  hx-target="#community-feed"
+  class="mb-5 flex flex-col gap-3 rounded-xl border border-gray-700 bg-gray-900 p-4 sm:flex-row sm:items-end">
+  <div class="flex-1">
+    <label for="community-sort" class="block text-sm font-semibold text-gray-200">Sort posts</label>
+    <select id="community-sort" name="sort" data-community-sort class="mt-2 w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white">
+      <% for (const sort of ['created', 'trending', 'hot', 'payout']) { %>
+        <option value="<%= sort %>" <%= postsPage.sort === sort ? 'selected' : '' %>><%= sort[0].toUpperCase() + sort.slice(1) %></option>
+      <% } %>
+    </select>
+  </div>
+  <button type="submit" class="button-secondary">Apply sort</button>
+</form>
 
-<% if (posts && posts.length > 0) { %>
-  <ul class="space-y-4">
-    <% posts.forEach((post) => { %>
-      <li class="rounded-lg bg-gray-700 p-4">
-        <%- include('../../../common/post', { post, userProfile: userProfile[post.author] }) %>
+<% if (postsPage.items.length > 0) { %>
+  <ul class="space-y-4" aria-label="Community posts">
+    <% postsPage.items.forEach((post) => { %>
+      <li class="rounded-2xl border border-gray-700 bg-gray-900 p-4 sm:p-6">
+        <%- include('../../../common/post', { post, userProfile: postsPage.profiles[post.author] }) %>
       </li>
     <% }); %>
   </ul>
+  <% if (postsPage.nextCursor) { %>
+    <nav class="mt-6 flex justify-center" aria-label="Community post pagination">
+      <a
+        href="/community?sort=<%= postsPage.sort %>&after=<%= postsPage.nextCursor %>"
+        hx-get="/community/<%= communityName %>/community-posts?sort=<%= postsPage.sort %>&after=<%= postsPage.nextCursor %>"
+        hx-target="#community-feed"
+        class="button-secondary">
+        Next page
+      </a>
+    </nav>
+  <% } %>
 <% } else { %>
-  <section class="rounded-lg border border-gray-700 bg-gray-800 p-8 text-center">
-    <h2 class="text-xl font-bold text-bar-gold">The conversation is just getting started</h2>
-    <p class="mt-2 text-gray-300">There are no posts in this view yet. Check back as the 4th Street Bar community grows.</p>
+  <section class="state-card">
+    <p class="eyebrow">A fresh tap</p>
+    <h2>The conversation is just getting started</h2>
+    <p>There are no posts in this view yet. This is the live 4th Street Bar community—not substitute content from another community.</p>
   </section>
 <% } %>

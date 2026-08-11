@@ -1,34 +1,33 @@
 'use strict';
 
-function setActiveTab(button) {
-  const group = button.closest('[data-tab-group]');
-  if (!group) return;
+function setActiveContentLink(link) {
+  const navigation = link.closest('nav');
+  if (!navigation) return;
 
-  for (const tab of group.querySelectorAll('[data-tab-button]')) {
-    const active = tab === button;
-    tab.setAttribute('aria-selected', String(active));
-    tab.classList.toggle('bg-bar-gold', active);
-    tab.classList.toggle('text-black', active);
-    tab.classList.toggle('bg-gray-700', !active);
-    tab.classList.toggle('text-white', !active);
+  for (const candidate of navigation.querySelectorAll('.content-tab')) {
+    const active = candidate === link;
+    candidate.classList.toggle('content-tab--active', active);
+    if (active) candidate.setAttribute('aria-current', 'page');
+    else candidate.removeAttribute('aria-current');
   }
 }
 
 document.addEventListener('click', (event) => {
-  const tab = event.target.closest('[data-tab-button]');
-  if (tab) setActiveTab(tab);
+  const link = event.target.closest('.content-tab');
+  if (link) setActiveContentLink(link);
 });
 
 document.addEventListener('change', (event) => {
   const select = event.target.closest('[data-community-sort]');
-  if (!select) return;
+  const form = select?.closest('form');
+  if (form) form.requestSubmit();
+});
 
-  const community = select.dataset.communityId;
-  const sort = encodeURIComponent(select.value);
-  htmx.ajax('GET', `/community/${encodeURIComponent(community)}/community-posts?sort=${sort}`, {
-    target: '#postContent',
-    swap: 'innerHTML',
-  });
+document.addEventListener('htmx:beforeSwap', (event) => {
+  if (event.detail.xhr.status >= 400) {
+    event.detail.shouldSwap = true;
+    event.detail.isError = false;
+  }
 });
 
 document.addEventListener('htmx:responseError', (event) => {

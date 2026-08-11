@@ -1,0 +1,128 @@
+{
+  "community": {
+    "name": "hive-108590",
+    "title": "4th Street Bar",
+    "about": "A new home for the **4th Street Bar** community. <script>alert('fixture')</script>",
+    "subscribers": 1,
+    "sum_pending": "1.250 HBD"
+  },
+  "communityPosts": [
+    {
+      "author": "etblink",
+      "permlink": "welcome-fourth-street-bar",
+      "parent_author": "",
+      "parent_permlink": "hive-108590",
+      "title": "Welcome to the 4th Street Bar community",
+      "body": "This is the first fixture post. **Pull up a stool.** <img src=x onerror=alert(1)>",
+      "created": "2026-08-10T18:30:00",
+      "updated": "2026-08-10T18:30:00",
+      "children": 1,
+      "pending_payout_value": "1.250 HBD",
+      "total_payout_value": "0.000 HBD",
+      "curator_payout_value": "0.000 HBD",
+      "active_votes": [
+        { "voter": "barfriend", "rshares": "1000" },
+        { "voter": "downvoter", "rshares": "-5" }
+      ]
+    }
+  ],
+  "discussion": {
+    "etblink/welcome-fourth-street-bar": {
+      "author": "etblink",
+      "permlink": "welcome-fourth-street-bar",
+      "parent_author": "",
+      "parent_permlink": "hive-108590",
+      "title": "Welcome to the 4th Street Bar community",
+      "body": "This is the first fixture post. **Pull up a stool.** <script>alert('stored')</script>",
+      "created": "2026-08-10T18:30:00",
+      "children": 1,
+      "pending_payout_value": "1.250 HBD",
+      "active_votes": [
+        { "voter": "barfriend", "rshares": "1000" },
+        { "voter": "downvoter", "rshares": "-5" }
+      ]
+    },
+    "barfriend/re-welcome-fourth-street-bar": {
+      "author": "barfriend",
+      "permlink": "re-welcome-fourth-street-bar",
+      "parent_author": "etblink",
+      "parent_permlink": "welcome-fourth-street-bar",
+      "title": "",
+      "body": "Glad to be here. [unsafe](javascript:alert(1)) <svg onload=alert(1)></svg>",
+      "created": "2026-08-10T19:00:00",
+      "children": 0,
+      "pending_payout_value": "0.100 HBD",
+      "active_votes": [{ "voter": "etblink", "percent": 10000 }]
+    }
+  },
+  "profiles": [
+    {
+      "name": "etblink",
+      "metadata": {
+        "profile": {
+          "name": "Evan",
+          "about": "Building the bar community.",
+          "profile_image": "https://images.hive.blog/u/etblink/avatar"
+        }
+      },
+      "stats": { "followers": 42, "following": 17 },
+      "post_count": 123,
+      "reputation_ui": "68.4"
+    },
+    {
+      "name": "barfriend",
+      "metadata": {
+        "profile": {
+          "name": "Bar Friend <script>alert(1)</script>",
+          "about": "A fixture visitor <img src=x onerror=alert(1)>",
+          "profile_image": "javascript:alert(1)"
+        }
+      },
+      "stats": { "followers": 3, "following": 4 },
+      "post_count": 5,
+      "reputation_ui": "45.0"
+    }
+  ],
+  "accounts": [
+    {
+      "name": "etblink",
+      "balance": "12.345 HIVE",
+      "hbd_balance": "6.789 HBD",
+      "vesting_shares": "1000000.000000 VESTS",
+      "received_vesting_shares": "200000.000000 VESTS",
+      "delegated_vesting_shares": "100000.000000 VESTS",
+      "voting_manabar": {
+        "current_mana": "330000000000",
+        "last_update_time": 1786276800
+      },
+      "reward_hive_balance": "1.000 HIVE",
+      "reward_hbd_balance": "0.500 HBD",
+      "reward_vesting_balance": "1000.000000 VESTS",
+      "reward_vesting_hive": "0.500 HIVE"
+    }
+  ],
+  "globalProperties": {
+    "head_block_number": 98765432,
+    "total_vesting_fund_hive": "500000000.000 HIVE",
+    "total_vesting_shares": "1000000000000.000000 VESTS"
+  },
+  "rcAccounts": {
+    "rc_accounts": [
+      {
+        "account": "etblink",
+        "max_rc": "1000000000000",
+        "rc_manabar": {
+          "current_mana": "200000000000",
+          "last_update_time": 1786276800
+        }
+      }
+    ]
+  },
+  "followers": [
+    { "follower": "barfriend", "following": "etblink", "what": ["blog"] }
+  ],
+  "following": [
+    { "follower": "etblink", "following": "barfriend", "what": ["blog"] }
+  ],
+  "subscribers": [["etblink", "member", "", "2026-08-10T18:00:00"]]
+}

@@ -3,17 +3,14 @@
 const express = require('express');
 const { requireHiveAccount } = require('../src/http/validation');
 const { FeatureUnavailableError, NotFoundError } = require('../src/lib/errors');
-const { getFollowers, getFollowing, getFollowStatus } = require('../utils/hiveApi');
-const { fetchUserPosts, fetchUserProfile } = require('../utils/profiles/fetchProfileData');
 
 const router = express.Router();
 
 router.get('/api/followers/:username', async (req, res, next) => {
   try {
-    const username = requireHiveAccount(req.params.username);
-    const followers = await getFollowers(username, '', 100);
+    const users = await req.app.locals.services.hiveReads.getFollowers(req.params.username);
     res.render('pages/profile/partials/follow-list', {
-      users: followers,
+      users,
       emptyMessage: 'This user has no followers yet.',
     });
   } catch (error) {
@@ -23,10 +20,9 @@ router.get('/api/followers/:username', async (req, res, next) => {
 
 router.get('/api/following/:username', async (req, res, next) => {
   try {
-    const username = requireHiveAccount(req.params.username);
-    const following = await getFollowing(username, '', 100);
+    const users = await req.app.locals.services.hiveReads.getFollowing(req.params.username);
     res.render('pages/profile/partials/follow-list', {
-      users: following,
+      users,
       emptyMessage: 'This user is not following anyone yet.',
     });
   } catch (error) {
@@ -36,9 +32,11 @@ router.get('/api/following/:username', async (req, res, next) => {
 
 router.get('/api/follow-status/:follower/:following', async (req, res, next) => {
   try {
-    const follower = requireHiveAccount(req.params.follower, 'Follower');
-    const following = requireHiveAccount(req.params.following, 'Following account');
-    res.set('Cache-Control', 'no-store').json({ isFollowing: await getFollowStatus(follower, following) });
+    const isFollowing = await req.app.locals.services.hiveReads.getFollowStatus(
+      req.params.follower,
+      req.params.following,
+    );
+    res.set('Cache-Control', 'no-store').json({ isFollowing });
   } catch (error) {
     next(error);
   }
@@ -47,14 +45,41 @@ router.get('/api/follow-status/:follower/:following', async (req, res, next) => 
 router.get('/:username/blogs', async (req, res, next) => {
   try {
     const username = requireHiveAccount(req.params.username);
-    const [userProfile, userBlogPosts] = await Promise.all([
-      fetchUserProfile(username),
-      fetchUserPosts(username),
+    const [userProfile, postsPage] = await Promise.all([
+      req.app.locals.services.hiveReads.getProfile(username),
+      req.app.locals.services.hiveReads.getAccountPosts({
+        account: username,
+        cursor: req.query.after,
+      }),
     ]);
     if (!userProfile) throw new NotFoundError('Hive account not found');
-    res.render('pages/profile/partials/user-blog-posts', { userProfile, userBlogPosts });
+    res.render('pages/profile/partials/user-blog-posts', { postsPage, userProfile });
   } catch (error) {
     next(error);
+  }
+});
+
+router.get('/:username/wallet', async (req, res, next) => {
+  try {
+    const username = requireHiveAccount(req.params.username);
+    const [userProfile, wallet] = await Promise.all([
+      req.app.locals.services.hiveReads.getProfile(username),
+      req.app.locals.services.hiveReads.getWallet(username),
+    ]);
+    if (!userProfile) throw new NotFoundError('Hive account not found');
+
+    if (req.get('HX-Request') === 'true') {
+      return res.render('pages/profile/partials/user-wallet', { userProfile, wallet });
+    }
+    return res.render('pages/profile/index', {
+      pageTitle: `@${username} wallet — ${req.app.locals.config.site.name}`,
+      activeView: 'wallet',
+      postsPage: null,
+      userProfile,
+      wallet,
+    });
+  } catch (error) {
+    return next(error);
   }
 });
 
@@ -63,14 +88,15 @@ router.get('/:username/wall-posts', (req, res, next) => {
     requireHiveAccount(req.params.username);
     res.render('common/feature-unavailable', {
       title: 'Wall posts are being rebuilt',
-      message: 'The public wall will return after its fee and message-classification protections are complete.',
+      message:
+        'The public wall will return after its fee and message-classification protections are complete.',
     });
   } catch (error) {
     next(error);
   }
 });
 
-for (const suffix of ['wallet', 'inbox', 'settings']) {
+for (const suffix of ['inbox', 'settings']) {
   router.get(`/:username/${suffix}`, (req, _res, next) => {
     try {
       requireHiveAccount(req.params.username);
@@ -82,22 +108,27 @@ for (const suffix of ['wallet', 'inbox', 'settings']) {
 }
 
 router.post('/update-settings', (_req, _res, next) => {
-  next(new FeatureUnavailableError('Profile updates are disabled during M1'));
+  next(new FeatureUnavailableError('Profile updates remain disabled in the read-only milestone'));
 });
 
 router.get('/:username', async (req, res, next) => {
   try {
     const username = requireHiveAccount(req.params.username);
-    const [userProfile, userBlogPosts] = await Promise.all([
-      fetchUserProfile(username),
-      fetchUserPosts(username),
+    const [userProfile, postsPage] = await Promise.all([
+      req.app.locals.services.hiveReads.getProfile(username),
+      req.app.locals.services.hiveReads.getAccountPosts({
+        account: username,
+        cursor: req.query.after,
+      }),
     ]);
     if (!userProfile) throw new NotFoundError('Hive account not found');
 
     res.render('pages/profile/index', {
       pageTitle: `@${username} — ${req.app.locals.config.site.name}`,
+      activeView: 'posts',
+      postsPage,
       userProfile,
-      userBlogPosts,
+      wallet: null,
     });
   } catch (error) {
     next(error);

@@ -58,8 +58,8 @@ test('opens a failed node circuit and bypasses it until cooldown', async () => {
     now: () => now,
   });
 
-  assert.equal(await pool.call('condenser_api', 'first', []), 'ok');
-  assert.equal(await pool.call('condenser_api', 'second', []), 'ok');
+  assert.equal(await pool.call('condenser_api', 'get_dynamic_global_properties', []), 'ok');
+  assert.equal(await pool.call('condenser_api', 'get_dynamic_global_properties', []), 'ok');
   assert.deepEqual(calls, ['https://one.example', 'https://two.example', 'https://two.example']);
   assert.equal(pool.getStatus()[0].available, false);
 
@@ -126,4 +126,26 @@ test('wraps exhausted RPC failures in an exposed service error', async () => {
       error.code === 'HIVE_RPC_UNAVAILABLE' &&
       error.cause?.message === 'Hive RPC returned invalid JSON',
   );
+});
+
+test('blocks write and unknown RPC methods before making a network request', async () => {
+  let fetchCalls = 0;
+  const pool = new HiveRpcPool({
+    nodes: ['https://one.example'],
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return new Response('{}');
+    },
+    logger: silentLogger,
+  });
+
+  await assert.rejects(
+    pool.call('network_broadcast_api', 'broadcast_transaction', {}),
+    (error) => error.code === 'READ_ONLY_RPC_POLICY',
+  );
+  await assert.rejects(
+    pool.call('condenser_api', 'get_account_history', []),
+    (error) => error.code === 'READ_ONLY_RPC_POLICY',
+  );
+  assert.equal(fetchCalls, 0);
 });

@@ -22,6 +22,11 @@ test('starts on a real TCP socket in production mode and shuts down cleanly', as
       NODE_ENV: 'production',
       PORT: '3000',
       SITE_NAME: '4th Street Bar',
+      BAR_ADDRESS: '1114 E. 4th Street, Reno, NV 89512',
+      BAR_PHONE: '(775) 324-7827',
+      BAR_HOURS: 'Daily, 12:00 p.m.–2:00 a.m.',
+      BAR_WEBSITE_URL: 'https://4thstreetbarreno.com/',
+      BAR_MAP_URL: 'https://www.google.com/maps/search/?api=1&query=4th+Street+Bar+Reno',
       HIVE_COMMUNITY_ID: 'hive-108590',
       THREADS_CONTAINER_ACCOUNT: 'fourthst.threads',
       HIVE_RPC_NODES:

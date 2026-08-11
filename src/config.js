@@ -7,6 +7,11 @@ const HIVE_ACCOUNT_PATTERN = /^(?=.{3,64}$)[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*
 const COMMUNITY_PATTERN = /^hive-[0-9]{3,12}$/;
 const PRODUCTION_REQUIRED_SETTINGS = [
   'SITE_NAME',
+  'BAR_ADDRESS',
+  'BAR_PHONE',
+  'BAR_HOURS',
+  'BAR_WEBSITE_URL',
+  'BAR_MAP_URL',
   'HIVE_COMMUNITY_ID',
   'THREADS_CONTAINER_ACCOUNT',
   'HIVE_RPC_NODES',
@@ -55,11 +60,48 @@ function parseTrustProxy(value) {
   throw new Error('TRUST_PROXY must be false, a positive hop count, loopback, linklocal, or uniquelocal');
 }
 
+function requireHttpsUrl(value, context) {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    context.addIssue({ code: 'custom', message: 'Must be a valid URL' });
+    return z.NEVER;
+  }
+
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+    context.addIssue({ code: 'custom', message: 'Must be a credential-free HTTPS URL' });
+    return z.NEVER;
+  }
+
+  return parsed.toString();
+}
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     SITE_NAME: z.string().trim().min(1).max(80).default('4th Street Bar'),
+    BAR_ADDRESS: z
+      .string()
+      .trim()
+      .min(1)
+      .max(200)
+      .default('1114 E. 4th Street, Reno, NV 89512'),
+    BAR_PHONE: z.string().trim().min(1).max(40).default('(775) 324-7827'),
+    BAR_HOURS: z.string().trim().min(1).max(120).default('Daily, 12:00 p.m.–2:00 a.m.'),
+    BAR_WEBSITE_URL: z
+      .string()
+      .trim()
+      .default('https://4thstreetbarreno.com/')
+      .transform(requireHttpsUrl),
+    BAR_MAP_URL: z
+      .string()
+      .trim()
+      .default(
+        'https://www.google.com/maps/search/?api=1&query=1114%20E.%204th%20Street%2C%20Reno%2C%20NV%2089512',
+      )
+      .transform(requireHttpsUrl),
     HIVE_COMMUNITY_ID: z.string().trim().regex(COMMUNITY_PATTERN).default('hive-108590'),
     THREADS_CONTAINER_ACCOUNT: z
       .string()
@@ -91,7 +133,7 @@ const envSchema = z
       context.addIssue({
         code: 'custom',
         path: ['HIVE_WRITE_MODE'],
-        message: 'M1 permits only HIVE_WRITE_MODE=disabled',
+        message: 'The authorized read-only milestone permits only HIVE_WRITE_MODE=disabled',
       });
     }
   });
@@ -138,6 +180,13 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
     },
     site: {
       name: result.data.SITE_NAME,
+      business: {
+        address: result.data.BAR_ADDRESS,
+        phone: result.data.BAR_PHONE,
+        hours: result.data.BAR_HOURS,
+        websiteUrl: result.data.BAR_WEBSITE_URL,
+        mapUrl: result.data.BAR_MAP_URL,
+      },
     },
     hive: {
       communityId: result.data.HIVE_COMMUNITY_ID,

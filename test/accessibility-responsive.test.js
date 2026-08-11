@@ -1,0 +1,146 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+const axe = require('axe-core');
+const { HtmlValidate } = require('html-validate');
+const { JSDOM } = require('jsdom');
+const request = require('supertest');
+const { createFixtureApp } = require('./support/test-app');
+
+const KEY_ROUTES = [
+  '/',
+  '/community',
+  '/post/etblink/welcome-fourth-street-bar',
+  '/profile/etblink',
+  '/profile/etblink/wallet',
+];
+
+async function renderKeyRoutes() {
+  const responses = [];
+  for (const route of KEY_ROUTES) {
+    const { app } = createFixtureApp();
+    responses.push({ route, response: await request(app).get(route).expect(200) });
+  }
+  return responses;
+}
+
+function messageSummary(report) {
+  return report.results
+    .flatMap((result) => result.messages)
+    .map((message) => `${message.ruleId}: ${message.message} (${message.selector || 'document'})`)
+    .join('\n');
+}
+
+test('key M2 documents pass structural HTML and accessibility validation', async () => {
+  const validator = new HtmlValidate({
+    extends: ['html-validate:recommended'],
+    rules: { 'no-trailing-whitespace': 'off' },
+  });
+
+  for (const { route, response } of await renderKeyRoutes()) {
+    const report = await validator.validateString(response.text);
+    assert.equal(report.valid, true, `${route}\n${messageSummary(report)}`);
+  }
+});
+
+test('axe reports no serious or critical violations on key M2 documents', async () => {
+  for (const { route, response } of await renderKeyRoutes()) {
+    const dom = new JSDOM(response.text, {
+      runScripts: 'outside-only',
+      url: `https://hive-bar.test${route}`,
+    });
+    dom.window.eval(axe.source);
+    const result = await dom.window.axe.run(dom.window.document, {
+      resultTypes: ['violations'],
+      rules: {
+        'color-contrast': { enabled: false },
+      },
+    });
+    dom.window.close();
+
+    const blocking = result.violations.filter((violation) =>
+      ['serious', 'critical'].includes(violation.impact),
+    );
+    const summary = blocking.map((violation) => ({
+        id: violation.id,
+        impact: violation.impact,
+        targets: violation.nodes.map((node) => node.target),
+      }));
+    assert.equal(blocking.length, 0, `${route}\n${JSON.stringify(summary, null, 2)}`);
+  }
+});
+
+test('key routes satisfy the automated 360 CSS-pixel responsive contract', async () => {
+  for (const { route, response } of await renderKeyRoutes()) {
+    const dom = new JSDOM(response.text);
+    const { document } = dom.window;
+    const viewport = document.querySelector('meta[name="viewport"]');
+    assert.equal(viewport?.getAttribute('content'), 'width=device-width, initial-scale=1', route);
+    assert.equal(document.querySelectorAll('main#main-content').length, 1, route);
+    assert.ok(document.querySelector('header nav ul.flex-wrap'), route);
+
+    for (const element of document.querySelectorAll('[width]')) {
+      const width = Number(element.getAttribute('width'));
+      assert.ok(!Number.isFinite(width) || width <= 360, `${route}: fixed width ${width}`);
+    }
+    assert.doesNotMatch(
+      response.text,
+      /\b(?:min-w|w)-\[(?:3[7-9]\d|[4-9]\d\d|\d{4,})px\]/,
+      route,
+    );
+    dom.window.close();
+  }
+
+  const home = (await renderKeyRoutes())[0].response.text;
+  assert.match(home, /grid[^"\n]*lg:grid-cols-2/);
+  const community = (await renderKeyRoutes())[1].response.text;
+  assert.match(community, /grid-cols-1[^"\n]*lg:grid-cols/);
+  const wallet = (await renderKeyRoutes())[4].response.text;
+  assert.match(wallet, /grid[^"\n]*sm:grid-cols-3/);
+
+  const css = fs.readFileSync(path.join(__dirname, '..', 'public', 'css', 'style.css'), 'utf8');
+  assert.match(css, /@media\s*\(min-width:\s*40rem\)/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+});
+
+function channel(value) {
+  const normalized = value / 255;
+  return normalized <= 0.04045
+    ? normalized / 12.92
+    : ((normalized + 0.055) / 1.055) ** 2.4;
+}
+
+function luminance(hex) {
+  const value = Number.parseInt(hex.slice(1), 16);
+  return (
+    0.2126 * channel((value >> 16) & 255) +
+    0.7152 * channel((value >> 8) & 255) +
+    0.0722 * channel(value & 255)
+  );
+}
+
+function contrast(foreground, background) {
+  const light = Math.max(luminance(foreground), luminance(background));
+  const dark = Math.min(luminance(foreground), luminance(background));
+  return (light + 0.05) / (dark + 0.05);
+}
+
+test('primary text color pairs meet WCAG AA normal-text contrast', () => {
+  const pairs = [
+    ['#f4a460', '#030712'],
+    ['#000000', '#f4a460'],
+    ['#ffffff', '#111827'],
+    ['#d1d5db', '#111827'],
+    ['#9ca3af', '#030712'],
+  ];
+
+  for (const [foreground, background] of pairs) {
+    assert.ok(
+      contrast(foreground, background) >= 4.5,
+      `${foreground} on ${background} has contrast ${contrast(foreground, background).toFixed(2)}`,
+    );
+  }
+});

@@ -6,13 +6,12 @@ const express = require('express');
 const { rateLimit } = require('express-rate-limit');
 const helmet = require('helmet');
 const { loadConfig } = require('./config');
-const { plainTextExcerpt } = require('./content/markdown');
+const { HiveReadService } = require('./hive/read-service');
 const { HiveRpcPool } = require('./hive/rpc-pool');
 const { createLogger } = require('./lib/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errors');
 const { requestContext } = require('./middleware/request-context');
 const { createHealthRouter } = require('./routes/health');
-const hiveClient = require('../utils/hiveClient');
 
 function securityMiddleware(config) {
   return helmet({
@@ -24,14 +23,8 @@ function securityMiddleware(config) {
         fontSrc: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
-        frameSrc: ["'self'", 'https://www.google.com'],
-        imgSrc: [
-          "'self'",
-          'data:',
-          'https://fourthstreetbar.com',
-          'https://images.hive.blog',
-          'https://images.unsplash.com',
-        ],
+        frameSrc: ["'none'"],
+        imgSrc: ["'self'", 'data:', 'https://images.hive.blog'],
         objectSrc: ["'none'"],
         scriptSrc: ["'self'"],
         scriptSrcAttr: ["'none'"],
@@ -61,7 +54,7 @@ function createApp(options = {}) {
       logger,
     });
 
-  hiveClient.configureHiveClient(rpcPool);
+  const hiveReads = options.hiveReadService || new HiveReadService(rpcPool, { now: options.now });
 
   const app = express();
   app.disable('x-powered-by');
@@ -71,18 +64,36 @@ function createApp(options = {}) {
 
   app.locals.config = config;
   app.locals.siteName = config.site.name;
+  app.locals.business = config.site.business;
   app.locals.communityId = config.hive.communityId;
   app.locals.threadsContainerAccount = config.hive.threadsContainerAccount;
   app.locals.writesEnabled = config.hive.writesEnabled;
   app.locals.currentYear = new Date().getUTCFullYear();
-  app.locals.plainTextExcerpt = plainTextExcerpt;
   app.locals.formatPayout = (item) => {
-    const value = item?.pending_payout_value ?? item?.estimated_payout ?? 0;
+    const value = item?.payout ?? 0;
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed.toFixed(2) : '0.00';
   };
+  app.locals.formatHiveDate = (value) => {
+    const date = new Date(value && !String(value).endsWith('Z') ? `${value}Z` : value);
+    if (!Number.isFinite(date.getTime())) return 'Date unavailable';
+    return `${new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZone: 'UTC',
+    }).format(date)} UTC`;
+  };
+  app.locals.formatNumber = (value, digits = 3) => {
+    const number = Number(value);
+    return Number.isFinite(number)
+      ? number.toLocaleString('en-US', {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        })
+      : Number(0).toFixed(digits);
+  };
 
-  app.locals.services = { logger, rpcPool };
+  app.locals.services = { hiveReads, logger, rpcPool };
 
   app.use(requestContext(logger));
   app.use(securityMiddleware(config));

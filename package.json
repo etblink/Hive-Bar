@@ -14,12 +14,13 @@
     "build": "npm run build:css",
     "build:css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
     "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
-    "lint": "eslint src routes utils public/js test scripts index.js eslint.config.js --max-warnings=0",
-    "test": "node --test --test-concurrency=1",
-    "test:coverage": "node --test --experimental-test-coverage --test-concurrency=1",
+    "smoke:live": "node scripts/live-read-smoke.js",
+    "lint": "eslint src routes public/js test scripts index.js eslint.config.js --max-warnings=0",
+    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage --test-concurrency=1 test/*.test.js",
     "check:secrets": "node scripts/check-secrets.js",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
-    "check": "npm run check:secrets && npm run lint && npm test && npm run build && npm run audit:prod"
+    "check": "npm run check:secrets && npm run lint && npm run build && npm test && npm run audit:prod"
   },
   "dependencies": {
     "compression": "1.8.1",
@@ -36,7 +37,10 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.3",
+    "axe-core": "4.13.0",
     "eslint": "10.0.0",
+    "html-validate": "11.6.2",
+    "jsdom": "29.1.1",
     "supertest": "7.2.2",
     "tailwindcss": "4.3.3"
   },

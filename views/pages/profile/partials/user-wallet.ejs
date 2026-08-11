@@ -1,0 +1,85 @@
+<section class="rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-7" aria-labelledby="wallet-heading">
+  <header>
+    <p class="eyebrow">Public blockchain snapshot</p>
+    <h2 id="wallet-heading" class="mt-2 text-2xl font-bold">@<%= userProfile.name %> wallet summary</h2>
+    <p class="mt-3 text-sm leading-6 text-gray-400">These are public read-only values. Hive-Bar cannot move funds, reveal keys, or claim rewards from this screen.</p>
+  </header>
+
+  <dl class="mt-6 grid gap-3 sm:grid-cols-3">
+    <div class="wallet-value">
+      <dt>Liquid HIVE</dt>
+      <dd><%= formatNumber(wallet.liquidHive) %> HIVE</dd>
+    </div>
+    <div class="wallet-value">
+      <dt>Liquid HBD</dt>
+      <dd><%= formatNumber(wallet.liquidHbd) %> HBD</dd>
+    </div>
+    <div class="wallet-value">
+      <dt>Hive Power</dt>
+      <dd><%= formatNumber(wallet.hivePower) %> HP</dd>
+    </div>
+  </dl>
+
+  <div class="mt-7 grid gap-5 md:grid-cols-2">
+    <section class="wallet-panel" aria-labelledby="voting-power-heading">
+      <h3 id="voting-power-heading" class="text-lg font-bold text-bar-gold">Voting-power pitcher</h3>
+      <div class="mt-4 flex flex-col items-center gap-4 sm:flex-row">
+        <div class="beer-pitcher" role="img" aria-label="Voting power: <%= formatNumber(wallet.votingPowerPercent, 2) %> percent">
+          <div class="beer-foam" aria-hidden="true"></div>
+          <div class="beer-segments" aria-hidden="true">
+            <% for (let segment = 10; segment >= 1; segment -= 1) { %>
+              <span class="beer-segment <%= segment <= wallet.beerSegmentsFilled ? 'beer-segment--filled' : '' %>"></span>
+            <% } %>
+          </div>
+        </div>
+        <div>
+          <p class="text-3xl font-black text-white"><%= formatNumber(wallet.votingPowerPercent, 2) %>%</p>
+          <p class="mt-2 text-sm text-gray-400">Regenerated to the timestamp below.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wallet-panel" aria-labelledby="resources-heading">
+      <h3 id="resources-heading" class="text-lg font-bold text-bar-gold">Resource credits</h3>
+      <p class="mt-4 text-3xl font-black text-white"><%= formatNumber(wallet.resourceCreditsPercent, 2) %>%</p>
+      <meter class="wallet-meter mt-4" min="0" max="100" value="<%= wallet.resourceCreditsPercent %>">
+        <%= formatNumber(wallet.resourceCreditsPercent, 2) %>%
+      </meter>
+      <p class="mt-3 text-sm text-gray-400">Current RC manabar after five-day regeneration.</p>
+    </section>
+  </div>
+
+  <section class="wallet-panel mt-5" aria-labelledby="milestone-heading">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="text-3xl" aria-hidden="true"><%= wallet.milestone.icon %></p>
+        <h3 id="milestone-heading" class="mt-1 text-xl font-bold text-bar-gold"><%= wallet.milestone.name %></h3>
+      </div>
+      <p class="font-bold"><%= formatNumber(wallet.hivePower) %> HP</p>
+    </div>
+    <label for="hp-progress" class="mt-4 block text-sm text-gray-300">
+      <%= wallet.milestone.hasNextLevel ? `Progress toward ${wallet.milestone.max.toLocaleString()} HP` : 'Highest listed milestone reached' %>
+    </label>
+    <meter id="hp-progress" class="wallet-meter mt-2" min="0" max="100" value="<%= wallet.milestone.progressPercent %>">
+      <%= formatNumber(wallet.milestone.progressPercent, 1) %>%
+    </meter>
+  </section>
+
+  <section class="wallet-panel mt-5" aria-labelledby="rewards-heading">
+    <h3 id="rewards-heading" class="text-lg font-bold text-bar-gold">Claimable rewards</h3>
+    <% if (wallet.hasClaimableRewards) { %>
+      <dl class="mt-4 grid gap-3 sm:grid-cols-3">
+        <div><dt class="text-sm text-gray-400">HIVE</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hive) %></dd></div>
+        <div><dt class="text-sm text-gray-400">HBD</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hbd) %></dd></div>
+        <div><dt class="text-sm text-gray-400">Hive Power</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hivePower) %></dd></div>
+      </dl>
+      <p class="mt-4 text-sm text-gray-400">Claiming remains disabled until the verified-owner milestone.</p>
+    <% } else { %>
+      <p class="mt-3 text-gray-300">No non-zero reward balances were reported.</p>
+    <% } %>
+  </section>
+
+  <p class="mt-6 text-xs text-gray-500">
+    Calculated at <time datetime="<%= wallet.displayedAt %>"><%= formatHiveDate(wallet.displayedAt) %></time>. Display rounding: 0.001 assets and HP; 0.01 percentage points.
+  </p>
+</section>

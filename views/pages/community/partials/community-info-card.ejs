@@ -1,19 +1,21 @@
-<section class="rounded-lg bg-gray-800 p-6 text-center">
-  <img src="https://images.hive.blog/u/<%= communityInfo.name %>/avatar" alt="" class="mx-auto mb-4 h-24 w-24 rounded-full" width="96" height="96">
-  <h2 class="mb-2 text-2xl font-bold"><%= communityInfo.title %></h2>
-  <p class="mb-4 text-gray-400">@<%= communityInfo.name %></p>
-  <p class="mb-6 text-sm text-gray-200"><%= communityInfo.about || 'The 4th Street Bar community on Hive.' %></p>
-  <dl class="mb-6 flex justify-center gap-10">
-    <div>
-      <dt class="text-sm text-gray-400">Subscribers</dt>
-      <dd class="text-xl font-bold"><%= Number(communityInfo.subscribers || 0).toLocaleString() %></dd>
+<section class="rounded-2xl border border-gray-700 bg-gray-900 p-6" aria-labelledby="community-about-heading">
+  <h2 id="community-about-heading" class="text-xl font-bold text-bar-gold">About this community</h2>
+  <% if (communityInfo.aboutHtml) { %>
+    <div class="prose mt-4 text-gray-300"><%- communityInfo.aboutHtml %></div>
+  <% } else { %>
+    <p class="mt-4 text-gray-300">The 4th Street Bar community is getting started on Hive.</p>
+  <% } %>
+  <dl class="mt-6 grid grid-cols-2 gap-3">
+    <div class="stat-tile">
+      <dt>Subscribers</dt>
+      <dd><%= communityInfo.subscriberCount.toLocaleString() %></dd>
     </div>
-    <div>
-      <dt class="text-sm text-gray-400">Pending payouts</dt>
-      <dd class="text-xl font-bold">$<%= Number(communityInfo.sum_pending || 0).toFixed(2) %></dd>
+    <div class="stat-tile">
+      <dt>Pending rewards</dt>
+      <dd>$<%= formatNumber(communityInfo.pendingRewards, 2) %></dd>
     </div>
   </dl>
-  <p class="rounded border border-gray-600 bg-gray-900 p-3 text-sm text-gray-300">
-    Community joining and signing are temporarily disabled while verified Keychain identity is rebuilt.
+  <p class="mt-5 rounded-lg bg-black/40 p-3 text-sm text-gray-400">
+    Public data from Hive community <strong class="text-gray-200"><%= communityInfo.name %></strong>.
   </p>
 </section>

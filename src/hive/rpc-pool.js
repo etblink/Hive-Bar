@@ -1,6 +1,7 @@
 'use strict';
 
 const { UpstreamError } = require('../lib/errors');
+const { assertReadOnlyRpcMethod } = require('./read-methods');
 
 const MAX_RPC_RESPONSE_BYTES = 2 * 1024 * 1024;
 
@@ -68,7 +69,7 @@ class HiveRpcPool {
   }
 
   async call(api, method, params = [], options = {}) {
-    const rpcMethod = method ? `${api}.${method}` : api;
+    const rpcMethod = assertReadOnlyRpcMethod(api, method);
     const candidates = this.#orderedCandidates();
     let lastError;
 

@@ -2,43 +2,48 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { normalizeProfile, safeJsonObject } = require('../utils/profiles/fetchProfileData');
+const {
+  normalizeProfile,
+  safeObject,
+  safeProfileImage,
+} = require('../src/hive/normalizers');
 
 test('profile metadata parsing fails closed', () => {
-  assert.deepEqual(safeJsonObject('{not json'), {});
-  assert.deepEqual(safeJsonObject('[]'), {});
-  assert.deepEqual(safeJsonObject('{"profile":{"name":"Ada"}}'), { profile: { name: 'Ada' } });
+  assert.deepEqual(safeObject('{not json'), {});
+  assert.deepEqual(safeObject('[]'), {});
+  assert.deepEqual(safeObject('{"profile":{"name":"Ada"}}'), {
+    profile: { name: 'Ada' },
+  });
 });
 
-test('posting metadata safely overrides legacy profile fields', () => {
-  const account = {
+test('Bridge profile fields normalize into the view contract', () => {
+  const result = normalizeProfile({
     name: 'alice',
-    json_metadata: JSON.stringify({
-      profile: { name: 'Old name', about: 'Legacy', profile_image: 'javascript:alert(1)' },
-    }),
-    posting_json_metadata: JSON.stringify({
-      profile: { name: 'Alice', about: 'Current', profile_image: 'https://example.com/alice.png' },
-    }),
-  };
+    metadata: {
+      profile: {
+        name: 'Alice',
+        about: 'Current',
+        profile_image: 'https://images.hive.blog/u/alice/avatar',
+      },
+    },
+    stats: { followers: 12, following: 4 },
+    post_count: 9,
+    reputation_ui: '62.1',
+  });
 
-  const result = normalizeProfile(account, { follower_count: 12, following_count: 4 });
-
-  assert.equal(result.profile.name, 'Alice');
-  assert.equal(result.profile.about, 'Current');
-  assert.equal(result.profile.profileImage, 'https://example.com/alice.png');
-  assert.equal(result.follower_count, 12);
-  assert.equal(result.following_count, 4);
+  assert.equal(result.displayName, 'Alice');
+  assert.equal(result.about, 'Current');
+  assert.equal(result.profileImage, 'https://images.hive.blog/u/alice/avatar');
+  assert.equal(result.followerCount, 12);
+  assert.equal(result.followingCount, 4);
+  assert.equal(result.postCount, 9);
+  assert.equal(result.reputation, '62.1');
 });
 
-test('unsafe avatar URLs fall back to the Hive image proxy', () => {
-  const result = normalizeProfile(
-    {
-      name: 'alice',
-      json_metadata: '{"profile":{"profile_image":"http://example.com/avatar.png"}}',
-      posting_json_metadata: '{}',
-    },
-    {},
-  );
+test('unapproved or unsafe avatar URLs fall back to the Hive image proxy', () => {
+  const fallback = 'https://images.hive.blog/u/alice/avatar';
 
-  assert.equal(result.profile.profileImage, 'https://images.hive.blog/u/alice/avatar');
+  assert.equal(safeProfileImage('javascript:alert(1)', 'alice'), fallback);
+  assert.equal(safeProfileImage('http://example.com/avatar.png', 'alice'), fallback);
+  assert.equal(safeProfileImage('https://example.com/avatar.png', 'alice'), fallback);
 });
