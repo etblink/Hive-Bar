@@ -1,7 +1,11 @@
 <% if (threads && threads.length > 0) { %>
-    <% threads.reverse().forEach(thread => { %>
-        <%- include('../../../common/comment', { comment: thread }) %>
-    <% }); %>
+  <p class="mb-4 text-sm text-gray-400">Current container: @<%= threadContainer.author %>/<%= threadContainer.permlink %></p>
+  <% threads.slice().reverse().forEach((thread) => { %>
+    <%- include('../../../common/comment', { comment: thread }) %>
+  <% }); %>
 <% } else { %>
-    <p class="text-gray-300">No threads found.</p>
+  <section class="rounded-lg border border-gray-700 bg-gray-800 p-8 text-center">
+    <h2 class="text-xl font-bold text-bar-gold">No threads yet</h2>
+    <p class="mt-2 text-gray-300">Short-form discussion will appear here after @<%= threadsContainerAccount %> publishes its first container post.</p>
+  </section>
 <% } %>

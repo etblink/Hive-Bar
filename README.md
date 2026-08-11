@@ -1,117 +1,76 @@
-# 4th Street Bar
+# Hive-Bar
 
-A web application that brings the social experience of a neighborhood bar to the Hive blockchain. Built with Express.js, TailwindCSS, and HTMX, this platform enables users to interact, share content, and manage their Hive assets in a familiar bar-themed environment.
+Hive-Bar is a focused Hive community experience for 4th Street Bar in Reno, Nevada. The rebuild is currently at the M1 foundation milestone: public read paths are available, while identity, blockchain writes, wallets, inboxes, and payments remain deliberately disabled.
 
-## Features
+## M1 configuration
 
-- **User Profiles**
-  - View user blog posts and activities
-  - Track Hive Power milestones with bar-themed ranks
-  - Monitor wallet balances and resource credits
-  - Send and receive encrypted messages
-  - Wall posts system for public interactions
+| Item | Value |
+| --- | --- |
+| Community | `hive-108590` |
+| Production threads container | `fourthst.threads` |
+| Write mode | `disabled` |
+| Runtime | Node.js 24 |
 
-- **Community Integration**
-  - View and interact with community posts
-  - Participate in community threads
-  - Real-time content updates using HTMX
+M1 never asks for, stores, signs with, or broadcasts using a Hive private key.
 
-- **Blockchain Features**
-  - Hive blockchain integration via dhive
-  - Resource credits monitoring
-  - Voting power tracking
-  - Secure encrypted messaging
-  - Hive Power milestone system
+## Run locally
 
-## Prerequisites
+Prerequisites: Node.js 24 and npm 11 or newer.
 
-- Node.js (v12 or higher)
-- npm
-- A Hive account for full functionality
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone [repository-url]
-cd 4th-street-bar
+```sh
+git clone https://github.com/etblink/Hive-Bar.git
+cd Hive-Bar
+cp .env.example .env
+npm ci --ignore-scripts
+npm run build
+npm start
 ```
 
-2. Install dependencies:
-```bash
-npm install
+Open `http://localhost:3000`. Development mode rebuilds CSS once and then watches the Node process:
+
+```sh
+npm run dev
 ```
 
-3. Create a `.env` file in the root directory with the following variables:
-```env
-COMMUNITY_NAME=your_community_name
-THREADS_CONTAINER_ACCOUNT=your_threads_account
+The defaults in `.env.example` are suitable for local read-only development. Production configuration must retain `HIVE_WRITE_MODE=disabled` during M1 and provide at least three distinct credential-free HTTPS RPC nodes.
+
+## Quality gate
+
+```sh
+npm run check
 ```
 
-4. Build the CSS:
-```bash
-npm run build:css
-```
+This runs the repository secret scan, ESLint, the Node test suite, the production CSS build, and a high-severity production dependency audit. The same command runs in GitHub Actions.
 
-## Development
+Individual commands:
 
-Start the development server with hot-reloading:
-```bash
-npm run dev:all
-```
+| Command | Purpose |
+| --- | --- |
+| `npm test` | Deterministic unit and HTTP integration tests |
+| `npm run test:coverage` | Tests with Node's built-in coverage report |
+| `npm run lint` | Server and browser JavaScript checks |
+| `npm run build` | Minified Tailwind CSS build |
+| `npm run check:secrets` | Targeted repository credential scan |
+| `npm run audit:prod` | High/critical production dependency gate |
 
-This command will:
-- Start the Express server with nodemon
-- Watch for CSS changes and rebuild automatically
-- Run both processes concurrently
+## Application structure
 
-## Available Scripts
+- `src/app.js` creates the Express application without opening a network port.
+- `src/server.js` owns startup and graceful shutdown.
+- `src/config.js` validates every supported environment setting.
+- `src/hive/rpc-pool.js` provides timeout, failover, response limits, and circuit breaking for Hive JSON-RPC reads.
+- `routes/` and `views/` contain the read-only product surface.
+- `test/` covers configuration, HTTP headers/errors, sanitization, profile metadata, RPC failover, and the M1 no-write boundary.
 
-- `npm start` - Start the production server
-- `npm run dev` - Start the development server with nodemon
-- `npm run build:css` - Build the TailwindCSS files
-- `npm run watch:css` - Watch and rebuild CSS files
-- `npm run dev:all` - Run development server and CSS watcher concurrently
+See [docs/M1_FOUNDATION.md](docs/M1_FOUNDATION.md) for the milestone boundary and [docs/M1_ACCEPTANCE_EVIDENCE.md](docs/M1_ACCEPTANCE_EVIDENCE.md) for the deliverable-to-test matrix.
 
-## Project Structure
+## Operational endpoints
 
-```
-├── data/               # Mock data for development
-├── public/            # Static assets
-│   ├── css/          # Compiled CSS
-│   └── js/           # Client-side JavaScript
-├── routes/           # Express route handlers
-├── src/              # Source files
-│   └── input.css    # TailwindCSS input file
-├── utils/            # Utility functions
-│   ├── communities/ # Community-related utilities
-│   └── profiles/    # Profile-related utilities
-└── views/            # EJS templates
-    ├── common/      # Shared components
-    ├── pages/       # Page templates
-    └── partials/    # Reusable partials
-```
+- `GET /healthz` — process liveness; does not call Hive.
+- `GET /readyz` — readiness; succeeds only when a configured Hive RPC node answers a read.
 
-## Technologies Used
+Both endpoints return JSON and disable caching.
 
-- **Backend**
-  - Express.js - Web framework
-  - EJS - Templating engine
-  - @hiveio/dhive - Hive blockchain integration
+## Rebuild roadmap
 
-- **Frontend**
-  - TailwindCSS - Utility-first CSS framework
-  - HTMX - Dynamic HTML updates
-  - Remarkable - Markdown parsing
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+M2 completes the read-only vertical slice, including sparse community states and live read smoke tests. Verified identity and controlled social writes begin in M3. No write milestone begins without its approved safety gates and explicit authorization for any real on-chain operation.

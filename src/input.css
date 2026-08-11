@@ -1,11 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../views";
+@source "../public/js";
+
+@theme {
+    --color-bar-gold: #f4a460;
+}
 
 /* Custom styles */
 @layer components {
     .container {
         @apply px-6;
+    }
+
+    .max-h-community {
+        max-height: calc(100vh - 22rem);
+    }
+
+    .prose a {
+        @apply text-bar-gold underline;
+    }
+
+    .prose img {
+        @apply my-4 h-auto max-w-full rounded-lg;
+    }
+
+    .prose pre {
+        @apply my-4 overflow-x-auto rounded-lg bg-black p-4;
+    }
+
+    .prose blockquote {
+        @apply my-4 border-l-4 border-bar-gold pl-4 text-gray-300;
     }
 }
 

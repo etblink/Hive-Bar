@@ -1,190 +1,133 @@
-require('dotenv').config();
+'use strict';
+
 const express = require('express');
-const router = express.Router();
+const { requireCommunitySort, requireConfiguredCommunity, requireHiveAccount } = require('../src/http/validation');
+const { NotFoundError } = require('../src/lib/errors');
 const { fetchCommunityInfo, fetchCommunityPosts } = require('../utils/communities/fetchCommunityData');
+const hiveClient = require('../utils/hiveClient');
+const { checkCommunityMembership } = require('../utils/hiveApi');
 const { fetchUserProfile } = require('../utils/profiles/fetchProfileData');
 const md = require('../utils/remarkableInstance');
-const hiveClient = require('../utils/hiveClient');
-const { cacheThreads, getCachedThreads, getCachedCommunityPosts, cacheCommunityPosts } = require('../utils/cacheOperations');
-const { checkCommunityMembership } = require('../utils/hiveApi');
+
+const router = express.Router();
 
 async function parseMarkdown(posts) {
-  const parsedPosts = await Promise.all(posts.map(async post => {
-    const votes = await hiveClient.call('condenser_api', 'get_active_votes', [post.author, post.permlink]);
-    return {
-      ...post,
-      parsedBody: md.render(post.body),
-      likes: votes.length
-    };
+  return Promise.all(
+    posts.map(async (post) => {
+      const votes = await hiveClient.call('condenser_api', 'get_active_votes', [post.author, post.permlink]);
+      return {
+        ...post,
+        parsedBody: md.render(post.body),
+        likes: votes.filter((vote) => Number(vote.percent) > 0).length,
+      };
+    }),
+  );
+}
+
+async function fetchLatestThreadContainer(config) {
+  const posts = await hiveClient.call('condenser_api', 'get_discussions_by_blog', [
+    { tag: config.hive.threadsContainerAccount, limit: 1 },
+  ]);
+  return posts[0] || null;
+}
+
+async function fetchCommunitySubscribers(community, lastSubscriber = '') {
+  const params = { community, limit: 100 };
+  if (lastSubscriber) params.last = requireHiveAccount(lastSubscriber, 'Last subscriber');
+  const subscribers = await hiveClient.call('bridge', 'list_subscribers', params);
+  return subscribers.map((subscriber) => ({
+    name: subscriber[0],
+    role: subscriber[1],
+    date: subscriber[3],
   }));
-  return parsedPosts;
 }
 
-async function fetchLatestThreadContainer() {
-  const threadsContainerAccount = process.env.THREADS_CONTAINER_ACCOUNT;
-  if (!threadsContainerAccount) {
-    throw new Error('THREADS_CONTAINER_ACCOUNT environment variable is not set');
-  }
-  const posts = await hiveClient.call('condenser_api', 'get_discussions_by_blog', [{ tag: threadsContainerAccount, limit: 1 }]);
-  return posts[0];
-}
-
-async function fetchThreads(author, permlink) {
-  const replies = await hiveClient.call('condenser_api', 'get_content_replies', [author, permlink]);
-  return replies;
-}
-
-async function fetchCommunitySubscribers(communityName, lastSubscriber = '') {
+router.get('/', async (req, res, next) => {
   try {
-    const params = { community: communityName, limit: 100 };
-    if (lastSubscriber) {
-      params.last = lastSubscriber;
-    }
-    const subscribers = await hiveClient.call('bridge', 'list_subscribers', params);
-    return subscribers.map(subscriber => ({
-      name: subscriber[0],
-      role: subscriber[1],
-      date: subscriber[3]
-    }));
-  } catch (error) {
-    console.error('Error fetching community subscribers:', error);
-    return [];
-  }
-}
+    const communityId = req.app.locals.config.hive.communityId;
+    const communityInfo = await fetchCommunityInfo(communityId);
+    if (!communityInfo) throw new NotFoundError('The configured community was not found');
 
-router.get('/', async (req, res) => {
-  try {
-    const communityName = process.env.COMMUNITY_NAME;
-    if (!communityName) {
-      throw new Error('COMMUNITY_NAME environment variable is not set');
-    }
-    const communityInfo = await fetchCommunityInfo(communityName);
-    
-    res.render('pages/community/index', { 
-      communityInfo, 
-      communityName,
-      threadsContainerAccount: process.env.THREADS_CONTAINER_ACCOUNT
+    res.render('pages/community/index', {
+      pageTitle: `Community — ${req.app.locals.config.site.name}`,
+      communityInfo,
+      communityName: communityId,
     });
   } catch (error) {
-    console.error('Error fetching community data:', error);
-    res.status(500).render('error', { message: 'Error fetching community data' });
+    next(error);
   }
 });
 
-router.get('/threads', async (req, res) => {
+router.get('/threads', async (req, res, next) => {
   try {
-    let cachedThreads = await getCachedThreads();
-    let parsedThreads;
-
-    if (cachedThreads) {
-      parsedThreads = cachedThreads;
-    } else {
-      const latestThreadContainer = await fetchLatestThreadContainer();
-      const threads = await fetchThreads(latestThreadContainer.author, latestThreadContainer.permlink);
-      parsedThreads = await parseMarkdown(threads);
-      
-      await cacheThreads(parsedThreads);
-    }
-
-    res.render('pages/community/partials/community-thread-list', { threads: parsedThreads });
+    const container = await fetchLatestThreadContainer(req.app.locals.config);
+    const threads = container
+      ? await hiveClient.call('condenser_api', 'get_content_replies', [
+          container.author,
+          container.permlink,
+        ])
+      : [];
+    const parsedThreads = await parseMarkdown(threads);
+    res.render('pages/community/partials/community-thread-list', {
+      threads: parsedThreads,
+      threadContainer: container,
+      threadsContainerAccount: req.app.locals.config.hive.threadsContainerAccount,
+    });
   } catch (error) {
-    console.error('Error fetching community threads:', error);
-    res.status(500).render('error', { message: 'Error fetching community threads' });
+    next(error);
   }
 });
 
-router.get('/:communityName/community-posts', async (req, res) => {
+router.get('/:communityName/community-posts', async (req, res, next) => {
   try {
-    const { communityName } = req.params;
-    const { sort = 'trending' } = req.query;
-    if (!communityName) {
-      throw new Error('Community name is not provided');
-    }
+    const communityName = requireConfiguredCommunity(req.params.communityName, req.app.locals.config);
+    const sort = requireCommunitySort(req.query.sort);
+    const posts = await fetchCommunityPosts(communityName, 20, sort);
+    const parsedPosts = await parseMarkdown(posts);
+    const authors = [...new Set(parsedPosts.map((post) => post.author))];
+    const profileEntries = await Promise.all(
+      authors.map(async (author) => [author, await fetchUserProfile(author)]),
+    );
 
-    let cachedPosts = await getCachedCommunityPosts(communityName);
-    let parsedPosts;
-
-    if (cachedPosts && cachedPosts.length > 0) {
-      parsedPosts = cachedPosts;
-    } else {
-      const communityPosts = await fetchCommunityPosts(communityName, 20, sort);
-      parsedPosts = await parseMarkdown(communityPosts);
-      
-      await cacheCommunityPosts(communityName, parsedPosts);
-    }
-
-    const userProfiles = {};
-    for (const post of parsedPosts) {
-      if (!userProfiles[post.author]) {
-        userProfiles[post.author] = await fetchUserProfile(post.author);
-      }
-    }
-
-    res.render('pages/community/partials/community-post-list', { 
+    res.render('pages/community/partials/community-post-list', {
       posts: parsedPosts,
-      userProfile: userProfiles,
-      communityName
+      userProfile: Object.fromEntries(profileEntries),
+      communityName,
+      activeSort: sort,
     });
   } catch (error) {
-    console.error('Error fetching community posts:', error);
-    res.status(500).json({ message: 'Error fetching community posts', error: error.toString() });
+    next(error);
   }
 });
 
-router.get('/api/community/:communityName/subscribers', async (req, res) => {
+router.get('/api/community/:communityName/subscribers', async (req, res, next) => {
   try {
-    const { communityName } = req.params;
-    const { lastSubscriber } = req.query;
-    if (!communityName) {
-      throw new Error('Community name is not provided');
-    }
-
-    let subscribers;
-    let cachedData;
-
-    if (typeof window !== 'undefined' && window.BarCache && window.BarCache.subscribers) {
-      cachedData = await window.BarCache.subscribers.getCachedSubscribers(communityName);
-    }
-
-    if (cachedData && Date.now() - cachedData.lastUpdate < 5 * 60 * 1000) {
-      subscribers = cachedData.subscribers;
-    } else {
-      subscribers = await fetchCommunitySubscribers(communityName, lastSubscriber || '');
-      
-      if (typeof window !== 'undefined' && window.BarCache && window.BarCache.subscribers) {
-        await window.BarCache.subscribers.cacheSubscribers(communityName, subscribers, subscribers[subscribers.length - 1].name);
-      }
-    }
-
-    res.json(subscribers);
+    const communityName = requireConfiguredCommunity(req.params.communityName, req.app.locals.config);
+    const subscribers = await fetchCommunitySubscribers(communityName, req.query.lastSubscriber || '');
+    res.set('Cache-Control', 'public, max-age=60').json(subscribers);
   } catch (error) {
-    console.error('Error fetching community subscribers:', error);
-    res.status(500).json({ message: 'Error fetching community subscribers', error: error.toString() });
+    next(error);
   }
 });
 
-router.get('/check-membership', async (req, res) => {
+router.get('/check-membership', async (req, res, next) => {
   try {
-    const { username, community } = req.query;
-    if (!username || !community) {
-      return res.status(400).json({ error: 'Username and community are required' });
-    }
-
+    const username = requireHiveAccount(req.query.username);
+    const community = requireConfiguredCommunity(req.query.community, req.app.locals.config);
     const isMember = await checkCommunityMembership(username, community);
-    res.json({ isMember });
+    res.set('Cache-Control', 'no-store').json({ isMember });
   } catch (error) {
-    console.error('Error checking community membership:', error);
-    res.status(500).json({ error: 'Failed to check community membership' });
+    next(error);
   }
 });
 
-router.get('/api/latest-thread-container', async (req, res) => {
+router.get('/api/latest-thread-container', async (req, res, next) => {
   try {
-    const latestThreadContainer = await fetchLatestThreadContainer();
-    res.json(latestThreadContainer);
+    const container = await fetchLatestThreadContainer(req.app.locals.config);
+    if (!container) throw new NotFoundError('No thread container is available yet');
+    res.set('Cache-Control', 'public, max-age=30').json(container);
   } catch (error) {
-    console.error('Error fetching latest thread container:', error);
-    res.status(500).json({ error: 'Failed to fetch latest thread container' });
+    next(error);
   }
 });
 

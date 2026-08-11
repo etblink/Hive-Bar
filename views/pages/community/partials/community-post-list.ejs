@@ -1,31 +1,27 @@
-<div class="mb-4">
-  <select id="sortSelect" class="bg-gray-700 text-white border border-gray-600 rounded px-2 py-1">
-    <option value="trending">Trending</option>
-    <option value="created">New</option>
-    <option value="hot">Hot</option>
-    <option value="promoted">Promoted</option>
+<div class="mb-4 flex items-center justify-between gap-4">
+  <label for="sortSelect" class="text-sm font-semibold text-gray-300">Sort posts</label>
+  <select
+    id="sortSelect"
+    data-community-sort
+    data-community-id="<%= communityName %>"
+    class="rounded border border-gray-600 bg-gray-700 px-3 py-2 text-white">
+    <% for (const sort of ['trending', 'created', 'hot', 'promoted']) { %>
+      <option value="<%= sort %>" <%= activeSort === sort ? 'selected' : '' %>><%= sort[0].toUpperCase() + sort.slice(1) %></option>
+    <% } %>
   </select>
 </div>
 
 <% if (posts && posts.length > 0) { %>
   <ul class="space-y-4">
-    <% posts.forEach(post => { %>
-      <li class="bg-gray-700 p-4 rounded-lg">
-        <%- include('../../../common/post', { 
-          post: post,
-          userProfile: userProfile[post.author]
-        }) %>
+    <% posts.forEach((post) => { %>
+      <li class="rounded-lg bg-gray-700 p-4">
+        <%- include('../../../common/post', { post, userProfile: userProfile[post.author] }) %>
       </li>
     <% }); %>
   </ul>
 <% } else { %>
-  <p class="text-gray-400">No community posts found.</p>
+  <section class="rounded-lg border border-gray-700 bg-gray-800 p-8 text-center">
+    <h2 class="text-xl font-bold text-bar-gold">The conversation is just getting started</h2>
+    <p class="mt-2 text-gray-300">There are no posts in this view yet. Check back as the 4th Street Bar community grows.</p>
+  </section>
 <% } %>
-
-<script>
-document.getElementById('sortSelect').addEventListener('change', function() {
-  const sortValue = this.value;
-  const communityName = '<%= communityName %>'; // Make sure to pass communityName to this template
-  htmx.ajax('GET', `/community/${communityName}/community-posts?sort=${sortValue}`, '#postContent');
-});
-</script>

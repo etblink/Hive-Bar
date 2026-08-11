@@ -1,90 +1,44 @@
-const express = require('express');
-const router = express.Router();
-const md = require('../utils/remarkableInstance');
-const hiveClient = require('../utils/hiveClient');
+'use strict';
 
-function parseMarkdown(content) {
-  if (Array.isArray(content)) {
-    return content.map(item => ({
-      ...item,
-      parsedBody: md.render(item.body)
-    }));
-  }
+const express = require('express');
+const { requireHiveAccount, requirePermlink } = require('../src/http/validation');
+const { NotFoundError } = require('../src/lib/errors');
+const hiveClient = require('../utils/hiveClient');
+const md = require('../utils/remarkableInstance');
+
+const router = express.Router();
+
+async function withRenderedBody(item) {
+  const votes = await hiveClient.call('condenser_api', 'get_active_votes', [item.author, item.permlink]);
   return {
-    ...content,
-    parsedBody: md.render(content.body)
+    ...item,
+    parsedBody: md.render(item.body),
+    likes: votes.filter((vote) => Number(vote.percent) > 0).length,
   };
 }
 
-async function fetchComments(author, permlink) {
+router.get('/post/:author/:permlink', async (req, res, next) => {
   try {
-    const comments = await hiveClient.call('condenser_api', 'get_content_replies', [author, permlink]);
-    const commentsWithLikes = await Promise.all(comments.map(async (comment) => {
-      const votes = await hiveClient.call('condenser_api', 'get_active_votes', [comment.author, comment.permlink]);
-      return {
-        ...comment,
-        likes: votes.length
-      };
-    }));
-    return parseMarkdown(commentsWithLikes);
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    return [];
-  }
-}
+    const author = requireHiveAccount(req.params.author, 'Author');
+    const permlink = requirePermlink(req.params.permlink);
+    const post = await hiveClient.call('bridge', 'get_post', { author, permlink });
+    if (!post || !post.author) throw new NotFoundError('Post not found');
 
-async function fetchSinglePost(author, permlink) {
-    try {
-        console.log(`Fetching single post: ${author}/${permlink}`);
-        const post = await hiveClient.call('bridge', 'get_post', { author, permlink });
-        console.log('Fetched single post');
-        
-        // Fetch likes for the post
-        const votes = await hiveClient.call('condenser_api', 'get_active_votes', [author, permlink]);
-        post.likes = votes.length;
-        
-        return post;
-    } catch (error) {
-        console.error('Error fetching single post:', error);
-        throw error;
-    }
-}
+    const replies = await hiveClient.call('condenser_api', 'get_content_replies', [author, permlink]);
+    const [parsedPost, comments] = await Promise.all([
+      withRenderedBody(post),
+      Promise.all(replies.map(withRenderedBody)),
+    ]);
 
-router.get('/post/:author/:permlink', async (req, res) => {
-  try {
-    const { author, permlink } = req.params;
-    const post = await fetchSinglePost(author, permlink);
-    
-    if (!post) {
-      throw new Error('Post not found');
-    }
-    
-    const parsedPost = parseMarkdown(post);
-    const comments = await fetchComments(author, permlink);
-    let sourcePage = 'community';
-    let username = '';
-    const communityName = process.env.COMMUNITY_NAME;
-
-    if (req.headers.referer) {
-      const refererUrl = new URL(req.headers.referer);
-      const pathParts = refererUrl.pathname.split('/');
-      if (pathParts[1] === 'profile') {
-        sourcePage = 'profile';
-        username = pathParts[2] || '';
-      }
-    }
-    
-    res.render('partials/full-post', { post: parsedPost, comments, sourcePage, username, communityName }, (err, html) => {
-      if (err) {
-        console.error('Error rendering full post:', err);
-        res.status(500).json({ message: 'Error rendering full post', error: err.toString() });
-      } else {
-        res.send(html);
-      }
+    res.render('partials/full-post', {
+      post: parsedPost,
+      comments,
+      sourcePage: 'community',
+      username: '',
+      communityName: req.app.locals.config.hive.communityId,
     });
   } catch (error) {
-    console.error('Error fetching full post:', error);
-    res.status(500).json({ message: 'Error fetching full post', error: error.toString() });
+    next(error);
   }
 });
 

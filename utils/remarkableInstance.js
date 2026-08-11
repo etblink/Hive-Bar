@@ -1,4 +1,7 @@
-const { Remarkable } = require('remarkable');
-const md = new Remarkable({ html: true, linkify: true });
+'use strict';
 
-module.exports = md;
+const { renderMarkdown } = require('../src/content/markdown');
+
+module.exports = {
+  render: renderMarkdown,
+};

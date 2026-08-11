@@ -1,20 +1,7 @@
-<footer class="bg-black py-4">
-    <div class="container mx-auto text-center">
-        <p>&copy; 2023 4th Street Bar. All rights reserved.</p>
-    </div>
+<footer class="mt-auto border-t border-gray-800 bg-black py-5">
+  <div class="container mx-auto px-6 text-center text-sm text-gray-400">
+    <p>&copy; <%= currentYear %> <%= siteName %>. Community activity is recorded on the public Hive blockchain.</p>
+  </div>
 </footer>
-
-<!-- Scripts -->
-<script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/dexie@3.2.3/dist/dexie.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hive-keychain@1.1.16/dist/hive-keychain.min.js"></script>
-<script src="/js/beer-mug-upvote.js"></script>
-<script src="/js/beer-pitcher-display.js"></script>
-<script src="/js/voting.js"></script>
-<script src="/js/main.js"></script>
-<script type="module">
-    import QrScanner from '/js/qr-scanner.min.js';
-    window.QrScanner = QrScanner;
-</script>
-</body>
-</html>
+<script src="/htmx/htmx.min.js" defer></script>
+<script src="/js/main.js" defer></script>
