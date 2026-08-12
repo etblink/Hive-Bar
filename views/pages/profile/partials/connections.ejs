@@ -4,6 +4,17 @@
     @<%= userProfile.name %> <%= connectionKind %>
   </h2>
   <div class="mt-5 space-y-2">
-    <%- include('follow-list', { users, emptyMessage: connectionEmptyMessage }) %>
+    <%- include('follow-list', { users: connectionPage.items, emptyMessage: connectionEmptyMessage }) %>
   </div>
+  <% if (connectionPage.nextCursor) { %>
+    <nav class="mt-6 flex justify-center" aria-label="<%= connectionKind %> pagination">
+      <a
+        href="/profile/<%= userProfile.name %>/<%= connectionKind %>?after=<%= connectionPage.nextCursor %>"
+        hx-get="/profile/<%= userProfile.name %>/<%= connectionKind %>?after=<%= connectionPage.nextCursor %>"
+        hx-target="#profile-content"
+        class="button-secondary">
+        Next page
+      </a>
+    </nav>
+  <% } %>
 </section>

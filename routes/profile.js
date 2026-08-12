@@ -31,7 +31,7 @@ function pageModel(req, username, activeView, values = {}) {
     userProfile: null,
     postsPage: null,
     wallet: null,
-    users: null,
+    connectionPage: null,
     wallPage: null,
     inboxPage: null,
     profileSettings: null,
@@ -56,10 +56,16 @@ async function followStateForSession(req, target) {
 
 router.get('/api/followers/:username', async (req, res, next) => {
   try {
-    const users = await req.app.locals.services.hiveReads.getFollowers(req.params.username);
+    const username = requireHiveAccount(req.params.username);
+    const connectionPage = await req.app.locals.services.hiveReads.getFollowers(
+      username,
+      req.query.after,
+    );
     res.render('pages/profile/partials/follow-list', {
-      users,
+      users: connectionPage.items,
       emptyMessage: 'This user has no followers yet.',
+      nextCursor: connectionPage.nextCursor,
+      nextPath: `/profile/api/followers/${username}`,
     });
   } catch (error) {
     next(error);
@@ -68,10 +74,16 @@ router.get('/api/followers/:username', async (req, res, next) => {
 
 router.get('/api/following/:username', async (req, res, next) => {
   try {
-    const users = await req.app.locals.services.hiveReads.getFollowing(req.params.username);
+    const username = requireHiveAccount(req.params.username);
+    const connectionPage = await req.app.locals.services.hiveReads.getFollowing(
+      username,
+      req.query.after,
+    );
     res.render('pages/profile/partials/follow-list', {
-      users,
+      users: connectionPage.items,
       emptyMessage: 'This user is not following anyone yet.',
+      nextCursor: connectionPage.nextCursor,
+      nextPath: `/profile/api/following/${username}`,
     });
   } catch (error) {
     next(error);
@@ -169,15 +181,15 @@ router.get('/:username/wall-posts', async (req, res, next) => {
 router.get('/:username/followers', async (req, res, next) => {
   try {
     const username = requireHiveAccount(req.params.username);
-    const [userProfile, users, followState] = await Promise.all([
+    const [userProfile, connectionPage, followState] = await Promise.all([
       req.app.locals.services.hiveReads.getProfile(username),
-      req.app.locals.services.hiveReads.getFollowers(username),
+      req.app.locals.services.hiveReads.getFollowers(username, req.query.after),
       followStateForSession(req, username),
     ]);
     if (!userProfile) throw new NotFoundError('Hive account not found');
     const values = {
       userProfile,
-      users,
+      connectionPage,
       followState,
       connectionKind: 'followers',
       connectionEmptyMessage: 'This account has no followers yet.',
@@ -194,15 +206,15 @@ router.get('/:username/followers', async (req, res, next) => {
 router.get('/:username/following', async (req, res, next) => {
   try {
     const username = requireHiveAccount(req.params.username);
-    const [userProfile, users, followState] = await Promise.all([
+    const [userProfile, connectionPage, followState] = await Promise.all([
       req.app.locals.services.hiveReads.getProfile(username),
-      req.app.locals.services.hiveReads.getFollowing(username),
+      req.app.locals.services.hiveReads.getFollowing(username, req.query.after),
       followStateForSession(req, username),
     ]);
     if (!userProfile) throw new NotFoundError('Hive account not found');
     const values = {
       userProfile,
-      users,
+      connectionPage,
       followState,
       connectionKind: 'following',
       connectionEmptyMessage: 'This account is not following anyone yet.',

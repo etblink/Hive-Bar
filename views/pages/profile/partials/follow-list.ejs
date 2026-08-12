@@ -12,3 +12,8 @@
 <% } else { %>
     <p class="text-gray-400"><%= emptyMessage || 'No users found.' %></p>
 <% } %>
+<% if (typeof nextCursor !== 'undefined' && nextCursor && typeof nextPath !== 'undefined' && nextPath) { %>
+    <nav class="mt-6 flex justify-center" aria-label="Connection pagination">
+        <a href="<%= nextPath %>?after=<%= nextCursor %>" class="button-secondary">Next page</a>
+    </nav>
+<% } %>

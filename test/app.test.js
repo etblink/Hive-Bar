@@ -182,6 +182,12 @@ test('rejects malformed pagination cursors and account inputs without stack trac
     .expect(400);
   assert.equal(cursor.body.error.message, 'Pagination cursor is invalid');
 
+  const connectionCursor = await request(app)
+    .get('/profile/etblink/followers?after=not+base64!')
+    .set('accept', 'application/json')
+    .expect(400);
+  assert.equal(connectionCursor.body.error.message, 'Connection pagination cursor is invalid');
+
   const account = await request(app)
     .get('/community/check-membership?username=INVALID!&community=hive-108590')
     .set('accept', 'application/json')

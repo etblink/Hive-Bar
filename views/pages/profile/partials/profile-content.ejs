@@ -73,7 +73,7 @@
           <% } else if (activeView === 'wall') { %>
             <%- include('wall-posts', { userProfile, wallPage, profileSettings, canManageProfile }) %>
           <% } else if (activeView === 'followers' || activeView === 'following') { %>
-            <%- include('connections', { userProfile, users, connectionKind, connectionEmptyMessage }) %>
+            <%- include('connections', { userProfile, connectionPage, connectionKind, connectionEmptyMessage }) %>
           <% } else if (activeView === 'inbox') { %>
             <%- include('inbox', { userProfile, inboxPage, profileSettings }) %>
           <% } else if (activeView === 'settings') { %>

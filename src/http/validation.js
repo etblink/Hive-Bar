@@ -62,7 +62,33 @@ function requirePageCursor(value) {
   };
 }
 
+function requireConnectionCursor(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const encoded = String(value).trim();
+  if (encoded.length > 256 || !/^[A-Za-z0-9_-]+$/.test(encoded)) {
+    throw new ValidationError('Connection pagination cursor is invalid');
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+  } catch {
+    throw new ValidationError('Connection pagination cursor is invalid');
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new ValidationError('Connection pagination cursor is invalid');
+  }
+
+  try {
+    return { account: requireHiveAccount(parsed.account, 'Connection pagination account') };
+  } catch {
+    throw new ValidationError('Connection pagination cursor is invalid');
+  }
+}
+
 module.exports = {
+  requireConnectionCursor,
   requireCommunitySort,
   requireConfiguredCommunity,
   requireHiveAccount,

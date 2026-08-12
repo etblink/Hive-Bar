@@ -1,6 +1,7 @@
 'use strict';
 
 const {
+  requireConnectionCursor,
   requireCommunitySort,
   requireHiveAccount,
   requirePageCursor,
@@ -30,6 +31,28 @@ function encodePageCursor(item) {
     JSON.stringify({ author: item.author, permlink: item.permlink }),
     'utf8',
   ).toString('base64url');
+}
+
+function encodeConnectionCursor(accountValue) {
+  const account = requireHiveAccount(accountValue, 'Connection account');
+  return Buffer.from(JSON.stringify({ account }), 'utf8').toString('base64url');
+}
+
+function connectionNames(rawItems, field, anchor) {
+  const names = [];
+  const seen = new Set();
+  for (const item of rawItems) {
+    let name;
+    try {
+      name = requireHiveAccount(item?.[field], 'Connected account');
+    } catch {
+      continue;
+    }
+    if (name === anchor || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
 }
 
 function transactionOperationTuple(operation) {
@@ -303,32 +326,54 @@ class HiveReadService {
     };
   }
 
-  async getFollowers(accountValue, start = '', limit = 100) {
+  async #connectionPage({ accountValue, cursorValue, method, field }) {
     const account = requireHiveAccount(accountValue);
-    const raw = await this.rpcPool.call('condenser_api', 'get_followers', [
+    const cursor = requireConnectionCursor(cursorValue);
+    const raw = await this.rpcPool.call('condenser_api', method, [
       account,
-      start,
+      cursor?.account || '',
       'blog',
-      Math.min(limit, 100),
+      this.pageSize + (cursor ? 2 : 1),
     ]);
-    return (Array.isArray(raw) ? raw : []).map((item) => ({
-      name: item.follower,
-      avatar: `https://images.hive.blog/u/${item.follower}/avatar/small`,
+    const names = connectionNames(
+      Array.isArray(raw) ? raw : [],
+      field,
+      cursor?.account || null,
+    );
+    const hasNextPage = names.length > this.pageSize;
+    const pageNames = names.slice(0, this.pageSize);
+    const profiles = await this.getProfiles(pageNames);
+    const items = pageNames.map((name) => ({
+      name,
+      displayName: profiles[name]?.displayName || name,
+      avatar: profiles[name]?.profileImage || `https://images.hive.blog/u/${name}/avatar/small`,
     }));
+
+    return {
+      items,
+      nextCursor:
+        hasNextPage && items.length > 0
+          ? encodeConnectionCursor(items[items.length - 1].name)
+          : null,
+    };
   }
 
-  async getFollowing(accountValue, start = '', limit = 100) {
-    const account = requireHiveAccount(accountValue);
-    const raw = await this.rpcPool.call('condenser_api', 'get_following', [
-      account,
-      start,
-      'blog',
-      Math.min(limit, 100),
-    ]);
-    return (Array.isArray(raw) ? raw : []).map((item) => ({
-      name: item.following,
-      avatar: `https://images.hive.blog/u/${item.following}/avatar/small`,
-    }));
+  async getFollowers(accountValue, cursorValue = null) {
+    return this.#connectionPage({
+      accountValue,
+      cursorValue,
+      method: 'get_followers',
+      field: 'follower',
+    });
+  }
+
+  async getFollowing(accountValue, cursorValue = null) {
+    return this.#connectionPage({
+      accountValue,
+      cursorValue,
+      method: 'get_following',
+      field: 'following',
+    });
   }
 
   async getFollowStatus(followerValue, followingValue) {
@@ -405,6 +450,7 @@ module.exports = {
   DEFAULT_PAGE_SIZE,
   HiveReadService,
   assetEquivalent,
+  encodeConnectionCursor,
   encodePageCursor,
   isUnknownTransaction,
   operationEquivalent,

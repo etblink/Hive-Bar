@@ -28,6 +28,27 @@ function signedInApp(account = 'etblink', writeMode = 'controlled') {
   };
 }
 
+function paginatedFollowerRpc(names) {
+  const fixtureRpc = createFixtureRpc();
+  const calls = [];
+  return {
+    ...fixtureRpc,
+    calls,
+    async call(api, method, params) {
+      calls.push({ api, method, params: structuredClone(params) });
+      if (api === 'condenser_api' && method === 'get_followers') {
+        const startIndex = params[1] ? names.indexOf(params[1]) : 0;
+        if (startIndex < 0) return [];
+        return names
+          .slice(startIndex, startIndex + params[3])
+          .map((follower) => ({ follower, following: params[0], what: ['blog'] }));
+      }
+      if (api === 'bridge' && method === 'get_profiles') return [];
+      return fixtureRpc.call(api, method, params);
+    },
+  };
+}
+
 test('renders only qualifying public wall messages with fee and permanence disclosure', async () => {
   const { app } = createFixtureApp({
     configOverrides: { HIVE_GLOBAL_WALL_EXCLUSIONS: 'rewardbot' },
@@ -127,4 +148,34 @@ test('public connection tabs and controlled message forms are available without 
   assert.match(wall.text, /data-m4-action="inbox"/);
   assert.match(wall.text, /Hive-Bar receives only ciphertext/);
   assert.doesNotMatch(wall.text, /href="\/profile\/etblink\/settings"/);
+});
+
+test('follower pages expose a continuation cursor without duplicating the inclusive anchor', async () => {
+  const names = Array.from(
+    { length: 13 },
+    (_, index) => `friend${String(index + 1).padStart(2, '0')}`,
+  );
+  const rpcPool = paginatedFollowerRpc(names);
+  const { app } = createFixtureApp({ rpcPool });
+  const first = await request(app).get('/profile/etblink/followers').expect(200);
+
+  assert.match(first.text, /\/profile\/friend01/);
+  assert.match(first.text, /https:\/\/images\.hive\.blog\/u\/friend01\/avatar\/small/);
+  assert.match(first.text, /\/profile\/friend10/);
+  assert.doesNotMatch(first.text, /\/profile\/friend11/);
+  const nextPage = first.text.match(
+    /href="(\/profile\/etblink\/followers\?after=[A-Za-z0-9_-]+)"/,
+  );
+  assert.ok(nextPage, 'first follower page should render a continuation link');
+
+  const second = await request(app).get(nextPage[1]).expect(200);
+  assert.doesNotMatch(second.text, /\/profile\/friend10/);
+  assert.match(second.text, /\/profile\/friend11/);
+  assert.match(second.text, /\/profile\/friend13/);
+  assert.doesNotMatch(second.text, /followers\?after=/);
+
+  const followerCalls = rpcPool.calls.filter((call) => call.method === 'get_followers');
+  assert.deepEqual(followerCalls[0].params, ['etblink', '', 'blog', 11]);
+  assert.deepEqual(followerCalls[1].params.slice(0, 3), ['etblink', 'friend10', 'blog']);
+  assert.equal(followerCalls[1].params[3], 12);
 });
