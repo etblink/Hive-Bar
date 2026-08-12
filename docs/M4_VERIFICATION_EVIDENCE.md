@@ -1,6 +1,6 @@
 # M4 verification evidence
 
-Status: current deterministic candidate complete through GRF-06 remediation; controlled profile trial succeeded irreversibly; reward, wall, and inbox trials pending separate authorizations
+Status: current deterministic candidate complete through GRF-06 remediation; controlled profile and reward-claim trials succeeded irreversibly; wall and inbox trials pending separate authorizations
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
@@ -20,9 +20,15 @@ Post-trial stabilized tree: `2c01f0eb2f8a10f388eb4e4007b16569ebaf3abd`
 
 Current local GRF-06 remediation commit: `984c07bc5d25ebbad2afd6f11d3e717bd249eed5`
 
-Current published candidate commit: `6e872c5e23d51d761a748b60125b87c154f95e2f`
+Current published code-candidate commit: `6e872c5e23d51d761a748b60125b87c154f95e2f`
 
 Current local and published code-candidate tree: `19ac369c1d45880c3b084e08850ac21f84536520`
+
+Local evidence and reward-trial candidate commit: `75cd0d4734c967d5147cf49ea248137cba1b9af5`
+
+Published evidence and reward-trial candidate commit: `ef238f46010e55a34195cf30d235e85e267e6893`
+
+Local and published reward-trial candidate tree: `c3647da5261a1a8a60b3bf7048eeb4c6cb65502f`
 
 ## Deliverable evidence
 
@@ -106,7 +112,28 @@ The remediation adds a validated opaque account cursor, bounded look-ahead, incl
 | Remote validation | GitHub Actions run `31565527272`; push event; trigger commit `be0f994f8586fb11689a6b3666849d706a7645e3`; trigger tree `9f371a35614397c8711e15d1f8d74bc5f2db1e28`; Node 24 verification succeeded |
 | Live-read boundary | `Live Hive read-only smoke` job skipped because the validation used a push event; no Hive operation was executed |
 | Cleanup | `codex/m4-ci-validation` deleted through authenticated GitHub CLI and independently verified absent |
-| Branch/PR boundary | M4 branch remains at published commit `6e872c5e23d51d761a748b60125b87c154f95e2f`; PR #1 remains open and draft at M2 head `9085e9d00d73f61e0ea0b450832f28ac782ef36d` |
+| Branch/PR boundary | Published code candidate `6e872c5e23d51d761a748b60125b87c154f95e2f` has documentation-only child `ef238f46010e55a34195cf30d235e85e267e6893` as the current M4 branch head; both preserve the code tree recorded above; PR #1 remains open and draft at M2 head `9085e9d00d73f61e0ea0b450832f28ac782ef36d` |
+
+## Controlled reward-claim trial
+
+One M4 reward claim was individually authorized and completed. The final authorization superseded a stale earlier fingerprint, is now consumed, and does not authorize a retry or any profile, wall, inbox, payment, or other Hive operation.
+
+| Evidence field | Recorded result |
+| --- | --- |
+| Authorization | Product-owner instruction recorded 2026-08-12 UTC: `I authorize exactly one @etblink claim-rewards operation using 0.000 HIVE, 0.000 HBD, and 5692.710433 VESTS under Posting authority, with expected fingerprint 4a11acacb0517b95c74cec9e1f744c513ee818d4272dba461a2d4cac20cc3a7d. This supersedes the stale authorization for fingerprint ed9adaa93b99c60fec29e2826845f62ad3338872167e95686b75d9474fa004d5. No other Hive operation or retry is authorized.` |
+| Candidate | Local commit `75cd0d4734c967d5147cf49ea248137cba1b9af5`; published equivalent `ef238f46010e55a34195cf30d235e85e267e6893`; exact shared tree `c3647da5261a1a8a60b3bf7048eeb4c6cb65502f`; full 114-test gate passed on the exact tree before execution |
+| Stale-review guard | The first authorized fingerprint `ed9adaa93b99c60fec29e2826845f62ad3338872167e95686b75d9474fa004d5` expected `5410.015284 VESTS`. Hive-Bar's mandatory current-state re-fetch instead produced `5435.861707 VESTS`; the operator stopped before Keychain, no transaction was broadcast, and that authorization was not reused. Three nodes later agreed on the final authorized value below. |
+| Pre-state | Three independent RPC nodes agreed immediately before execution on `0.000 HIVE`, `0.000 HBD`, and `5692.710433 VESTS` claimable; liquid balance was `4.335 HBD`; vesting shares before settlement were `187694435.787716 VESTS` |
+| Account/action/authority | `etblink`; `claim_reward_balance`; Posting |
+| Exact operation | One operation with `account: etblink`, `reward_hive: 0.000 HIVE`, `reward_hbd: 0.000 HBD`, and `reward_vests: 5692.710433 VESTS`; no additional operation |
+| Fingerprint | `4a11acacb0517b95c74cec9e1f744c513ee818d4272dba461a2d4cac20cc3a7d` |
+| Transaction | `4ccac0397bf341f8790ae6ceb0122a2749761f36`; block `108951195`; transaction index `17`; timestamp 2026-08-12 05:51:57 UTC |
+| Exact-operation observation | All three configured RPC nodes returned the same transaction ID, block, and single authorized `claim_reward_balance`; AppBase NAI values decoded exactly to the authorized canonical assets |
+| State transition | Vesting shares increased from `187694435.787716 VESTS` to `187700128.498149 VESTS`, an exact `5692.710433 VESTS` increase. A separate `686.545188 VESTS` curation reward accrued eight blocks later in virtual operation block `108951203`; the resulting non-zero reward balance is new post-claim accrual, not an incomplete claim. |
+| Finality | Transaction block `108951195` was below last irreversible block `108951213` or `108951214` on all three nodes at 2026-08-12 05:52:51–05:52:54 UTC |
+| Browser outcome | Hive-Bar observed success and reloaded the wallet. The operator reported that no error or other message was displayed. |
+| Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, or signing authority; the user confirmed the exact Posting operation through local Hive Keychain |
+| Cleanup | Operator confirmed on 2026-08-12 UTC that the local process was stopped and the process-scoped controlled environment was cleared |
 
 ## Remaining live-operation status
 
@@ -115,7 +142,7 @@ The following evidence remains intentionally pending:
 | Operation | Required separate authorization/evidence |
 | --- | --- |
 | Profile update | Complete for the one authorized `@fartman69` trial above; no retry or additional profile update authorized |
-| Claim rewards | named account, exact current rewards, Posting confirmation, transaction/block, zeroed post-state |
+| Claim rewards | Complete for the one authorized `@etblink` trial above; exact settlement and separately traced post-claim accrual recorded; no retry or additional reward claim authorized |
 | Public wall | named sender/recipient, approved HBD amount and text, Active confirmation, public classified entry, transaction/block |
 | Encrypted inbox | named sender/recipient, approved HBD amount and message, Memo then Active confirmations, recipient-only local decrypt, transaction/block |
 
