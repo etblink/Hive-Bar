@@ -1,6 +1,6 @@
 # M4 verification evidence
 
-Status: current deterministic candidate complete through GRF-06 remediation; controlled profile and reward-claim trials succeeded irreversibly; wall and inbox trials pending separate authorizations
+Status: current deterministic candidate complete through GRF-06 remediation; controlled profile, reward-claim, and public-wall trials succeeded irreversibly; encrypted inbox trial pending separate authorization
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
@@ -29,6 +29,12 @@ Local evidence and reward-trial candidate commit: `75cd0d4734c967d5147cf49ea2481
 Published evidence and reward-trial candidate commit: `ef238f46010e55a34195cf30d235e85e267e6893`
 
 Local and published reward-trial candidate tree: `c3647da5261a1a8a60b3bf7048eeb4c6cb65502f`
+
+Local reward-evidence and wall-trial candidate commit: `cffae68d2ac6d68ed200585dc437fd7f44d4deaf`
+
+Published reward-evidence and wall-trial candidate commit: `b23036e00a1eb84c5cfb0f0b35f474114c076d79`
+
+Local and published wall-trial candidate tree: `278631302caa313710e162cfa45caa1bc9d90bae`
 
 ## Deliverable evidence
 
@@ -112,7 +118,7 @@ The remediation adds a validated opaque account cursor, bounded look-ahead, incl
 | Remote validation | GitHub Actions run `31565527272`; push event; trigger commit `be0f994f8586fb11689a6b3666849d706a7645e3`; trigger tree `9f371a35614397c8711e15d1f8d74bc5f2db1e28`; Node 24 verification succeeded |
 | Live-read boundary | `Live Hive read-only smoke` job skipped because the validation used a push event; no Hive operation was executed |
 | Cleanup | `codex/m4-ci-validation` deleted through authenticated GitHub CLI and independently verified absent |
-| Branch/PR boundary | Published code candidate `6e872c5e23d51d761a748b60125b87c154f95e2f` has documentation-only child `ef238f46010e55a34195cf30d235e85e267e6893` as the current M4 branch head; both preserve the code tree recorded above; PR #1 remains open and draft at M2 head `9085e9d00d73f61e0ea0b450832f28ac782ef36d` |
+| Branch/PR boundary | The publication chain through the wall-trial candidate is code candidate `6e872c5e23d51d761a748b60125b87c154f95e2f`, documentation child `ef238f46010e55a34195cf30d235e85e267e6893`, and reward-evidence child `b23036e00a1eb84c5cfb0f0b35f474114c076d79`; PR #1 remains open and draft at M2 head `9085e9d00d73f61e0ea0b450832f28ac782ef36d` |
 
 ## Controlled reward-claim trial
 
@@ -135,6 +141,27 @@ One M4 reward claim was individually authorized and completed. The final authori
 | Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, or signing authority; the user confirmed the exact Posting operation through local Hive Keychain |
 | Cleanup | Operator confirmed on 2026-08-12 UTC that the local process was stopped and the process-scoped controlled environment was cleared |
 
+## Controlled public-wall trial
+
+One M4 public-wall transfer was individually authorized and completed. The authorization is consumed and does not authorize a retry or any profile, reward, inbox, payment, or other Hive operation.
+
+| Evidence field | Recorded result |
+| --- | --- |
+| Authorization | Product-owner instruction recorded 2026-08-12 UTC: `I authorize exactly one @etblink public wall transfer to @fartman69 of 1.000 HBD under Active authority, with exact memo hivebar-wall:v1:Hive-Bar M4 controlled wall verification. and expected fingerprint 34cd8e318189b5e8444b53aff5b1e1509dedd418615acbc6779dbc2a427be692. I acknowledge that the message and transaction are public and permanent. No other Hive operation or retry is authorized.` |
+| Candidate | Local commit `cffae68d2ac6d68ed200585dc437fd7f44d4deaf`; published equivalent `b23036e00a1eb84c5cfb0f0b35f474114c076d79`; exact shared tree `278631302caa313710e162cfa45caa1bc9d90bae`; full 114-test gate passed on the exact tree before execution |
+| Pre-state | Three independent RPC nodes agreed that `@etblink` held `4.335 HBD`, `@fartman69` held `0.000 HBD`, and the recipient's posting metadata set wall fee `1.000 HBD` with an empty profile-managed blocklist. The controlled environment's global exclusion list was explicitly empty, no qualifying prior transfer was found, and last irreversible block was `108951468` at 2026-08-12 06:05:39 UTC. |
+| Account/action/authority | `etblink` to `fartman69`; `transfer`; Active |
+| Exact operation | One operation with `from: etblink`, `to: fartman69`, `amount: 1.000 HBD`, and memo `hivebar-wall:v1:Hive-Bar M4 controlled wall verification.`; no additional operation |
+| Fingerprint | `34cd8e318189b5e8444b53aff5b1e1509dedd418615acbc6779dbc2a427be692` |
+| Transaction | `67148f3ce401e8d0d472b2acf2473e9dcc90f1cc`; block `108951652`; transaction index `9`; timestamp 2026-08-12 06:14:51 UTC; account-history index `10` |
+| Exact-operation observation | All three configured RPC nodes returned exactly one transfer with the authorized sender, recipient, amount, memo, and no additional operation |
+| State transition | All three nodes returned `@etblink` at `3.335 HBD` and `@fartman69` at `1.000 HBD`, exact respective changes of minus and plus `1.000 HBD` |
+| Public classification | The wall page reloaded and displayed the exact authorized message as a qualifying public-wall entry |
+| Finality | Transaction block `108951652` was below last irreversible block `108951693` or `108951694` on all three nodes at 2026-08-12 06:16:54–06:16:57 UTC |
+| Browser outcome | Hive-Bar observed success and reloaded the wall page. The operator reported that the exact message was visible and no error text appeared. |
+| Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, or signing authority; the user confirmed the exact Active operation through local Hive Keychain |
+| Cleanup | Operator confirmed on 2026-08-12 UTC that the local process was stopped and the process-scoped controlled environment was cleared |
+
 ## Remaining live-operation status
 
 The following evidence remains intentionally pending:
@@ -143,7 +170,7 @@ The following evidence remains intentionally pending:
 | --- | --- |
 | Profile update | Complete for the one authorized `@fartman69` trial above; no retry or additional profile update authorized |
 | Claim rewards | Complete for the one authorized `@etblink` trial above; exact settlement and separately traced post-claim accrual recorded; no retry or additional reward claim authorized |
-| Public wall | named sender/recipient, approved HBD amount and text, Active confirmation, public classified entry, transaction/block |
+| Public wall | Complete for the one authorized `@etblink` to `@fartman69` trial above; exact public classification, settlement, and finality recorded; no retry or additional wall transfer authorized |
 | Encrypted inbox | named sender/recipient, approved HBD amount and message, Memo then Active confirmations, recipient-only local decrypt, transaction/block |
 
 Each trial must follow [M4_CONTROLLED_WRITE_RUNBOOK.md](M4_CONTROLLED_WRITE_RUNBOOK.md). Normal `HIVE_WRITE_MODE=disabled` and rejection of production write mode remain unchanged.
