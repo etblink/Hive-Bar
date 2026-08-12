@@ -1,6 +1,6 @@
 # M4 verification evidence
 
-Status: current local candidate complete through encrypted-inbox memo-sentinel and interactive-timeout remediation; controlled profile, reward-claim, and public-wall trials succeeded irreversibly; encrypted inbox preflight and transfer remain pending publication and separate authorization
+Status: current published candidate complete through encrypted-inbox memo-sentinel and interactive-timeout remediation; controlled profile, reward-claim, and public-wall trials succeeded irreversibly; encrypted inbox preflight and transfer remain pending fresh separate authorization
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
@@ -52,6 +52,14 @@ Published inbox-incident evidence candidate commit: `ae171298bad13277a4517eeb032
 
 Published inbox-incident evidence candidate tree: `ee744a15bf0670ba25501390f533f14aebdcd196`
 
+Current local interactive-timeout remediation commit: `1d8a9d7b802a7d6727a3c14b8894d21f85822ea6`
+
+Current published interactive-timeout remediation commit: `bd71ce0069acc626647d47d04d940277a09861f7`
+
+Current local and published interactive-timeout remediation tree: `6a66bab73bf89e8f4cd0119fe273d188275d537a`
+
+Interactive-timeout remediation patch SHA-256: `1799aaf227917fe89630fec341ff07f3c1806adedbb8f1d3ae4e9b7b2e192333`
+
 ## Deliverable evidence
 
 | M4 deliverable | Implementation evidence | Deterministic evidence |
@@ -76,11 +84,12 @@ Published inbox-incident evidence candidate tree: `ee744a15bf0670ba25501390f533f
 - Secret scan: passed across 127 repository files.
 - ESLint: passed with zero warnings.
 - Production Tailwind CSS build: passed.
-- Current local candidate: 115 tests passed, 0 failed at local commit `9b0341589a0089a21e46356783be23f37609b3e5` and tree `6a9bda38e6f8c801b491101bd758c1387e957aa2`.
-- Current uncommitted interactive-timeout remediation: full `npm run check` passed on published-candidate base tree `ee744a15bf0670ba25501390f533f14aebdcd196`; 119 tests passed, 0 failed; secret scan covered 127 repository files; ESLint and production CSS build passed; production audit found 0 vulnerabilities.
-- Current remote candidate: GitHub Actions run `31573106865` passed the Node 24 deterministic gate on trigger-only child `0ad925dd7222e624899d3b7fc4050bbd2e6fa932`, whose parent is published candidate `bd28ab9a116bcc63d4a8fb804c964242dcc0bdc5` and whose only additional change is the temporary validation-branch workflow trigger.
-- Remote current-candidate results: 115 tests passed, 0 failed; secret scan passed across 127 files; ESLint, production CSS build, and production audit passed; 0 vulnerabilities.
-- The push-triggered live Hive read-only smoke job was skipped by design. The single-use `codex/m4-ci-validation` branch was deleted after the run and independently verified absent.
+- Memo-sentinel candidate: 115 tests passed, 0 failed at local commit `9b0341589a0089a21e46356783be23f37609b3e5` and tree `6a9bda38e6f8c801b491101bd758c1387e957aa2`; GitHub Actions run `31573106865` passed on its trigger-only child.
+- Current interactive-timeout candidate: local commit `1d8a9d7b802a7d6727a3c14b8894d21f85822ea6`; published equivalent `bd71ce0069acc626647d47d04d940277a09861f7`; exact shared tree `6a66bab73bf89e8f4cd0119fe273d188275d537a`; patch SHA-256 `1799aaf227917fe89630fec341ff07f3c1806adedbb8f1d3ae4e9b7b2e192333`.
+- Current local results: 119 tests passed, 0 failed; secret scan covered 127 repository files; ESLint and production CSS build passed; production audit found 0 vulnerabilities.
+- Current remote validation: GitHub Actions run `31624355508` passed the Node 24 deterministic gate on trigger-only child `330c4451be6bcb01fb2b65a67823490c67265e69`, tree `ac1793e81c7164ed0c82559e148867894abac820`, whose parent is published candidate `bd71ce0069acc626647d47d04d940277a09861f7` and whose sole additional change enabled the temporary validation branch.
+- Current remote results: 119 tests passed, 0 failed; secret scan passed across 127 files; ESLint, production CSS build, and production audit passed; 0 vulnerabilities.
+- The push-triggered `Live Hive read-only smoke` job was skipped by design. The single-use `codex/m4-ci-validation` branch was deleted after the run and independently verified absent. The M4 candidate branch remained at `bd71ce0069acc626647d47d04d940277a09861f7`, and PR #1 remained open and draft at `9085e9d00d73f61e0ea0b450832f28ac782ef36d`.
 - Automated tests before the controlled profile trial: 109 passed, 0 failed.
 - Profile metadata malformed/no-erase and stale-conflict corpus: passed.
 - Canonical asset and exact operation vectors for all four M4 actions: passed.
@@ -212,9 +221,11 @@ A second preparation-only authorization was consumed on the published memo-senti
 | Privacy boundary | The private one-time text and any locally produced ciphertext were not copied into chat or evidence. A late Keychain callback cannot change the already rejected Promise or resume the stopped controller path. |
 | Defect | `DEFAULT_TIMEOUT_MS = 15_000` governed both passive extension connection/handshake work and human-reviewed sign, encrypt, decrypt, and broadcast requests. The observed 30–45 second review necessarily exceeded that bound. |
 | Remediation authorization | Product-owner instruction recorded 2026-08-12 UTC authorizes only local timeout remediation, deterministic tests, and this incident evidence on the published candidate. It prohibits commit, push, PR change, CI branch creation, Keychain requests, Hive operations, and preparation retry. |
-| Local remediation | The adapter now keeps a 15-second default for extension discovery and handshake while allowing 120 seconds for user-reviewed sign, broadcast, Memo encryption, and Memo decryption responses. The legacy `timeoutMs` constructor override still applies to both boundaries for deterministic compatibility. |
-| Deterministic validation | Adapter tests bind both production defaults, accept a delayed Memo callback after the shorter connection window, and keep an expired request rejected after a late callback. The M4 browser-flow regression proves a Memo timeout performs only the session read and never reaches preflight, review, or Active broadcast. Targeted result: 11 passed, 0 failed. Full local gate: 119 passed, 0 failed; secret scan 127 files; zero-warning ESLint; production CSS build; zero production vulnerabilities. |
-| Cleanup | The operator confirmed that the controlled process stopped, process-scoped configuration was cleared, the detached temporary checkout was removed, and no Active/transfer popup had appeared. |
+| Local remediation | The adapter now keeps a 15-second default for extension discovery and handshake while allowing 120 seconds for user-reviewed sign, broadcast, Memo encryption, and Memo decryption responses. The legacy `timeoutMs` constructor override still applies to both boundaries for deterministic compatibility. Local commit `1d8a9d7b802a7d6727a3c14b8894d21f85822ea6`; exact tree `6a66bab73bf89e8f4cd0119fe273d188275d537a`; patch SHA-256 `1799aaf227917fe89630fec341ff07f3c1806adedbb8f1d3ae4e9b7b2e192333`. |
+| Published remediation | Equivalent remote commit `bd71ce0069acc626647d47d04d940277a09861f7`; parent `ae171298bad13277a4517eeb03282556049e7a40`; exact shared tree `6a66bab73bf89e8f4cd0119fe273d188275d537a`. |
+| Deterministic validation | Adapter tests bind both production defaults, accept a delayed Memo callback after the shorter connection window, and keep an expired request rejected after a late callback. The M4 browser-flow regression proves a Memo timeout performs only the session read and never reaches preflight, review, or Active broadcast. Targeted result: 11 passed, 0 failed. Full local gate: 119 passed, 0 failed; secret scan 127 files; zero-warning ESLint; production CSS build; zero production vulnerabilities. GitHub Actions run `31624355508` passed the same Node 24 gate on trigger-only child `330c4451be6bcb01fb2b65a67823490c67265e69`, tree `ac1793e81c7164ed0c82559e148867894abac820`; its sole additional change enabled the temporary validation branch. |
+| Remote-validation boundary | The push-triggered `Live Hive read-only smoke` job was skipped. The M4 candidate branch and PR #1 remained unchanged throughout validation. No Keychain request, Hive operation, or preparation retry occurred. |
+| Cleanup | The operator confirmed that the controlled process stopped, process-scoped configuration was cleared, the detached temporary checkout was removed, and no Active/transfer popup had appeared. After remote validation, `codex/m4-ci-validation` was deleted and independently verified absent. |
 
 ## Remaining live-operation status
 
@@ -225,6 +236,6 @@ The following evidence remains intentionally pending:
 | Profile update | Complete for the one authorized `@fartman69` trial above; no retry or additional profile update authorized |
 | Claim rewards | Complete for the one authorized `@etblink` trial above; exact settlement and separately traced post-claim accrual recorded; no retry or additional reward claim authorized |
 | Public wall | Complete for the one authorized `@etblink` to `@fartman69` trial above; exact public classification, settlement, and finality recorded; no retry or additional wall transfer authorized |
-| Encrypted inbox | Two preparation-only authorizations were consumed without preflight or broadcast: the first exposed the missing `#` sentinel and the second exposed the 15-second human-interaction timeout. Both remediations pass targeted local tests; the timeout remediation remains uncommitted and unpublished. A fresh preparation authorization only after publication, later exact fingerprint-bound Active authorization, recipient-only local decrypt, and transaction/block evidence remain required. |
+| Encrypted inbox | Two preparation-only authorizations were consumed without preflight or broadcast: the first exposed the missing `#` sentinel and the second exposed the 15-second human-interaction timeout. Both remediations are published and passed local and remote deterministic gates. A fresh preparation authorization, later exact fingerprint-bound Active authorization, recipient-only local decrypt, and transaction/block evidence remain required. |
 
 Each trial must follow [M4_CONTROLLED_WRITE_RUNBOOK.md](M4_CONTROLLED_WRITE_RUNBOOK.md). Normal `HIVE_WRITE_MODE=disabled` and rejection of production write mode remain unchanged.
