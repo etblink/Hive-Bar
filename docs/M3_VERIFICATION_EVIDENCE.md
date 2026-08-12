@@ -1,6 +1,6 @@
 # M3 verification evidence
 
-Status: deterministic verification passed; one individually authorized controlled subscribe pilot completed and observed irreversibly on Hive; normal write mode remains disabled
+Status: complete; deterministic verification passed; one individually authorized controlled subscribe pilot completed, observed irreversibly on Hive, and cleaned up; normal write mode remains disabled
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.3
 
@@ -63,6 +63,6 @@ One M3 controlled pilot operation was individually authorized and completed. Thi
 | Observation | Exact transaction and account history matched; `bridge.get_community` reported `subscribed: true` and 3 subscribers at 2026-08-12 00:18:37 UTC |
 | Finality | Transaction block `108944428` was below last irreversible block `108944542` at observation |
 | Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, or signing authority; the user confirmed in local Hive Keychain |
-| Cleanup | Operator was instructed to stop the local process and clear the process-scoped controlled-mode variables; explicit completion confirmation is not yet recorded |
+| Cleanup | Operator confirmed at 2026-08-12 00:26:52 UTC that the local process was stopped and the process-scoped controlled-mode environment was cleaned up |
 
 All subsequent controlled operations still require a new, exact authorization and the complete procedure in [M3_CONTROLLED_WRITE_RUNBOOK.md](M3_CONTROLLED_WRITE_RUNBOOK.md). `HIVE_WRITE_MODE=disabled` remains the repository default, and M3 still rejects `HIVE_WRITE_MODE=production`.
