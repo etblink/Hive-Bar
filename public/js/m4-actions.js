@@ -1,7 +1,7 @@
 'use strict';
 
 (function attachM4Actions(global) {
-  const INBOX_INNER_MARKER = 'hivebar-inbox:v1:';
+  const INBOX_INNER_MARKER = '#hivebar-inbox:v1:';
   const OBSERVATION_ATTEMPTS = 5;
   const OBSERVATION_DELAY_MS = 1_500;
 

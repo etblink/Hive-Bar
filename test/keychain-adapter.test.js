@@ -107,7 +107,7 @@ test('uses explicit Active authority and keeps Memo encryption and decryption in
     },
     requestVerifyKey(...args) {
       calls.push(['decode', ...args.slice(0, 3)]);
-      args[3]({ success: true, result: 'hivebar-inbox:v1:secret' });
+      args[3]({ success: true, result: '#hivebar-inbox:v1:secret' });
     },
   });
   try {
@@ -122,17 +122,41 @@ test('uses explicit Active authority and keeps Memo encryption and decryption in
     const encoded = await adapter.encodeMemo({
       account: 'barfriend',
       receiver: 'etblink',
-      message: 'hivebar-inbox:v1:secret',
+      message: '#hivebar-inbox:v1:secret',
     });
     const decoded = await adapter.decodeMemo({ account: 'etblink', ciphertext: encoded.ciphertext });
     assert.deepEqual(calls, [
       ['broadcast', 'barfriend', [operation], 'Active'],
-      ['encode', 'barfriend', 'etblink', 'hivebar-inbox:v1:secret', 'Memo'],
+      ['encode', 'barfriend', 'etblink', '#hivebar-inbox:v1:secret', 'Memo'],
       ['decode', 'etblink', '#8ciphertext', 'Memo'],
     ]);
     assert.deepEqual({ ...encoded }, { ciphertext: '#8ciphertext' });
-    assert.deepEqual({ ...decoded }, { plaintext: 'hivebar-inbox:v1:secret' });
+    assert.deepEqual({ ...decoded }, { plaintext: '#hivebar-inbox:v1:secret' });
     assert.equal(dom.window.localStorage.length, 0);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('rejects memo plaintext without the Hive encryption marker before contacting Keychain', async () => {
+  let handshakes = 0;
+  const dom = browserWith({
+    requestHandshake(callback) {
+      handshakes += 1;
+      callback();
+    },
+  });
+  try {
+    const adapter = new dom.window.HiveBarKeychain.KeychainAdapter({ timeoutMs: 100 });
+    await assert.rejects(
+      adapter.encodeMemo({
+        account: 'barfriend',
+        receiver: 'etblink',
+        message: 'hivebar-inbox:v1:secret',
+      }),
+      (error) => error.code === 'KEYCHAIN_MEMO_PLAINTEXT_INVALID' && /begin with #/.test(error.message),
+    );
+    assert.equal(handshakes, 0);
   } finally {
     dom.window.close();
   }

@@ -109,7 +109,7 @@ test('encrypts inbox plaintext before the server preflight and broadcasts only m
       {
         account: 'barfriend',
         receiver: 'etblink',
-        message: 'hivebar-inbox:v1:secret plaintext',
+        message: '#hivebar-inbox:v1:secret plaintext',
       },
     ]);
     assert.deepEqual(JSON.parse(JSON.stringify(keychainCalls[1])), [
@@ -147,7 +147,7 @@ test('decrypts marked ciphertext locally and never posts plaintext back to the s
           account: 'etblink',
           ciphertext: '#8ciphertext',
         });
-        return { plaintext: 'hivebar-inbox:v1:local secret' };
+        return { plaintext: '#hivebar-inbox:v1:local secret' };
       },
     }),
   });

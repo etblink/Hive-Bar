@@ -52,7 +52,7 @@ History is fetched through `account_history_api.get_account_history` using the t
 
 ## Encrypted inbox privacy boundary
 
-The send flow gives plaintext only to the sender's browser and Hive Keychain. Before any M4 preflight request, Keychain encrypts `hivebar-inbox:v1:` plus the message for the recipient. Hive-Bar receives only the returned ciphertext and builds an outer `hivebar-inbox:v1:` marked transfer memo.
+The send flow gives plaintext only to the sender's browser and Hive Keychain. Before any M4 preflight request, the browser prefixes the private text with the Hive encryption sentinel and inner marker `#hivebar-inbox:v1:`. Keychain encrypts that marked plaintext for the recipient. Hive-Bar receives only the returned ciphertext and builds an outer `hivebar-inbox:v1:` marked transfer memo.
 
 The owner-only inbox returns marked ciphertext. On demand, the browser passes that ciphertext to the recipient's local Keychain Memo-key flow, verifies the decrypted inner marker, and inserts the remaining text with `textContent`. Decrypted plaintext is not sent back to Hive-Bar, logged, cached, stored, or persisted. The page uses `Cache-Control: no-store`.
 

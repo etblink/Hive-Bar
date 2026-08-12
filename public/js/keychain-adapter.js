@@ -169,6 +169,12 @@
     }
 
     async encodeMemo({ account, receiver, message }) {
+      if (typeof message !== 'string' || !message.startsWith('#')) {
+        throw new KeychainError(
+          'KEYCHAIN_MEMO_PLAINTEXT_INVALID',
+          'Hive memo plaintext must begin with # before Keychain encryption.',
+        );
+      }
       const keychain = await this.connect();
       if (typeof keychain.requestEncodeMessage !== 'function') {
         throw new KeychainError('KEYCHAIN_UNAVAILABLE', 'This Hive Keychain version cannot encrypt memo text.');
