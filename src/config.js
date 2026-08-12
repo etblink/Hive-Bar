@@ -3,6 +3,7 @@
 const { randomBytes } = require('node:crypto');
 const dotenv = require('dotenv');
 const { z } = require('zod');
+const { parseAsset } = require('./hive/assets');
 
 const HIVE_ACCOUNT_PATTERN = /^(?=.{3,64}$)[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*$/;
 const COMMUNITY_PATTERN = /^hive-[0-9]{3,12}$/;
@@ -17,6 +18,7 @@ const PRODUCTION_REQUIRED_SETTINGS = [
   'THREADS_CONTAINER_ACCOUNT',
   'HIVE_RPC_NODES',
   'HIVE_WRITE_MODE',
+  'HIVE_WALL_DEFAULT_FEE',
   'APP_ORIGIN',
   'SESSION_SECRET',
 ];
@@ -77,6 +79,19 @@ function parseAccountList(value, context) {
   }
 
   return [...new Set(accounts)];
+}
+
+function parseWallFee(value, context) {
+  const raw = String(value || '').trim();
+  const parsed = parseAsset(raw, 'HBD');
+  if (!parsed || parsed.canonical !== raw || parsed.units <= 0n) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Must be a positive HBD amount with exactly three decimals',
+    });
+    return z.NEVER;
+  }
+  return parsed.canonical;
 }
 
 function parseAppOrigin(value, context) {
@@ -160,6 +175,9 @@ const envSchema = z
       .transform(parseRpcNodes),
     HIVE_WRITE_MODE: z.enum(['disabled', 'controlled', 'production']).default('disabled'),
     HIVE_CONTROLLED_ACCOUNTS: z.string().default('').transform(parseAccountList),
+    HIVE_WALL_DEFAULT_FEE: z.string().default('1.000 HBD').transform(parseWallFee),
+    HIVE_GLOBAL_WALL_EXCLUSIONS: z.string().default('').transform(parseAccountList),
+    HIVE_MESSAGE_HISTORY_PAGE_SIZE: z.coerce.number().int().min(5).max(100).default(25),
     HIVE_APP_TAG: z
       .string()
       .trim()
@@ -217,7 +235,7 @@ const envSchema = z
       context.addIssue({
         code: 'custom',
         path: ['HIVE_WRITE_MODE'],
-        message: 'Production write mode is not authorized in M3',
+        message: 'Production write mode is not authorized before the V1 release gate',
       });
     }
   });
@@ -282,6 +300,9 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
       rpcCooldownMs: result.data.HIVE_RPC_COOLDOWN_MS,
       writeMode: result.data.HIVE_WRITE_MODE,
       controlledAccounts: result.data.HIVE_CONTROLLED_ACCOUNTS,
+      defaultWallFee: result.data.HIVE_WALL_DEFAULT_FEE,
+      globalWallExclusions: result.data.HIVE_GLOBAL_WALL_EXCLUSIONS,
+      messageHistoryPageSize: result.data.HIVE_MESSAGE_HISTORY_PAGE_SIZE,
       appTag: result.data.HIVE_APP_TAG,
       writesEnabled: result.data.HIVE_WRITE_MODE === 'controlled',
     },
@@ -311,5 +332,6 @@ module.exports = {
   HIVE_ACCOUNT_PATTERN,
   PRODUCTION_REQUIRED_SETTINGS,
   parseAccountList,
+  parseWallFee,
   loadConfig,
 };

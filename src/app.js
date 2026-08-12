@@ -18,6 +18,7 @@ const { sessionContext } = require('./middleware/session');
 const { PreflightStore } = require('./social/preflight-store');
 const { createHealthRouter } = require('./routes/health');
 const { createAuthRouter } = require('../routes/auth');
+const { createM4Router } = require('../routes/m4');
 const { createSocialRouter } = require('../routes/social');
 
 function securityMiddleware(config) {
@@ -61,7 +62,12 @@ function createApp(options = {}) {
       logger,
     });
 
-  const hiveReads = options.hiveReadService || new HiveReadService(rpcPool, { now: options.now });
+  const hiveReads =
+    options.hiveReadService ||
+    new HiveReadService(rpcPool, {
+      now: options.now,
+      messageHistoryPageSize: config.hive.messageHistoryPageSize,
+    });
   const challengeStore =
     options.challengeStore ||
     new ChallengeStore({
@@ -187,6 +193,7 @@ function createApp(options = {}) {
     createAuthRouter({ config }),
   );
   app.use('/api/social', createSocialRouter({ config }));
+  app.use('/api/m4', createM4Router({ config }));
 
   const indexRouter = require('../routes/index');
   const communityRouter = require('../routes/community');

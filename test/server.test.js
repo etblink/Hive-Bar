@@ -32,6 +32,7 @@ test('starts on a real TCP socket in production mode and shuts down cleanly', as
       HIVE_RPC_NODES:
         'https://api.hive.blog,https://api.deathwing.me,https://api.openhive.network',
       HIVE_WRITE_MODE: 'disabled',
+      HIVE_WALL_DEFAULT_FEE: '1.000 HBD',
       APP_ORIGIN: 'https://hive-bar.example',
       SESSION_SECRET: 'a-production-session-secret-with-32-bytes',
       LOG_LEVEL: 'silent',

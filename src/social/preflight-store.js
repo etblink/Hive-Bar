@@ -45,6 +45,7 @@ class PreflightStore {
       expiresAtMs: createdAtMs + this.ttlMs,
       observationChecks: 0,
       observedAt: null,
+      blockNumber: null,
     };
     this.records.set(id, record);
     this.fingerprints.set(duplicateKey, id);
@@ -100,9 +101,12 @@ class PreflightStore {
       });
     }
     record.observationChecks += 1;
-    if (observed) {
+    const wasObserved =
+      typeof observed === 'object' && observed !== null ? Boolean(observed.observed) : Boolean(observed);
+    if (wasObserved) {
       record.state = 'observed';
       record.observedAt ||= new Date(this.now()).toISOString();
+      if (Number.isSafeInteger(observed?.blockNumber)) record.blockNumber = observed.blockNumber;
     }
     return this.publicRecord(record);
   }
@@ -122,6 +126,7 @@ class PreflightStore {
       expiresAt: record.expiresAt,
       observationChecks: record.observationChecks,
       observedAt: record.observedAt,
+      blockNumber: record.blockNumber,
     };
   }
 

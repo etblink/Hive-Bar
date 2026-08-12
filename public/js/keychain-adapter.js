@@ -127,10 +127,13 @@
       });
     }
 
-    async broadcast({ account, operations }) {
+    async broadcast({ account, operations, authority = 'Posting' }) {
       const keychain = await this.connect();
       if (typeof keychain.requestBroadcast !== 'function') {
         throw new KeychainError('KEYCHAIN_UNAVAILABLE', 'This Hive Keychain version cannot broadcast operations.');
+      }
+      if (!['Posting', 'Active'].includes(authority)) {
+        throw new KeychainError('KEYCHAIN_AUTHORITY_INVALID', 'The requested Hive authority is invalid.');
       }
 
       return new Promise((resolve, reject) => {
@@ -142,7 +145,7 @@
           keychain.requestBroadcast(
             account,
             operations,
-            'Posting',
+            authority,
             (response) => {
               this.window.clearTimeout(timer);
               if (!response || response.error || response.success === false) {
@@ -161,6 +164,78 @@
         } catch {
           this.window.clearTimeout(timer);
           reject(new KeychainError('KEYCHAIN_REQUEST_FAILED', 'Hive Keychain could not open the broadcast request.'));
+        }
+      });
+    }
+
+    async encodeMemo({ account, receiver, message }) {
+      const keychain = await this.connect();
+      if (typeof keychain.requestEncodeMessage !== 'function') {
+        throw new KeychainError('KEYCHAIN_UNAVAILABLE', 'This Hive Keychain version cannot encrypt memo text.');
+      }
+
+      return new Promise((resolve, reject) => {
+        const timer = this.window.setTimeout(
+          () => reject(new KeychainError('KEYCHAIN_TIMEOUT', 'Hive Keychain did not respond in time.')),
+          this.timeoutMs,
+        );
+        try {
+          keychain.requestEncodeMessage(account, receiver, message, 'Memo', (response) => {
+            this.window.clearTimeout(timer);
+            if (!response || response.error || response.success === false) {
+              reject(responseError(response));
+              return;
+            }
+            if (typeof response.result !== 'string' || !response.result.startsWith('#')) {
+              reject(
+                new KeychainError(
+                  'KEYCHAIN_INVALID_RESPONSE',
+                  'Hive Keychain returned invalid encrypted memo text.',
+                ),
+              );
+              return;
+            }
+            resolve({ ciphertext: response.result });
+          });
+        } catch {
+          this.window.clearTimeout(timer);
+          reject(new KeychainError('KEYCHAIN_REQUEST_FAILED', 'Hive Keychain could not open the memo encryption request.'));
+        }
+      });
+    }
+
+    async decodeMemo({ account, ciphertext }) {
+      const keychain = await this.connect();
+      if (typeof keychain.requestVerifyKey !== 'function') {
+        throw new KeychainError('KEYCHAIN_UNAVAILABLE', 'This Hive Keychain version cannot decrypt memo text.');
+      }
+
+      return new Promise((resolve, reject) => {
+        const timer = this.window.setTimeout(
+          () => reject(new KeychainError('KEYCHAIN_TIMEOUT', 'Hive Keychain did not respond in time.')),
+          this.timeoutMs,
+        );
+        try {
+          keychain.requestVerifyKey(account, ciphertext, 'Memo', (response) => {
+            this.window.clearTimeout(timer);
+            if (!response || response.error || response.success === false) {
+              reject(responseError(response));
+              return;
+            }
+            if (typeof response.result !== 'string') {
+              reject(
+                new KeychainError(
+                  'KEYCHAIN_INVALID_RESPONSE',
+                  'Hive Keychain returned invalid decrypted memo text.',
+                ),
+              );
+              return;
+            }
+            resolve({ plaintext: response.result });
+          });
+        } catch {
+          this.window.clearTimeout(timer);
+          reject(new KeychainError('KEYCHAIN_REQUEST_FAILED', 'Hive Keychain could not open the memo decryption request.'));
         }
       });
     }

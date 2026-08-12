@@ -120,7 +120,11 @@ test('mocked browser journey reviews, broadcasts, records acceptance, and waits 
     const form = dom.window.document.querySelector('form');
     await controller.run(form);
     assert.equal(reviewed.account, 'etblink');
-    assert.deepEqual(JSON.parse(JSON.stringify(broadcast)), { account: 'etblink', operations });
+    assert.deepEqual(JSON.parse(JSON.stringify(broadcast)), {
+      account: 'etblink',
+      operations,
+      authority: 'Posting',
+    });
     assert.equal(reloads, 1);
     assert.equal(observationCount, 2);
     assert.match(form.querySelector('[data-social-status]').textContent, /observed through Hive RPC/);

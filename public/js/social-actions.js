@@ -115,6 +115,7 @@
         const result = await this.keychainFactory().broadcast({
           account: preflight.account,
           operations: preflight.operations,
+          authority: preflight.authority,
         });
         broadcastAccepted = Boolean(result?.accepted);
         const accepted = await this.request(`/api/social/preflight/${preflight.id}/accepted`, {
@@ -175,6 +176,8 @@
         2,
       );
       dialog.querySelector('[data-social-account]').textContent = `@${preflight.account}`;
+      const authority = dialog.querySelector('[data-social-authority]');
+      if (authority) authority.textContent = preflight.authority;
       dialog.querySelector('[data-social-fingerprint]').textContent = preflight.fingerprint;
       dialog.showModal();
 

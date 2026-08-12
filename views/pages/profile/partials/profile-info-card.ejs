@@ -8,11 +8,11 @@
   <dl class="mt-6 grid grid-cols-2 gap-3">
     <div class="stat-tile">
       <dt>Followers</dt>
-      <dd><%= userProfile.followerCount.toLocaleString() %></dd>
+      <dd><a class="underline hover:text-bar-gold" href="/profile/<%= userProfile.name %>/followers"><%= userProfile.followerCount.toLocaleString() %></a></dd>
     </div>
     <div class="stat-tile">
       <dt>Following</dt>
-      <dd><%= userProfile.followingCount.toLocaleString() %></dd>
+      <dd><a class="underline hover:text-bar-gold" href="/profile/<%= userProfile.name %>/following"><%= userProfile.followingCount.toLocaleString() %></a></dd>
     </div>
     <div class="stat-tile">
       <dt>Posts</dt>

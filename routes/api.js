@@ -43,17 +43,33 @@ router.get('/posts/:username', async (req, res, next) => {
   }
 });
 
-router.get('/transactions/:username', (req, _res, next) => {
+router.get('/transactions/:username', async (req, res, next) => {
   try {
-    requireHiveAccount(req.params.username);
-    next(new FeatureUnavailableError('Transaction classification is not part of M2'));
+    const account = requireHiveAccount(req.params.username);
+    const config = req.app.locals.config;
+    const settings = await req.app.locals.services.hiveReads.getProfileSettings(account, {
+      defaultWallFee: config.hive.defaultWallFee,
+    });
+    const page = await req.app.locals.services.hiveReads.getMessageHistory({
+      account,
+      cursor: req.query.before,
+      kind: 'wall',
+      minimumFee: settings.wallFee,
+      globalExclusions: config.hive.globalWallExclusions,
+      profileExclusions: settings.blocklist,
+    });
+    res.json({ account, minimumFee: settings.wallFee, ...page });
   } catch (error) {
     next(error);
   }
 });
 
 router.post('/wall-post', (_req, _res, next) => {
-  next(new FeatureUnavailableError('Wall-post transfers are outside the authorized M3 social-write scope'));
+  next(
+    new FeatureUnavailableError(
+      'Legacy wall writes are disabled; use the verified, session-bound M4 preflight flow',
+    ),
+  );
 });
 
 module.exports = router;

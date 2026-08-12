@@ -19,6 +19,9 @@ const KEY_ROUTES = [
   '/post/etblink/welcome-fourth-street-bar',
   '/profile/etblink',
   '/profile/etblink/wallet',
+  '/profile/etblink/wall-posts',
+  '/profile/etblink/followers',
+  '/profile/etblink/following',
 ];
 
 async function renderKeyRoutes() {
@@ -42,7 +45,15 @@ async function renderControlledRoutes() {
   });
   const { token } = sessionStore.create('etblink');
   const cookie = `hive_bar_session=${token}`;
-  const routes = ['/community', '/post/etblink/welcome-fourth-street-bar', '/profile/barfriend'];
+  const routes = [
+    '/community',
+    '/post/etblink/welcome-fourth-street-bar',
+    '/profile/barfriend',
+    '/profile/etblink/wallet',
+    '/profile/etblink/wall-posts',
+    '/profile/etblink/inbox',
+    '/profile/etblink/settings',
+  ];
   const responses = [];
   for (const route of routes) {
     const app = createApp({ config, logger, rpcPool: createFixtureRpc(), sessionStore });
@@ -97,7 +108,7 @@ test('axe reports no serious or critical violations on key public documents', as
   }
 });
 
-test('controlled M3 social forms pass structural and serious/critical accessibility gates', async () => {
+test('controlled M3 and M4 forms pass structural and serious/critical accessibility gates', async () => {
   const validator = new HtmlValidate({
     extends: ['html-validate:recommended'],
     rules: { 'no-trailing-whitespace': 'off' },

@@ -23,6 +23,9 @@ test('loads the accepted identifiers, secure session settings, and write-disable
   assert.equal(config.hive.writeMode, 'disabled');
   assert.equal(config.hive.writesEnabled, false);
   assert.deepEqual(config.hive.controlledAccounts, []);
+  assert.equal(config.hive.defaultWallFee, '1.000 HBD');
+  assert.deepEqual(config.hive.globalWallExclusions, []);
+  assert.equal(config.hive.messageHistoryPageSize, 25);
   assert.equal(config.auth.appOrigin, 'http://localhost:3000');
   assert.ok(config.auth.sessionSecret.length >= 32);
   assert.equal(config.site.business.address, '1114 E. 4th Street, Reno, NV 89512');
@@ -46,6 +49,7 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
         HIVE_COMMUNITY_ID: 'hive-108590',
         THREADS_CONTAINER_ACCOUNT: 'fourthst.threads',
         HIVE_RPC_NODES: 'https://api.hive.blog',
+        HIVE_WALL_DEFAULT_FEE: '1.000 HBD',
         APP_ORIGIN: 'https://hive-bar.example',
         SESSION_SECRET: 'a-production-session-secret-with-32-bytes',
       }),
@@ -56,7 +60,7 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
 test('fails closed when production settings are only implicit defaults', () => {
   assert.throws(
     () => loadConfig({ NODE_ENV: 'production' }, { loadDotenv: false }),
-    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, APP_ORIGIN, SESSION_SECRET/,
+    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, HIVE_WALL_DEFAULT_FEE, APP_ORIGIN, SESSION_SECRET/,
   );
 });
 
@@ -74,8 +78,21 @@ test('allows only explicitly account-scoped controlled mode and still rejects pr
   );
   assert.throws(
     () => configFrom({ HIVE_WRITE_MODE: 'production' }),
-    /Production write mode is not authorized in M3/,
+    /Production write mode is not authorized before the V1 release gate/,
   );
+});
+
+test('validates the canonical M4 wall fee and both normalized exclusion layers', () => {
+  const config = configFrom({
+    HIVE_WALL_DEFAULT_FEE: '1.000 HBD',
+    HIVE_GLOBAL_WALL_EXCLUSIONS: 'rewardbot, spammer, rewardbot',
+    HIVE_MESSAGE_HISTORY_PAGE_SIZE: '50',
+  });
+  assert.equal(config.hive.defaultWallFee, '1.000 HBD');
+  assert.deepEqual(config.hive.globalWallExclusions, ['rewardbot', 'spammer']);
+  assert.equal(config.hive.messageHistoryPageSize, 50);
+  assert.throws(() => configFrom({ HIVE_WALL_DEFAULT_FEE: '1.00 HBD' }), /three decimals/);
+  assert.throws(() => configFrom({ HIVE_WALL_DEFAULT_FEE: '0.000 HBD' }), /positive HBD/);
 });
 
 test('rejects insecure or credential-bearing RPC URLs', () => {

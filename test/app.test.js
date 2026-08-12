@@ -191,12 +191,12 @@ test('rejects malformed pagination cursors and account inputs without stack trac
   assert.doesNotMatch(account.text, /at .*\.js:/);
 });
 
-test('keeps later-milestone write endpoints outside the M3 social scope', async () => {
+test('keeps the legacy wall-write endpoint disabled in favor of verified M4 preflight', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).post('/api/wall-post').send({ body: 'hello' }).expect(503);
 
   assert.equal(response.body.error.code, 'FEATURE_UNAVAILABLE');
-  assert.match(response.body.error.message, /outside the authorized M3 social-write scope/);
+  assert.match(response.body.error.message, /verified, session-bound M4 preflight flow/);
 });
 
 test('rejects malformed and oversized request bodies with safe client errors', async () => {

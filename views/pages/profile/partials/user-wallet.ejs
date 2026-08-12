@@ -73,7 +73,16 @@
         <div><dt class="text-sm text-gray-400">HBD</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hbd) %></dd></div>
         <div><dt class="text-sm text-gray-400">Hive Power</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hivePower) %></dd></div>
       </dl>
-      <p class="mt-4 text-sm text-gray-400">Claiming remains disabled until the verified-owner milestone.</p>
+      <% if (canManageProfile && writesEnabled) { %>
+        <form class="mt-5" data-m4-action="claim-rewards">
+          <button type="submit" class="button-primary">Review exact reward claim</button>
+          <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-m4-status>
+            The latest non-zero balances will be fetched again before Keychain opens.
+          </p>
+        </form>
+      <% } else if (canManageProfile) { %>
+        <p class="mt-4 text-sm text-gray-400">Reward signing is disabled until an individually authorized controlled-write run.</p>
+      <% } %>
     <% } else { %>
       <p class="mt-3 text-gray-300">No non-zero reward balances were reported.</p>
     <% } %>

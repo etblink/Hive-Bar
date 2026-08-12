@@ -91,6 +91,53 @@ test('calls Keychain broadcast with exact operations and Posting authority', asy
   }
 });
 
+test('uses explicit Active authority and keeps Memo encryption and decryption inside Keychain', async () => {
+  const calls = [];
+  const dom = browserWith({
+    requestHandshake(callback) {
+      callback();
+    },
+    requestBroadcast(...args) {
+      calls.push(['broadcast', ...args.slice(0, 3)]);
+      args[3]({ success: true, result: { id: 'active-tx' } });
+    },
+    requestEncodeMessage(...args) {
+      calls.push(['encode', ...args.slice(0, 4)]);
+      args[4]({ success: true, result: '#8ciphertext' });
+    },
+    requestVerifyKey(...args) {
+      calls.push(['decode', ...args.slice(0, 3)]);
+      args[3]({ success: true, result: 'hivebar-inbox:v1:secret' });
+    },
+  });
+  try {
+    const adapter = new dom.window.HiveBarKeychain.KeychainAdapter({ timeoutMs: 100 });
+    const operation = ['transfer', {
+      from: 'barfriend',
+      to: 'etblink',
+      amount: '1.000 HBD',
+      memo: 'hivebar-inbox:v1:#8ciphertext',
+    }];
+    await adapter.broadcast({ account: 'barfriend', operations: [operation], authority: 'Active' });
+    const encoded = await adapter.encodeMemo({
+      account: 'barfriend',
+      receiver: 'etblink',
+      message: 'hivebar-inbox:v1:secret',
+    });
+    const decoded = await adapter.decodeMemo({ account: 'etblink', ciphertext: encoded.ciphertext });
+    assert.deepEqual(calls, [
+      ['broadcast', 'barfriend', [operation], 'Active'],
+      ['encode', 'barfriend', 'etblink', 'hivebar-inbox:v1:secret', 'Memo'],
+      ['decode', 'etblink', '#8ciphertext', 'Memo'],
+    ]);
+    assert.deepEqual({ ...encoded }, { ciphertext: '#8ciphertext' });
+    assert.deepEqual({ ...decoded }, { plaintext: 'hivebar-inbox:v1:secret' });
+    assert.equal(dom.window.localStorage.length, 0);
+  } finally {
+    dom.window.close();
+  }
+});
+
 test('distinguishes cancellation, locked Keychain, account mismatch, and absence', async () => {
   async function rejectedCode(keychain, method = 'signBuffer') {
     const dom = browserWith(keychain);

@@ -98,9 +98,33 @@
       "reward_hive_balance": "1.000 HIVE",
       "reward_hbd_balance": "0.500 HBD",
       "reward_vesting_balance": "1000.000000 VESTS",
-      "reward_vesting_hive": "0.500 HIVE"
+      "reward_vesting_hive": "0.500 HIVE",
+      "posting_json_metadata": "{\"profile\":{\"name\":\"Evan\",\"about\":\"Building the bar community.\",\"profile_image\":\"https://images.hive.blog/u/etblink/avatar\",\"location\":\"Reno\",\"website\":\"https://example.test\",\"cover_image\":\"https://images.hive.blog/u/etblink/cover\"},\"other_client\":{\"keep\":true},\"hivebar\":{\"version\":1,\"wall_fee\":\"1.000 HBD\",\"wall_blocklist\":[\"spammer\"]}}"
+    },
+    {
+      "name": "barfriend",
+      "balance": "2.000 HIVE",
+      "hbd_balance": "3.000 HBD",
+      "vesting_shares": "1000.000000 VESTS",
+      "received_vesting_shares": "0.000000 VESTS",
+      "delegated_vesting_shares": "0.000000 VESTS",
+      "reward_hive_balance": "0.000 HIVE",
+      "reward_hbd_balance": "0.000 HBD",
+      "reward_vesting_balance": "0.000000 VESTS",
+      "posting_json_metadata": "{\"profile\":{\"name\":\"Bar Friend\",\"about\":\"A fixture visitor\"},\"hivebar\":{\"version\":1,\"wall_fee\":\"1.000 HBD\",\"wall_blocklist\":[]}}"
     }
   ],
+  "accountHistory": {
+    "etblink": [
+      [20, {"trx_id":"1111111111111111111111111111111111111111","block":108944500,"trx_in_block":1,"op_in_trx":0,"virtual_op":0,"timestamp":"2026-08-11T21:00:00","op":["transfer",{"from":"barfriend","to":"etblink","amount":"1.000 HBD","memo":"hivebar-wall:v1:Welcome to the neighborhood."}]}],
+      [19, {"trx_id":"2222222222222222222222222222222222222222","block":108944490,"trx_in_block":2,"op_in_trx":0,"virtual_op":0,"timestamp":"2026-08-11T20:59:30","op":["transfer",{"from":"barfriend","to":"etblink","amount":"1.000 HBD","memo":"hivebar-inbox:v1:#8fixtureciphertext"}]}],
+      [18, {"trx_id":"3333333333333333333333333333333333333333","block":108944480,"trx_in_block":3,"op_in_trx":0,"virtual_op":0,"timestamp":"2026-08-11T20:59:00","op":["transfer",{"from":"barfriend","to":"etblink","amount":"5.000 HBD","memo":"ordinary transfer"}]}],
+      [17, {"trx_id":"4444444444444444444444444444444444444444","block":108944470,"trx_in_block":4,"op_in_trx":0,"virtual_op":0,"timestamp":"2026-08-11T20:58:30","op":["transfer",{"from":"barfriend","to":"etblink","amount":"0.999 HBD","memo":"hivebar-wall:v1:Below fee"}]}],
+      [16, {"trx_id":"5555555555555555555555555555555555555555","block":108944460,"trx_in_block":5,"op_in_trx":0,"virtual_op":0,"timestamp":"2026-08-11T20:58:00","op":["transfer",{"from":"etblink","to":"barfriend","amount":"1.000 HBD","memo":"hivebar-wall:v1:Outbound"}]}],
+      [15, {"trx_id":"6666666666666666666666666666666666666666","block":108944450,"trx_in_block":6,"op_in_trx":0,"virtual_op":0,"timestamp":"2026-08-11T20:57:30","op":["transfer",{"from":"rewardbot","to":"etblink","amount":"1.000 HBD","memo":"hivebar-wall:v1:Service noise"}]}]
+    ],
+    "barfriend": []
+  },
   "globalProperties": {
     "head_block_number": 98765432,
     "total_vesting_fund_hive": "500000000.000 HIVE",

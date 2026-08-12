@@ -16,6 +16,24 @@ function createFixtureRpc() {
       calls.push({ api, method, params: clone(params) });
       const key = `${api}.${method}`;
 
+      if (key === 'account_history_api.get_account_history') {
+        const history = clone(fixture.accountHistory[params.account] || []);
+        const eligible = params.start === -1
+          ? history
+          : history.filter(([index]) => index <= params.start);
+        return { history: eligible.slice(0, params.limit) };
+      }
+      if (key === 'account_history_api.get_transaction') {
+        const match = Object.values(fixture.accountHistory)
+          .flat()
+          .find(([, event]) => event.trx_id === params.id);
+        if (!match) throw new Error('Unknown fixture transaction');
+        return {
+          operations: [clone(match[1].op)],
+          transaction_id: match[1].trx_id,
+          block_num: match[1].block,
+        };
+      }
       if (key === 'bridge.get_community') return clone(fixture.community);
       if (key === 'bridge.get_ranked_posts') return clone(fixture.communityPosts);
       if (key === 'bridge.get_account_posts') {

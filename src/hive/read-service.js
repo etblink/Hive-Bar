@@ -7,12 +7,20 @@ const {
   requirePermlink,
 } = require('../http/validation');
 const { NotFoundError } = require('../lib/errors');
+const { parseAsset } = require('./assets');
+const {
+  HISTORY_PAGE_SIZE,
+  TRANSFER_OPERATION_FILTER,
+  createMessagePage,
+  parseHistoryCursor,
+} = require('./messages');
 const {
   normalizeCommunity,
   normalizeContent,
   normalizeDiscussion,
   normalizeProfile,
 } = require('./normalizers');
+const { parsePostingMetadata, readProfileSettings } = require('./profile-settings');
 const { calculateWalletSummary } = require('./wallet');
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -24,14 +32,65 @@ function encodePageCursor(item) {
   ).toString('base64url');
 }
 
+function transactionOperationTuple(operation) {
+  if (Array.isArray(operation) && operation.length === 2) return operation;
+  if (operation && typeof operation === 'object' && typeof operation.type === 'string') {
+    return [operation.type.replace(/_operation$/, ''), operation.value || {}];
+  }
+  return [null, null];
+}
+
+function assetEquivalent(left, right, symbol) {
+  const parsedLeft = parseAsset(left, symbol);
+  const parsedRight = parseAsset(right, symbol);
+  return Boolean(parsedLeft && parsedRight && parsedLeft.units === parsedRight.units);
+}
+
+function operationEquivalent(expected, actual) {
+  const [expectedType, expectedValue] = transactionOperationTuple(expected);
+  const [actualType, actualValue] = transactionOperationTuple(actual);
+  if (!expectedType || expectedType !== actualType) return false;
+
+  if (expectedType === 'account_update2') {
+    return (
+      expectedValue.account === actualValue.account &&
+      expectedValue.posting_json_metadata === actualValue.posting_json_metadata
+    );
+  }
+  if (expectedType === 'claim_reward_balance') {
+    return (
+      expectedValue.account === actualValue.account &&
+      assetEquivalent(expectedValue.reward_hive, actualValue.reward_hive, 'HIVE') &&
+      assetEquivalent(expectedValue.reward_hbd, actualValue.reward_hbd, 'HBD') &&
+      assetEquivalent(expectedValue.reward_vests, actualValue.reward_vests, 'VESTS')
+    );
+  }
+  if (expectedType === 'transfer') {
+    return (
+      expectedValue.from === actualValue.from &&
+      expectedValue.to === actualValue.to &&
+      assetEquivalent(expectedValue.amount, actualValue.amount, 'HBD') &&
+      expectedValue.memo === actualValue.memo
+    );
+  }
+  return JSON.stringify(expected) === JSON.stringify(actual);
+}
+
 class HiveReadService {
-  constructor(rpcPool, { now = Date.now, pageSize = DEFAULT_PAGE_SIZE } = {}) {
+  constructor(
+    rpcPool,
+    { now = Date.now, pageSize = DEFAULT_PAGE_SIZE, messageHistoryPageSize = HISTORY_PAGE_SIZE } = {},
+  ) {
     if (!rpcPool || typeof rpcPool.call !== 'function') {
       throw new TypeError('HiveReadService requires an RPC pool');
     }
     this.rpcPool = rpcPool;
     this.now = now;
     this.pageSize = Math.min(25, Math.max(1, Number(pageSize) || DEFAULT_PAGE_SIZE));
+    this.messageHistoryPageSize = Math.min(
+      100,
+      Math.max(5, Number(messageHistoryPageSize) || HISTORY_PAGE_SIZE),
+    );
   }
 
   async getCommunity(name) {
@@ -161,6 +220,78 @@ class HiveReadService {
     return calculateWalletSummary(accounts[0], globalProperties, rcResult, { nowMs: this.now() });
   }
 
+  async getAccountRecord(accountValue) {
+    const account = requireHiveAccount(accountValue);
+    const accounts = await this.rpcPool.call('condenser_api', 'get_accounts', [[account]]);
+    if (!Array.isArray(accounts) || !accounts[0]) throw new NotFoundError('Hive account not found');
+    return accounts[0];
+  }
+
+  async getProfileSettings(accountValue, { defaultWallFee }) {
+    const account = await this.getAccountRecord(accountValue);
+    const parsed = parsePostingMetadata(account.posting_json_metadata);
+    return {
+      account: account.name,
+      rawMetadata: parsed.raw,
+      ...readProfileSettings(parsed, { defaultWallFee }),
+    };
+  }
+
+  async getMessageHistory({
+    account: accountValue,
+    cursor: cursorValue = null,
+    kind,
+    minimumFee,
+    globalExclusions = [],
+    profileExclusions = [],
+  }) {
+    const account = requireHiveAccount(accountValue);
+    const before = parseHistoryCursor(cursorValue);
+    const start = before ?? -1;
+    const limit = start === -1
+      ? this.messageHistoryPageSize
+      : Math.min(this.messageHistoryPageSize, start + 1);
+    const raw = await this.rpcPool.call('account_history_api', 'get_account_history', {
+      account,
+      start,
+      limit,
+      include_reversible: false,
+      operation_filter_low: TRANSFER_OPERATION_FILTER,
+    });
+    return createMessagePage(raw?.history, {
+      account,
+      minimumFee,
+      globalExclusions,
+      profileExclusions,
+      kind,
+      pageSize: limit,
+    });
+  }
+
+  async getTransaction(transactionId) {
+    return this.rpcPool.call('account_history_api', 'get_transaction', {
+      id: transactionId,
+      include_reversible: true,
+    });
+  }
+
+  async observeM4Operation(record) {
+    if (!/^[0-9a-f]{40}$/i.test(String(record?.transactionId || ''))) {
+      return { observed: false, blockNumber: null };
+    }
+    const transaction = await this.getTransaction(record.transactionId);
+    const actual = Array.isArray(transaction?.operations) ? transaction.operations : [];
+    const expected = Array.isArray(record?.operations) ? record.operations : [];
+    const matched =
+      transaction?.transaction_id?.toLowerCase() === record.transactionId.toLowerCase() &&
+      expected.length === actual.length &&
+      expected.every((operation, index) => operationEquivalent(operation, actual[index]));
+    return {
+      observed: matched,
+      blockNumber: matched && Number.isSafeInteger(transaction.block_num) ? transaction.block_num : null,
+    };
+  }
+
   async getFollowers(accountValue, start = '', limit = 100) {
     const account = requireHiveAccount(accountValue);
     const raw = await this.rpcPool.call('condenser_api', 'get_followers', [
@@ -259,4 +390,11 @@ class HiveReadService {
   }
 }
 
-module.exports = { DEFAULT_PAGE_SIZE, HiveReadService, encodePageCursor };
+module.exports = {
+  DEFAULT_PAGE_SIZE,
+  HiveReadService,
+  assetEquivalent,
+  encodePageCursor,
+  operationEquivalent,
+  transactionOperationTuple,
+};
