@@ -1,6 +1,6 @@
 # M4 verification evidence
 
-Status: current deterministic candidate complete through GRF-06 remediation; controlled profile, reward-claim, and public-wall trials succeeded irreversibly; encrypted inbox trial pending separate authorization
+Status: current deterministic candidate complete through encrypted-inbox memo-sentinel remediation; controlled profile, reward-claim, and public-wall trials succeeded irreversibly; encrypted inbox trial pending separate authorization
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
@@ -18,11 +18,11 @@ Post-trial stabilized published commit: `cf30f62bbdbf8d3126f77e8bd3a945f57077b11
 
 Post-trial stabilized tree: `2c01f0eb2f8a10f388eb4e4007b16569ebaf3abd`
 
-Current local GRF-06 remediation commit: `984c07bc5d25ebbad2afd6f11d3e717bd249eed5`
+Local GRF-06 remediation commit: `984c07bc5d25ebbad2afd6f11d3e717bd249eed5`
 
-Current published code-candidate commit: `6e872c5e23d51d761a748b60125b87c154f95e2f`
+Published GRF-06 code-candidate commit: `6e872c5e23d51d761a748b60125b87c154f95e2f`
 
-Current local and published code-candidate tree: `19ac369c1d45880c3b084e08850ac21f84536520`
+Local and published GRF-06 code-candidate tree: `19ac369c1d45880c3b084e08850ac21f84536520`
 
 Local evidence and reward-trial candidate commit: `75cd0d4734c967d5147cf49ea248137cba1b9af5`
 
@@ -35,6 +35,18 @@ Local reward-evidence and wall-trial candidate commit: `cffae68d2ac6d68ed200585d
 Published reward-evidence and wall-trial candidate commit: `b23036e00a1eb84c5cfb0f0b35f474114c076d79`
 
 Local and published wall-trial candidate tree: `278631302caa313710e162cfa45caa1bc9d90bae`
+
+Local wall-evidence and inbox-preparation candidate commit: `19635286ad823fd058be5e95277d58d7b4432240`
+
+Published wall-evidence and inbox-preparation candidate commit: `a65181117b2eb23ee741f5e1ef873f276b47e4ee`
+
+Local and published inbox-preparation candidate tree: `4dfa51b162c813fdd7973a4bd6c584ae88cac1cb`
+
+Current local memo-sentinel remediation commit: `9b0341589a0089a21e46356783be23f37609b3e5`
+
+Current published memo-sentinel remediation commit: `bd28ab9a116bcc63d4a8fb804c964242dcc0bdc5`
+
+Current local and published memo-sentinel remediation tree: `6a9bda38e6f8c801b491101bd758c1387e957aa2`
 
 ## Deliverable evidence
 
@@ -60,9 +72,9 @@ Local and published wall-trial candidate tree: `278631302caa313710e162cfa45caa1b
 - Secret scan: passed across 127 repository files.
 - ESLint: passed with zero warnings.
 - Production Tailwind CSS build: passed.
-- Current local candidate: 114 tests passed, 0 failed at local commit `984c07bc5d25ebbad2afd6f11d3e717bd249eed5` and tree `19ac369c1d45880c3b084e08850ac21f84536520`.
-- Current remote candidate: GitHub Actions run `31565527272` passed the Node 24 deterministic gate on trigger-only child `be0f994f8586fb11689a6b3666849d706a7645e3`, whose parent is published candidate `6e872c5e23d51d761a748b60125b87c154f95e2f` and whose only additional change is the temporary validation-branch workflow trigger.
-- Remote current-candidate results: 114 tests passed, 0 failed; secret scan passed across 127 files; ESLint, production CSS build, and production audit passed; 0 vulnerabilities.
+- Current local candidate: 115 tests passed, 0 failed at local commit `9b0341589a0089a21e46356783be23f37609b3e5` and tree `6a9bda38e6f8c801b491101bd758c1387e957aa2`.
+- Current remote candidate: GitHub Actions run `31573106865` passed the Node 24 deterministic gate on trigger-only child `0ad925dd7222e624899d3b7fc4050bbd2e6fa932`, whose parent is published candidate `bd28ab9a116bcc63d4a8fb804c964242dcc0bdc5` and whose only additional change is the temporary validation-branch workflow trigger.
+- Remote current-candidate results: 115 tests passed, 0 failed; secret scan passed across 127 files; ESLint, production CSS build, and production audit passed; 0 vulnerabilities.
 - The push-triggered live Hive read-only smoke job was skipped by design. The single-use `codex/m4-ci-validation` branch was deleted after the run and independently verified absent.
 - Automated tests before the controlled profile trial: 109 passed, 0 failed.
 - Profile metadata malformed/no-erase and stale-conflict corpus: passed.
@@ -118,7 +130,7 @@ The remediation adds a validated opaque account cursor, bounded look-ahead, incl
 | Remote validation | GitHub Actions run `31565527272`; push event; trigger commit `be0f994f8586fb11689a6b3666849d706a7645e3`; trigger tree `9f371a35614397c8711e15d1f8d74bc5f2db1e28`; Node 24 verification succeeded |
 | Live-read boundary | `Live Hive read-only smoke` job skipped because the validation used a push event; no Hive operation was executed |
 | Cleanup | `codex/m4-ci-validation` deleted through authenticated GitHub CLI and independently verified absent |
-| Branch/PR boundary | The publication chain through the wall-trial candidate is code candidate `6e872c5e23d51d761a748b60125b87c154f95e2f`, documentation child `ef238f46010e55a34195cf30d235e85e267e6893`, and reward-evidence child `b23036e00a1eb84c5cfb0f0b35f474114c076d79`; PR #1 remains open and draft at M2 head `9085e9d00d73f61e0ea0b450832f28ac782ef36d` |
+| Branch/PR boundary | The publication chain after the GRF-06 candidate includes documentation child `ef238f46010e55a34195cf30d235e85e267e6893`, reward-evidence child `b23036e00a1eb84c5cfb0f0b35f474114c076d79`, wall-evidence child `a65181117b2eb23ee741f5e1ef873f276b47e4ee`, and memo-sentinel remediation child `bd28ab9a116bcc63d4a8fb804c964242dcc0bdc5`; PR #1 remains open and draft at M2 head `9085e9d00d73f61e0ea0b450832f28ac782ef36d` |
 
 ## Controlled reward-claim trial
 
@@ -162,6 +174,26 @@ One M4 public-wall transfer was individually authorized and completed. The autho
 | Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, or signing authority; the user confirmed the exact Active operation through local Hive Keychain |
 | Cleanup | Operator confirmed on 2026-08-12 UTC that the local process was stopped and the process-scoped controlled environment was cleared |
 
+## Encrypted-inbox preparation incident and remediation
+
+One preparation-only encrypted-inbox attempt was separately authorized. It failed before local Memo encryption completed and before Hive-Bar created an operation preflight. The authorization is consumed. No Active broadcast was authorized or attempted, no transaction exists, and no retry is authorized.
+
+| Evidence field | Recorded result |
+| --- | --- |
+| Preparation authorization | Product-owner instruction recorded 2026-08-12 UTC: `I authorize preparing, but not broadcasting, exactly one encrypted-inbox preflight from @etblink to @fartman69 for 1.000 HBD, using a private one-time test message that I will enter only in my local Hive-Bar form. Local Hive Keychain Memo encryption is authorized. No Active broadcast, Hive operation, retry, or other action is authorized.` |
+| Candidate | Local commit `19635286ad823fd058be5e95277d58d7b4432240`; published equivalent `a65181117b2eb23ee741f5e1ef873f276b47e4ee`; exact shared tree `4dfa51b162c813fdd7973a4bd6c584ae88cac1cb`; the operator's exact detached checkout passed the full 114-test deterministic gate before preparation |
+| Read-only pre-state | Three independent RPC nodes agreed that `@etblink` held `3.335 HBD`, `@fartman69` held `1.000 HBD`, the recipient fee was `1.000 HBD`, the profile-managed blocklist was empty, and both accounts had stable public Memo keys. The controlled global exclusion list was explicitly empty. |
+| Browser outcome | After the operator selected **Encrypt and review transfer**, Hive-Bar displayed `Hive Keychain could not complete the request.` No Keychain popup appeared. Keychain version was `3.15.7`, and the operator verified that the `@etblink` Memo key was present. |
+| Preflight/broadcast boundary | No exact-operation review dialog appeared; no ciphertext preflight, operation JSON, or fingerprint was created; no Active-authority prompt appeared; and no broadcast was attempted or accepted. Plaintext and ciphertext were not copied into evidence. |
+| Independent no-operation check | Three independent RPC nodes showed no encrypted-inbox transfer through last irreversible blocks `108952468` and `108952469` at 2026-08-12 06:55:54–06:55:57 UTC. The latest `@etblink` transfer remained the prior authorized wall transaction `67148f3ce401e8d0d472b2acf2473e9dcc90f1cc`. |
+| Defect | The browser passed inner plaintext beginning `hivebar-inbox:v1:` to Keychain instead of the Hive encrypted-memo sentinel plus marker `#hivebar-inbox:v1:`. Keychain 3.15.7 delegates Memo encoding to `@hiveio/hive-js`; its own deterministic fixture preserves the required leading `#` through decode. |
+| Remediation | The browser now supplies and verifies `#hivebar-inbox:v1:` around private content. The adapter rejects unmarked plaintext before contacting Keychain. The server still receives only returned ciphertext and continues to build the public outer marker `hivebar-inbox:v1:#…`. |
+| Local remediation | Commit `9b0341589a0089a21e46356783be23f37609b3e5`; parent `19635286ad823fd058be5e95277d58d7b4432240`; tree `6a9bda38e6f8c801b491101bd758c1387e957aa2`; patch SHA-256 `f32878b5b74c4696274aa3f0a9f8db99584d6b8fea0d08b50013bd58606b2e56` |
+| Published remediation | Commit `bd28ab9a116bcc63d4a8fb804c964242dcc0bdc5`; parent `a65181117b2eb23ee741f5e1ef873f276b47e4ee`; exact shared tree `6a9bda38e6f8c801b491101bd758c1387e957aa2` |
+| Deterministic validation | Local full gate: 115 tests passed, 0 failed; secret scan 127 files; zero-warning ESLint; production CSS build; zero production vulnerabilities. GitHub Actions run `31573106865` passed the same Node 24 gate on trigger-only child `0ad925dd7222e624899d3b7fc4050bbd2e6fa932`, tree `ceba8262ead893512b4ec20bd7714ce10ca05d5e`, whose sole extra change enabled the temporary validation branch. |
+| Live-read boundary | The remote run used a push event, so `Live Hive read-only smoke` was skipped. No Hive or Keychain operation occurred during implementation, publication, or CI. |
+| Cleanup | The operator confirmed local controlled-environment cleanup. The single-use `codex/m4-ci-validation` branch was deleted and independently verified absent. PR #1 remained unchanged. |
+
 ## Remaining live-operation status
 
 The following evidence remains intentionally pending:
@@ -171,6 +203,6 @@ The following evidence remains intentionally pending:
 | Profile update | Complete for the one authorized `@fartman69` trial above; no retry or additional profile update authorized |
 | Claim rewards | Complete for the one authorized `@etblink` trial above; exact settlement and separately traced post-claim accrual recorded; no retry or additional reward claim authorized |
 | Public wall | Complete for the one authorized `@etblink` to `@fartman69` trial above; exact public classification, settlement, and finality recorded; no retry or additional wall transfer authorized |
-| Encrypted inbox | named sender/recipient, approved HBD amount and message, Memo then Active confirmations, recipient-only local decrypt, transaction/block |
+| Encrypted inbox | The first preparation-only authorization was consumed with no preflight or broadcast; the memo-sentinel remediation passed local and remote gates. A fresh preparation authorization, later exact fingerprint-bound Active authorization, recipient-only local decrypt, and transaction/block evidence remain required. |
 
 Each trial must follow [M4_CONTROLLED_WRITE_RUNBOOK.md](M4_CONTROLLED_WRITE_RUNBOOK.md). Normal `HIVE_WRITE_MODE=disabled` and rejection of production write mode remain unchanged.
