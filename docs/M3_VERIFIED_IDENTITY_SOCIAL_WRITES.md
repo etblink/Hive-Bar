@@ -36,7 +36,7 @@ Every social form follows this sequence:
 1. Fetch the current server-verified session and CSRF token.
 2. Build and store one exact preflight, bound to that session and account.
 3. Reject an identical operation while it is prepared or awaiting observation.
-4. Show the signing account, Posting authority, human summary, and exact JSON.
+4. Show the signing account, Posting authority, human summary, exact JSON, and SHA-256 operation fingerprint before Keychain opens.
 5. If the user cancels, delete the prepared preflight and report that nothing was broadcast.
 6. If confirmed, pass the exact operations to Keychain `requestBroadcast`.
 7. Record Keychain acceptance and the transaction id when supplied. This state is called **broadcast accepted**, not success.
@@ -52,6 +52,8 @@ A failed or cancelled Keychain request releases the preflight and never changes 
 - `HIVE_WRITE_MODE=production` is rejected for M3.
 
 The mandatory live procedure is in [M3_CONTROLLED_WRITE_RUNBOOK.md](M3_CONTROLLED_WRITE_RUNBOOK.md).
+
+The first individually authorized controlled pilot completed on 2026-08-12: `fartman69` subscribed to `hive-108590` in transaction `05c8f69c668b144f52d491a0d659fdf3309e0cfc`, and the exact post-state was observed through Hive RPC after the transaction block became irreversible. This pilot does not authorize reuse of the account, action, target, or controlled environment.
 
 ## Primary references
 
