@@ -130,6 +130,50 @@ test('encrypts inbox plaintext before the server preflight and broadcasts only m
   }
 });
 
+test('stops before preflight and Active broadcast when Memo encryption times out', async () => {
+  const dom = browser();
+  const requests = [];
+  let reviews = 0;
+  let broadcasts = 0;
+  const controller = new dom.window.HiveBarM4.M4ActionController({
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options });
+      if (url === '/auth/session') {
+        return response({ authenticated: true, account: 'barfriend', csrfToken: 'csrf-1' });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    },
+    keychainFactory: () => ({
+      async encodeMemo() {
+        const error = new Error('Hive Keychain did not respond in time.');
+        error.code = 'KEYCHAIN_TIMEOUT';
+        throw error;
+      },
+      async broadcast() {
+        broadcasts += 1;
+        return { accepted: true };
+      },
+    }),
+    review: async () => {
+      reviews += 1;
+      return true;
+    },
+  });
+
+  try {
+    const form = dom.window.document.querySelector('form');
+    await controller.run(form);
+    assert.deepEqual(requests.map(({ url }) => url), ['/auth/session']);
+    assert.equal(reviews, 0);
+    assert.equal(broadcasts, 0);
+    assert.match(form.querySelector('[data-m4-status]').textContent, /did not respond in time/);
+    assert.equal(form.querySelector('[data-m4-status]').classList.contains('text-red-300'), true);
+    assert.equal(form.querySelector('button[type="submit"]').disabled, false);
+  } finally {
+    dom.window.close();
+  }
+});
+
 test('decrypts marked ciphertext locally and never posts plaintext back to the server', async () => {
   const dom = browser();
   const requests = [];

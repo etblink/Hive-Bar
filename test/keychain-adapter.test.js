@@ -21,6 +21,17 @@ function browserWith(keychain) {
   return dom;
 }
 
+test('uses separate connection and human-interaction timeout defaults', () => {
+  const dom = browserWith({});
+  try {
+    const adapter = new dom.window.HiveBarKeychain.KeychainAdapter();
+    assert.equal(adapter.connectionTimeoutMs, 15_000);
+    assert.equal(adapter.interactiveTimeoutMs, 120_000);
+  } finally {
+    dom.window.close();
+  }
+});
+
 test('normalizes a successful Posting challenge signature without storing identity', async () => {
   const calls = [];
   const keychain = {
@@ -133,6 +144,63 @@ test('uses explicit Active authority and keeps Memo encryption and decryption in
     assert.deepEqual({ ...encoded }, { ciphertext: '#8ciphertext' });
     assert.deepEqual({ ...decoded }, { plaintext: '#hivebar-inbox:v1:secret' });
     assert.equal(dom.window.localStorage.length, 0);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('allows a reviewed Memo response after the shorter connection timeout', async () => {
+  let dom;
+  dom = browserWith({
+    requestHandshake(callback) {
+      callback();
+    },
+    requestEncodeMessage(_account, _receiver, _message, _authority, callback) {
+      dom.window.setTimeout(() => callback({ success: true, result: '#8delayedciphertext' }), 30);
+    },
+  });
+  try {
+    const adapter = new dom.window.HiveBarKeychain.KeychainAdapter({
+      connectionTimeoutMs: 10,
+      interactiveTimeoutMs: 100,
+    });
+    const encoded = await adapter.encodeMemo({
+      account: 'barfriend',
+      receiver: 'etblink',
+      message: '#hivebar-inbox:v1:reviewed secret',
+    });
+    assert.deepEqual({ ...encoded }, { ciphertext: '#8delayedciphertext' });
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('keeps a timed-out Memo request rejected when Keychain responds late', async () => {
+  let respond;
+  const dom = browserWith({
+    requestHandshake(callback) {
+      callback();
+    },
+    requestEncodeMessage(_account, _receiver, _message, _authority, callback) {
+      respond = callback;
+    },
+  });
+  try {
+    const adapter = new dom.window.HiveBarKeychain.KeychainAdapter({
+      connectionTimeoutMs: 100,
+      interactiveTimeoutMs: 10,
+    });
+    const pending = adapter.encodeMemo({
+      account: 'barfriend',
+      receiver: 'etblink',
+      message: '#hivebar-inbox:v1:reviewed secret',
+    });
+    await assert.rejects(
+      pending,
+      (error) => error.code === 'KEYCHAIN_TIMEOUT' && /did not respond in time/.test(error.message),
+    );
+    respond({ success: true, result: '#8lateciphertext' });
+    await assert.rejects(pending, (error) => error.code === 'KEYCHAIN_TIMEOUT');
   } finally {
     dom.window.close();
   }

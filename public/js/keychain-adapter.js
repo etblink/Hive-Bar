@@ -1,7 +1,8 @@
 'use strict';
 
 (function attachKeychainAdapter(global) {
-  const DEFAULT_TIMEOUT_MS = 15_000;
+  const DEFAULT_CONNECTION_TIMEOUT_MS = 15_000;
+  const DEFAULT_INTERACTIVE_TIMEOUT_MS = 120_000;
 
   class KeychainError extends Error {
     constructor(code, message) {
@@ -26,9 +27,15 @@
   }
 
   class KeychainAdapter {
-    constructor({ browserWindow = global, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+    constructor({
+      browserWindow = global,
+      timeoutMs,
+      connectionTimeoutMs = timeoutMs ?? DEFAULT_CONNECTION_TIMEOUT_MS,
+      interactiveTimeoutMs = timeoutMs ?? DEFAULT_INTERACTIVE_TIMEOUT_MS,
+    } = {}) {
       this.window = browserWindow;
-      this.timeoutMs = timeoutMs;
+      this.connectionTimeoutMs = connectionTimeoutMs;
+      this.interactiveTimeoutMs = interactiveTimeoutMs;
     }
 
     async connect() {
@@ -38,7 +45,7 @@
       await new Promise((resolve, reject) => {
         const timer = this.window.setTimeout(
           () => reject(new KeychainError('KEYCHAIN_TIMEOUT', 'Hive Keychain did not respond in time.')),
-          this.timeoutMs,
+          this.connectionTimeoutMs,
         );
         try {
           keychain.requestHandshake((response) => {
@@ -56,7 +63,7 @@
 
     async waitForExtension() {
       const startedAt = Date.now();
-      while (Date.now() - startedAt < this.timeoutMs) {
+      while (Date.now() - startedAt < this.connectionTimeoutMs) {
         if (this.window.hive_keychain) return this.window.hive_keychain;
         await new Promise((resolve) => this.window.setTimeout(resolve, 50));
       }
@@ -75,7 +82,7 @@
       return new Promise((resolve, reject) => {
         const timer = this.window.setTimeout(
           () => reject(new KeychainError('KEYCHAIN_TIMEOUT', 'Hive Keychain did not respond in time.')),
-          this.timeoutMs,
+          this.interactiveTimeoutMs,
         );
         try {
           keychain.requestSignBuffer(
@@ -139,7 +146,7 @@
       return new Promise((resolve, reject) => {
         const timer = this.window.setTimeout(
           () => reject(new KeychainError('KEYCHAIN_TIMEOUT', 'Hive Keychain did not respond in time.')),
-          this.timeoutMs,
+          this.interactiveTimeoutMs,
         );
         try {
           keychain.requestBroadcast(
@@ -183,7 +190,7 @@
       return new Promise((resolve, reject) => {
         const timer = this.window.setTimeout(
           () => reject(new KeychainError('KEYCHAIN_TIMEOUT', 'Hive Keychain did not respond in time.')),
-          this.timeoutMs,
+          this.interactiveTimeoutMs,
         );
         try {
           keychain.requestEncodeMessage(account, receiver, message, 'Memo', (response) => {
@@ -219,7 +226,7 @@
       return new Promise((resolve, reject) => {
         const timer = this.window.setTimeout(
           () => reject(new KeychainError('KEYCHAIN_TIMEOUT', 'Hive Keychain did not respond in time.')),
-          this.timeoutMs,
+          this.interactiveTimeoutMs,
         );
         try {
           keychain.requestVerifyKey(account, ciphertext, 'Memo', (response) => {
