@@ -161,7 +161,7 @@
       if (!dialog || typeof dialog.showModal !== 'function') {
         return Promise.resolve(
           global.confirm(
-            `Confirm ${preflight.action} as @${preflight.account} with Posting authority?\n\n${JSON.stringify(preflight.operations, null, 2)}`,
+            `Confirm ${preflight.action} as @${preflight.account} with Posting authority?\n\nFingerprint: ${preflight.fingerprint}\n\n${JSON.stringify(preflight.operations, null, 2)}`,
           ),
         );
       }
@@ -175,6 +175,7 @@
         2,
       );
       dialog.querySelector('[data-social-account]').textContent = `@${preflight.account}`;
+      dialog.querySelector('[data-social-fingerprint]').textContent = preflight.fingerprint;
       dialog.showModal();
 
       return new Promise((resolve) => {

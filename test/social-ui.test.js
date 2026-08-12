@@ -58,6 +58,7 @@ test('controlled authenticated pages expose all eight actions behind exact prefl
   assert.match(community.text, /data-social-action="subscribe"/);
   assert.match(community.text, /0 \/ 32,768 UTF-8 bytes/);
   assert.match(community.text, /Review exact Hive operation/);
+  assert.match(community.text, /data-social-fingerprint/);
   assert.match(community.text, /@etblink/);
   assert.doesNotMatch(community.text, /name="(?:voter|follower)" value="etblink"/);
 

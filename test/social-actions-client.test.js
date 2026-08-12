@@ -21,6 +21,7 @@ const preflight = {
   action: 'vote',
   authority: 'Posting',
   operations,
+  fingerprint: 'f'.repeat(64),
   summary: { kind: 'Vote', percent: 37 },
 };
 
@@ -36,13 +37,40 @@ function testBrowser() {
       <input name="percent" value="37">
       <button type="submit">Review vote</button>
       <p data-social-status></p>
-    </form>`,
+    </form>
+    <dialog data-social-confirm>
+      <span data-social-account></span>
+      <code data-social-fingerprint></code>
+      <pre data-social-summary></pre>
+      <pre data-social-operations></pre>
+      <button type="button" data-social-confirm-button>Continue to Keychain</button>
+      <button type="button" data-social-cancel-button>Cancel</button>
+    </dialog>`,
     { runScripts: 'outside-only', url: 'https://hive-bar.example/' },
   );
   dom.window.TextEncoder = TextEncoder;
   dom.window.eval(source);
   return dom;
 }
+
+test('exact-operation review displays the operation fingerprint before Keychain', async () => {
+  const dom = testBrowser();
+  const dialog = dom.window.document.querySelector('[data-social-confirm]');
+  dialog.showModal = () => {};
+  dialog.close = () => {};
+  const controller = new dom.window.HiveBarSocial.SocialActionController();
+
+  try {
+    const review = controller.reviewDialog(preflight);
+    assert.equal(dialog.querySelector('[data-social-account]').textContent, '@etblink');
+    assert.equal(dialog.querySelector('[data-social-fingerprint]').textContent, 'f'.repeat(64));
+    assert.match(dialog.querySelector('[data-social-operations]').textContent, /\"weight\": 3700/);
+    dialog.querySelector('[data-social-cancel-button]').click();
+    assert.equal(await review, false);
+  } finally {
+    dom.window.close();
+  }
+});
 
 test('mocked browser journey reviews, broadcasts, records acceptance, and waits for observation', async () => {
   const dom = testBrowser();
