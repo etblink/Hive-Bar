@@ -1,6 +1,6 @@
 # M4 verification evidence
 
-Status: current published candidate complete through encrypted-inbox memo-sentinel and interactive-timeout remediation; controlled profile, reward-claim, and public-wall trials succeeded irreversibly; encrypted inbox preflight and transfer remain pending fresh separate authorization
+Status: M4 implementation and controlled verification complete on the current published candidate; the profile, reward-claim, public-wall, and encrypted-inbox trials succeeded irreversibly, and recipient-side local decryption succeeded; ready for the final read-only acceptance audit
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
@@ -60,6 +60,14 @@ Current local and published interactive-timeout remediation tree: `6a66bab73bf89
 
 Interactive-timeout remediation patch SHA-256: `1799aaf227917fe89630fec341ff07f3c1806adedbb8f1d3ae4e9b7b2e192333`
 
+Local validation-evidence and encrypted-inbox trial candidate commit: `95d64e4ede76486a08a08510e5b0e97f862e35d6`
+
+Published validation-evidence and encrypted-inbox trial candidate commit: `6a18c45a893a7034381b7c5e32ef6231a11fde63`
+
+Local and published encrypted-inbox trial candidate tree: `5d234b5fb49821716a93eb041890929a68ce462e`
+
+Validation-evidence documentation patch SHA-256: `6e2c6d909fa845a8fb7d027b11f7f58aae9772fc3ca4ba0b875e4323e316d272`
+
 ## Deliverable evidence
 
 | M4 deliverable | Implementation evidence | Deterministic evidence |
@@ -90,6 +98,8 @@ Interactive-timeout remediation patch SHA-256: `1799aaf227917fe89630fec341ff07f3
 - Current remote validation: GitHub Actions run `31624355508` passed the Node 24 deterministic gate on trigger-only child `330c4451be6bcb01fb2b65a67823490c67265e69`, tree `ac1793e81c7164ed0c82559e148867894abac820`, whose parent is published candidate `bd71ce0069acc626647d47d04d940277a09861f7` and whose sole additional change enabled the temporary validation branch.
 - Current remote results: 119 tests passed, 0 failed; secret scan passed across 127 files; ESLint, production CSS build, and production audit passed; 0 vulnerabilities.
 - The push-triggered `Live Hive read-only smoke` job was skipped by design. The single-use `codex/m4-ci-validation` branch was deleted after the run and independently verified absent. The M4 candidate branch remained at `bd71ce0069acc626647d47d04d940277a09861f7`, and PR #1 remained open and draft at `9085e9d00d73f61e0ea0b450832f28ac782ef36d`.
+- Encrypted-inbox trial candidate: local documentation commit `95d64e4ede76486a08a08510e5b0e97f862e35d6`; published equivalent `6a18c45a893a7034381b7c5e32ef6231a11fde63`; exact shared tree `5d234b5fb49821716a93eb041890929a68ce462e`; code is unchanged from the remotely validated interactive-timeout tree.
+- Final evidence-closeout local result: full `npm run check` passed on the exact documentation update; 119 tests passed, 0 failed; secret scan covered 127 repository files; ESLint and the production CSS build passed; production audit found 0 vulnerabilities.
 - Automated tests before the controlled profile trial: 109 passed, 0 failed.
 - Profile metadata malformed/no-erase and stale-conflict corpus: passed.
 - Canonical asset and exact operation vectors for all four M4 actions: passed.
@@ -227,15 +237,38 @@ A second preparation-only authorization was consumed on the published memo-senti
 | Remote-validation boundary | The push-triggered `Live Hive read-only smoke` job was skipped. The M4 candidate branch and PR #1 remained unchanged throughout validation. No Keychain request, Hive operation, or preparation retry occurred. |
 | Cleanup | The operator confirmed that the controlled process stopped, process-scoped configuration was cleared, the detached temporary checkout was removed, and no Active/transfer popup had appeared. After remote validation, `codex/m4-ci-validation` was deleted and independently verified absent. |
 
-## Remaining live-operation status
+## Controlled encrypted-inbox trial
 
-The following evidence remains intentionally pending:
+One M4 encrypted-inbox transfer was prepared, separately fingerprint-authorized, broadcast, observed exactly, and decrypted locally by the recipient. The preparation, Active broadcast, and recipient-decryption authorizations are consumed and do not authorize a retry or any further Keychain or Hive operation. This evidence intentionally does not reproduce the private plaintext or public ciphertext.
 
-| Operation | Required separate authorization/evidence |
+| Evidence field | Recorded result |
+| --- | --- |
+| Candidate | Local documentation commit `95d64e4ede76486a08a08510e5b0e97f862e35d6`; published equivalent `6a18c45a893a7034381b7c5e32ef6231a11fde63`; exact shared tree `5d234b5fb49821716a93eb041890929a68ce462e`; the operator's clean detached checkout passed the full 119-test deterministic gate before preparation |
+| Preparation-only rehearsal | One separately authorized preparation on the same candidate produced fingerprint `255992f0c5ef29ca5c1f696f065aa6b1ef44551215d335f60beeca401679ddbe`. The account, Active authority, recipient, amount, fee, and marked ciphertext summary matched; the operator cancelled at the exact-operation dialog, confirmed `Cancelled before Keychain. Nothing was broadcast.`, confirmed that no separate Active Keychain popup appeared, and completed cleanup. |
+| Final preparation authorization | Product-owner instruction recorded 2026-08-12 UTC authorized exactly one preparation from `@etblink` to `@fartman69` for `1.000 HBD` on published candidate `6a18c45a893a7034381b7c5e32ef6231a11fde63`, with one Posting sign-in and one Memo-encryption request, and required the exact-operation dialog and controlled process to remain open pending fingerprint-bound authorization. It explicitly prohibited an Active request, broadcast, Hive operation, retry, or other Keychain request at that stage. |
+| Pre-state and fee | The operator confirmed a visible `@etblink` balance of `3.335 HBD` and recipient fee of `1.000 HBD`; the preceding irreversible wall trial established `@fartman69` at `1.000 HBD`. Before creating the review, Hive-Bar used the authenticated session account, fetched and matched the recipient's current fee, enforced the sender-exclusion layers, and accepted only marked Keychain ciphertext. |
+| Exact prepared operation | One `transfer` from `etblink` to `fartman69` for `1.000 HBD` under Active authority, with the public outer marker `hivebar-inbox:v1:` followed by Keychain ciphertext. The review reported 213 UTF-8 memo bytes. |
+| Fingerprint | `76c4d1636a4d2789db7850987afec793fa9c9856bdcee96778d386b4d8f6c3f7` |
+| Broadcast authorization | Product-owner instruction recorded 2026-08-12 UTC authorized exactly the already-prepared operation with that fingerprint on candidate `6a18c45a893a7034381b7c5e32ef6231a11fde63`, exactly one Active Keychain request and broadcast, and—only after exact transaction observation—one `@fartman69` Posting sign-in and one local Memo-decryption request. It acknowledged the permanent public transaction facts and prohibited every other Keychain request, Hive operation, and retry. |
+| Transaction | `8fb2f478323b04fc78ae9cb52324b7f1bbb4a5ec`; block `108967921`; transaction index `10`; timestamp 2026-08-12 19:50:57 UTC |
+| Exact-operation observation | `api.hive.blog`, `api.deathwing.me`, and `api.openhive.network` returned the same transaction ID, block, and single transfer with the authorized sender, recipient, amount, outer marker, and 213-byte marked ciphertext memo. Recomputing the operation fingerprint produced the authorized value; no additional operation was present. |
+| State transition | All three nodes returned `@etblink` at `2.335 HBD` and `@fartman69` at `2.000 HBD`, exact respective changes of minus and plus `1.000 HBD` from the recorded pre-state. |
+| Finality | Transaction block `108967921` was below last irreversible blocks `108968009` on `api.hive.blog`, `108967996` on `api.deathwing.me`, and `108967998` on `api.openhive.network`. |
+| Browser outcome | Hive-Bar reloaded without error. The recipient inbox displayed the same transaction ID and block, with the authorized sender and amount. No error text appeared. |
+| Recipient-side local decryption | After exact transaction observation, the operator used the separately authorized `@fartman69` Posting sign-in and one local Memo-decryption request. Decryption succeeded, and the operator privately confirmed that the plaintext matched exactly. Hive-Bar displayed `Decrypted locally. Plaintext was not sent to the server.` |
+| Privacy boundary | Private plaintext was entered and displayed only in the local browser/Keychain path and was never posted to Hive-Bar's server. The encrypted memo and transaction facts are public and permanent; neither plaintext nor ciphertext is repeated in this evidence. |
+| Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, Memo key, or signing authority. Posting authentication, Memo encryption/decryption, and Active broadcast remained in local Hive Keychain. |
+| Cleanup | The operator confirmed that the controlled process stopped, process-scoped configuration was cleared, and the temporary detached checkout was removed. No authorization remains for retry or another Keychain or Hive operation. |
+
+## Controlled live-operation status
+
+All controlled live-operation evidence required by the M4 exit gate is complete. Every listed authorization is consumed; no retry or additional operation is authorized.
+
+| Operation | Recorded completion |
 | --- | --- |
 | Profile update | Complete for the one authorized `@fartman69` trial above; no retry or additional profile update authorized |
 | Claim rewards | Complete for the one authorized `@etblink` trial above; exact settlement and separately traced post-claim accrual recorded; no retry or additional reward claim authorized |
 | Public wall | Complete for the one authorized `@etblink` to `@fartman69` trial above; exact public classification, settlement, and finality recorded; no retry or additional wall transfer authorized |
-| Encrypted inbox | Two preparation-only authorizations were consumed without preflight or broadcast: the first exposed the missing `#` sentinel and the second exposed the 15-second human-interaction timeout. Both remediations are published and passed local and remote deterministic gates. A fresh preparation authorization, later exact fingerprint-bound Active authorization, recipient-only local decrypt, and transaction/block evidence remain required. |
+| Encrypted inbox | Complete for the one authorized `@etblink` to `@fartman69` trial above; preparation, exact fingerprint-bound Active broadcast, three-node exact observation and finality, state settlement, recipient-only local decryption, and privacy boundary are recorded. The two earlier consumed preparation incidents and both published remediations remain preserved above; no retry or additional encrypted-inbox transfer is authorized. |
 
 Each trial must follow [M4_CONTROLLED_WRITE_RUNBOOK.md](M4_CONTROLLED_WRITE_RUNBOOK.md). Normal `HIVE_WRITE_MODE=disabled` and rejection of production write mode remain unchanged.
