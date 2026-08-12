@@ -66,7 +66,7 @@ One M4 profile operation was individually authorized and completed. The authoriz
 | Post-state | All three nodes returned `posting_json_metadata` as `{"profile":{"name":"fartman69"},"hivebar":{"version":1,"wall_fee":"1.000 HBD","wall_blocklist":[]}}`; `last_account_update` was 2026-08-12 02:32:18 UTC |
 | Finality | Transaction block `108947213` was below last irreversible block `108947289` or `108947290` on all three nodes at 2026-08-12 02:36:12 UTC |
 | Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, or signing authority; the user confirmed through local Hive Keychain |
-| Cleanup | Awaiting explicit operator confirmation that the local process was stopped and the process-scoped controlled environment was cleared |
+| Cleanup | Operator confirmed on 2026-08-12 UTC that the local process was stopped and the process-scoped controlled environment was cleared |
 
 ## Observation incident and stabilization
 
