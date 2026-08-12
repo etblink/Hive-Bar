@@ -42,6 +42,7 @@ test('encrypts inbox plaintext before the server preflight and broadcasts only m
   const requests = [];
   const keychainCalls = [];
   let reloads = 0;
+  let observations = 0;
   const preflight = {
     id: 'm4-preflight-1',
     account: 'barfriend',
@@ -70,7 +71,14 @@ test('encrypts inbox plaintext before the server preflight and broadcasts only m
         return response({ ...preflight, state: 'broadcast_accepted', message: 'Awaiting observation.' });
       }
       if (url.endsWith('/observe')) {
-        return response({ ...preflight, state: 'observed', message: 'Exact operation observed.' });
+        observations += 1;
+        return response({
+          ...preflight,
+          state: observations === 2 ? 'observed' : 'broadcast_accepted',
+          message: observations === 2
+            ? 'Exact operation observed.'
+            : 'Broadcast accepted; transaction is not indexed yet.',
+        });
       }
       throw new Error(`Unexpected URL ${url}`);
     },
@@ -95,6 +103,7 @@ test('encrypts inbox plaintext before the server preflight and broadcasts only m
     const form = dom.window.document.querySelector('form');
     await controller.run(form);
     assert.equal(reloads, 1);
+    assert.equal(observations, 2);
     assert.deepEqual(JSON.parse(JSON.stringify(keychainCalls[0])), [
       'encode',
       {

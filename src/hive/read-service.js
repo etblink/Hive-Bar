@@ -76,6 +76,15 @@ function operationEquivalent(expected, actual) {
   return JSON.stringify(expected) === JSON.stringify(actual);
 }
 
+function isUnknownTransaction(error, transactionId) {
+  return (
+    Number(error?.code) === -32003 &&
+    String(error?.message || '').toLowerCase().includes(
+      `unknown transaction ${String(transactionId).toLowerCase()}`,
+    )
+  );
+}
+
 class HiveReadService {
   constructor(
     rpcPool,
@@ -272,6 +281,8 @@ class HiveReadService {
     return this.rpcPool.call('account_history_api', 'get_transaction', {
       id: transactionId,
       include_reversible: true,
+    }, {
+      acceptRpcError: (error) => isUnknownTransaction(error, transactionId),
     });
   }
 
@@ -395,6 +406,7 @@ module.exports = {
   HiveReadService,
   assetEquivalent,
   encodePageCursor,
+  isUnknownTransaction,
   operationEquivalent,
   transactionOperationTuple,
 };

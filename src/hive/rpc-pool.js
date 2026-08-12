@@ -131,6 +131,9 @@ class HiveRpcPool {
     if (payload.error) {
       const error = new Error(payload.error.message || 'Hive RPC application error');
       error.code = payload.error.code;
+      if (typeof options.acceptRpcError === 'function' && options.acceptRpcError(error)) {
+        return null;
+      }
       throw error;
     }
     if (!Object.hasOwn(payload, 'result')) throw new Error('Hive RPC response has no result');

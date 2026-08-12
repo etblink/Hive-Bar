@@ -15,6 +15,13 @@ function rpcResponse(id, result, init = {}) {
   });
 }
 
+function rpcErrorResponse(id, code, message) {
+  return new Response(JSON.stringify({ jsonrpc: '2.0', id, error: { code, message } }), {
+    status: 200,
+    headers: { 'content-type': 'application/json' },
+  });
+}
+
 test('fails over to the next node and sends a valid JSON-RPC request', async () => {
   const requests = [];
   const fetchImpl = async (url, options) => {
@@ -126,6 +133,34 @@ test('wraps exhausted RPC failures in an exposed service error', async () => {
       error.code === 'HIVE_RPC_UNAVAILABLE' &&
       error.cause?.message === 'Hive RPC returned invalid JSON',
   );
+});
+
+test('accepts an expected RPC application miss without failing over or penalizing the node', async () => {
+  const requests = [];
+  const pool = new HiveRpcPool({
+    nodes: ['https://one.example', 'https://two.example'],
+    fetchImpl: async (url, options) => {
+      requests.push(url);
+      const { id } = JSON.parse(options.body);
+      return rpcErrorResponse(id, -32003, 'Unknown Transaction aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+    },
+    logger: silentLogger,
+  });
+
+  const result = await pool.call(
+    'account_history_api',
+    'get_transaction',
+    { id: 'a'.repeat(40), include_reversible: true },
+    {
+      acceptRpcError: (error) =>
+        error.code === -32003 && error.message.startsWith('Unknown Transaction'),
+    },
+  );
+
+  assert.equal(result, null);
+  assert.deepEqual(requests, ['https://one.example']);
+  assert.equal(pool.getStatus()[0].failures, 0);
+  assert.equal(pool.getStatus()[0].available, true);
 });
 
 test('blocks write and unknown RPC methods before making a network request', async () => {

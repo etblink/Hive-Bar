@@ -2,7 +2,11 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { HiveReadService, encodePageCursor } = require('../src/hive/read-service');
+const {
+  HiveReadService,
+  encodePageCursor,
+  isUnknownTransaction,
+} = require('../src/hive/read-service');
 
 function rawPost(index) {
   return {
@@ -80,4 +84,44 @@ test('normalizes a flattened Bridge discussion into chronological nested comment
 
   assert.equal(discussion.post.permlink, 'root');
   assert.deepEqual(discussion.comments.map((comment) => comment.depth), [1, 2]);
+});
+
+test('treats an exactly matched unindexed transaction response as pending observation', async () => {
+  const transactionId = 'a'.repeat(40);
+  const rpcPool = {
+    async call(api, method, params, options) {
+      assert.equal(api, 'account_history_api');
+      assert.equal(method, 'get_transaction');
+      assert.deepEqual(params, { id: transactionId, include_reversible: true });
+      assert.equal(
+        options.acceptRpcError({
+          code: -32003,
+          message: `Assert Exception:false: Unknown Transaction ${transactionId}`,
+        }),
+        true,
+      );
+      return null;
+    },
+  };
+  const service = new HiveReadService(rpcPool);
+  const observation = await service.observeM4Operation({
+    transactionId,
+    operations: [['account_update2', { account: 'fartman69', posting_json_metadata: '{}' }]],
+  });
+
+  assert.deepEqual(observation, { observed: false, blockNumber: null });
+  assert.equal(
+    isUnknownTransaction(
+      { code: -32003, message: `Unknown Transaction ${'b'.repeat(40)}` },
+      transactionId,
+    ),
+    false,
+  );
+  assert.equal(
+    isUnknownTransaction(
+      { code: -32004, message: `Unknown Transaction ${transactionId}` },
+      transactionId,
+    ),
+    false,
+  );
 });

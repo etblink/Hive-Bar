@@ -11,7 +11,7 @@ M4 extends the accepted M3 identity and preflight controls to profile settings, 
 | Public wall message | HBD `transfer` | Active | current recipient fee, marked memo, amount threshold, recipient, and both exclusion lists |
 | Encrypted inbox message | HBD `transfer` | Memo encryption, then Active broadcast | browser-produced ciphertext only, current fee, marked memo, amount threshold, recipient, and both exclusion lists |
 
-The server constructs and stores one exact operation envelope with the account, required authority, human summary, and SHA-256 fingerprint. The browser shows the exact JSON before Keychain. Keychain acceptance is recorded as pending; completion requires the same operation to be observed in the supplied transaction through an allowlisted read-only RPC method.
+The server constructs and stores one exact operation envelope with the account, required authority, human summary, and SHA-256 fingerprint. The browser shows the exact JSON before Keychain. Keychain acceptance is recorded as pending; completion requires the same operation to be observed in the supplied transaction through an allowlisted read-only RPC method. An exact `Unknown Transaction` response during the normal post-broadcast indexing interval remains pending and does not count as an RPC-node health failure; every other RPC application or transport error still fails closed.
 
 ## Safe profile settings
 

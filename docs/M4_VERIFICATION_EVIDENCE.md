@@ -1,6 +1,6 @@
 # M4 verification evidence
 
-Status: deterministic candidate complete; live controlled-operation portion of the M4 exit gate pending separate authorizations
+Status: deterministic candidate complete; controlled profile trial succeeded irreversibly; reward, wall, and inbox trials pending separate authorizations
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.4
 
@@ -10,7 +10,9 @@ Branch: `codex/m4-profiles-settings-rewards-wall-inbox`
 
 Accepted M3 tree: `e444514f2d951c2d8c65b602bb45ff341e18ff04`
 
-Candidate commit/tree: recorded in the publication handoff after the immutable Git objects are created
+Published live-trial candidate commit: `834ad81f3ed05fc6e5b8cd72c5d53a99bc430f68`
+
+Published live-trial candidate tree: `1a91f0eec191c03d8ad032acf0886cf59fa0cc77`
 
 ## Deliverable evidence
 
@@ -36,7 +38,7 @@ Candidate commit/tree: recorded in the publication handoff after the immutable G
 - Secret scan: passed across 127 repository files.
 - ESLint: passed with zero warnings.
 - Production Tailwind CSS build: passed.
-- Automated tests: 109 passed, 0 failed.
+- Automated tests before the controlled profile trial: 109 passed, 0 failed.
 - Profile metadata malformed/no-erase and stale-conflict corpus: passed.
 - Canonical asset and exact operation vectors for all four M4 actions: passed.
 - Wall fee, marker, direction, asset, sender-exclusion, and unrelated-transfer corpus: passed.
@@ -47,15 +49,40 @@ Candidate commit/tree: recorded in the publication handoff after the immutable G
 - `npm ci --ignore-scripts --dry-run --no-audit --no-fund`: lockfile consistency passed.
 - Production dependency audit: 0 vulnerabilities.
 
-## Live-operation status
+## Controlled profile trial
 
-No live M4 operation has been attempted or authorized. The M3 subscription pilot is not reusable authority for M4.
+One M4 profile operation was individually authorized and completed. The authorization is consumed and does not authorize a retry or any reward, wall, inbox, payment, or other Hive operation.
+
+| Evidence field | Recorded result |
+| --- | --- |
+| Authorization | Product-owner instruction recorded 2026-08-12 UTC: `I authorize this exact @fartman69 profile update, with expected fingerprint 9348fd33b25bf21d61454566a023e8cffa9ef8efcc2e55cbb18c640925551e01. No other Hive operation or retry is authorized.` |
+| Candidate | Published commit `834ad81f3ed05fc6e5b8cd72c5d53a99bc430f68`; tree `1a91f0eec191c03d8ad032acf0886cf59fa0cc77`; 109-test deterministic gate and remote CI run `31554630023` passed before execution |
+| Pre-state | `@fartman69` existed; `posting_json_metadata` and legacy `json_metadata` were empty; two nodes agreed through irreversible blocks `108946940` and `108946941` at 2026-08-12 02:18:42 UTC |
+| Account/action/authority | `fartman69`; `account_update2`; Posting |
+| Exact change | Public display name from empty to `fartman69`; explicit Hive-Bar metadata version `1`, wall fee `1.000 HBD`, and empty profile-managed wall blocklist; about text and profile image remained empty |
+| Fingerprint | `9348fd33b25bf21d61454566a023e8cffa9ef8efcc2e55cbb18c640925551e01` |
+| Transaction | `eeb0ecc1174e1763956446384ab0c6db688da7dd`; block `108947213`; transaction index `0`; timestamp 2026-08-12 02:32:21 UTC |
+| Exact-operation observation | Three independent RPC nodes returned one `account_update2` operation with the authorized account, empty legacy field, exact posting metadata, and no additional operation |
+| Post-state | All three nodes returned `posting_json_metadata` as `{"profile":{"name":"fartman69"},"hivebar":{"version":1,"wall_fee":"1.000 HBD","wall_blocklist":[]}}`; `last_account_update` was 2026-08-12 02:32:18 UTC |
+| Finality | Transaction block `108947213` was below last irreversible block `108947289` or `108947290` on all three nodes at 2026-08-12 02:36:12 UTC |
+| Key custody | Hive-Bar received no password, private key, WIF, seed phrase, Keychain export, or signing authority; the user confirmed through local Hive Keychain |
+| Cleanup | Awaiting explicit operator confirmation that the local process was stopped and the process-scoped controlled environment was cleared |
+
+## Observation incident and stabilization
+
+Immediately after Keychain acceptance, Hive-Bar displayed `Keychain accepted the broadcast, but confirmation is incomplete. Do not retry automatically. Hive data is temporarily unavailable.` The transaction was nevertheless exact, successful, and later irreversible. Diagnosis reproduced the three configured nodes' normal pre-indexing response: JSON-RPC code `-32003` with `Unknown Transaction` followed by the exact requested ID. The original RPC pool classified that expected pending response as node failure and the browser exited its observation loop on the resulting `503`.
+
+The stabilization change accepts only code `-32003` whose message contains the exact requested transaction ID as a temporary null lookup. It remains `broadcast_accepted`, preserves browser polling, does not fail over or penalize the responding node, and does not relax the final transaction-ID or exact-operation comparison. A different ID, error code, message, transport failure, malformed response, or operation mismatch still fails closed. Regression coverage includes both pool health and M4 pending-observation behavior. The stabilized candidate requires a new full gate and publication identity before another controlled trial.
+
+The post-incident stabilization gate passed: `git diff --check`; secret scan across 127 repository files; ESLint with zero warnings; production CSS build; 111 tests with zero failures; production audit with zero vulnerabilities; and lockfile dry-run consistency. A live negative transaction lookup returned pending without failover, left all three configured nodes available, and recorded zero node failures.
+
+## Remaining live-operation status
 
 The following evidence remains intentionally pending:
 
 | Operation | Required separate authorization/evidence |
 | --- | --- |
-| Profile update | named account, exact proposed fields, Posting confirmation, transaction/block, preserved post-state |
+| Profile update | Complete for the one authorized `@fartman69` trial above; no retry or additional profile update authorized |
 | Claim rewards | named account, exact current rewards, Posting confirmation, transaction/block, zeroed post-state |
 | Public wall | named sender/recipient, approved HBD amount and text, Active confirmation, public classified entry, transaction/block |
 | Encrypted inbox | named sender/recipient, approved HBD amount and message, Memo then Active confirmations, recipient-only local decrypt, transaction/block |
