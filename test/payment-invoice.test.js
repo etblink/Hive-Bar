@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 const hiveUri = require('hive-uri');
 const {
@@ -13,6 +15,10 @@ const options = {
   merchantAccounts: ['fourthstreetbar'],
   maxHbd: '1.000 HBD',
 };
+const v4vBlankPayerInvoice = fs.readFileSync(
+  path.join(__dirname, 'fixtures', 'payments', 'v4v-hbd-blank-payer.txt'),
+  'utf8',
+).trim();
 
 function transfer(overrides = {}) {
   return [
@@ -63,6 +69,27 @@ test('decodes both required Hive URI forms through the pinned library and freeze
   }
 });
 
+test('binds the current V4V empty payer placeholder only to the verified session account', () => {
+  const envelope = decodeHivePaymentInvoice(v4vBlankPayerInvoice, options);
+
+  assert.equal(envelope.account, 'etblink');
+  assert.equal(envelope.authority, 'Active');
+  assert.deepEqual(envelope.operations, [[
+    'transfer',
+    {
+      from: 'etblink',
+      to: 'fourthstreetbar',
+      amount: '0.100 HBD',
+      memo: 'v4v-captured-format',
+    },
+  ]]);
+  assert.equal(
+    envelope.fingerprint,
+    'cdb61a94af3c79333086d3d605d19a326a2fb342b7d7ccd9f61e0375e21975d0',
+  );
+  assert.equal(Object.isFrozen(envelope.operations[0][1]), true);
+});
+
 test('rejects the deterministic negative invoice corpus closed', () => {
   const polluted = JSON.parse(
     '{"from":"__signer","to":"fourthstreetbar","amount":"0.001 HBD","memo":"memo","__proto__":{"polluted":true}}',
@@ -70,12 +97,14 @@ test('rejects the deterministic negative invoice corpus closed', () => {
   const cases = [
     ['', /required/],
     ['https://example.com/pay', /malformed or unsupported/],
+    ['lightning:lnurl1deterministicfixture', /Lightning invoice.*hive:\/\//],
     ['hive://sign/op/%%%', /malformed or unsupported/],
     ['hive://sign/op/abc\ndef', /invalid control characters/],
     [`hive://sign/op/${'_w..'}`, /malformed or unsupported/],
     [hiveUri.encodeOps([transfer(), transfer({ memo: 'other' })]), /exactly one operation/],
     [hiveUri.encodeOp(['vote', {}]), /transfer operation/],
     [hiveUri.encodeOp(transfer({ from: 'intruder' })), /sender does not match/],
+    [hiveUri.encodeOp(transfer({ from: ' ' })), /sender is invalid/],
     [hiveUri.encodeOp(transfer({ to: 'othermerchant' })), /not an approved merchant/],
     [hiveUri.encodeOp(transfer({ amount: '0.001 HIVE' })), /positive HBD/],
     [hiveUri.encodeOp(transfer({ amount: '0.000 HBD' })), /positive HBD/],

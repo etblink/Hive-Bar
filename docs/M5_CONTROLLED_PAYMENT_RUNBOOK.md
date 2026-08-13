@@ -8,7 +8,7 @@ Bound merchant: `@fourthstreetbar`
 
 Controlled invoice maximum: `1.000 HBD`
 
-Minimum live exit-gate amount: `0.001 HBD`
+Minimum current-V4V live exit-gate amount: `0.100 HBD`, confirmed by the product owner from the physical V4V HBD receive flow on 2026-08-13
 
 Configured claim URL: `https://distriator.com/#/claim`; keep `DISTRIATOR_ENABLED=false` until current 4th Street Bar eligibility is authoritatively confirmed.
 
@@ -16,8 +16,8 @@ Configured claim URL: `https://distriator.com/#/claim`; keep `DISTRIATOR_ENABLED
 
 - Begin only from an exact published candidate commit and tree that passed deterministic CI.
 - Use Node `>=24.15 <25`, a fresh detached checkout, `npm ci`, and the exact lockfile plus `hive-uri` patch.
-- Use a current V4V/POS invoice whose decoded recipient is exactly `@fourthstreetbar`, asset is HBD, amount is positive and no more than `1.000 HBD`, and memo is present.
-- Never edit the decoded payer, recipient, amount, asset, or memo. Obtain a new invoice and begin a new preparation if any value needs to change.
+- In V4V, select the Hive HBD payment mode, not Lightning/LNURL. Use a current invoice whose decoded recipient is exactly `@fourthstreetbar`, asset is HBD, amount is at least the current `0.100 HBD` V4V floor and no more than `1.000 HBD`, and memo is present.
+- Never manually edit the decoded payer, recipient, amount, asset, or memo. Hive-Bar may resolve only V4V's exact empty payer placeholder to the already verified session account before review. Obtain a new invoice and a new authorization if any other value needs to change.
 - Keychain success means **broadcast accepted**, not payment confirmed.
 - Only `ChainConfirmed` after exact two-node observation may be presented as **Paid**.
 - Cancellation, Keychain failure, node disagreement, missing transaction ID, and timeout do not authorize retry or rebroadcast.
@@ -104,6 +104,7 @@ Before any Active request, report and compare:
 - published candidate commit and tree;
 - full deterministic test count and result;
 - signed-in payer;
+- confirmation that an exact empty V4V payer placeholder, if present, resolved only to that signed-in payer;
 - authority exactly `Active`;
 - recipient exactly `fourthstreetbar`;
 - asset exactly `HBD`;

@@ -34,6 +34,11 @@ function requireInvoiceText(value) {
   if (/[\u0000-\u001F\u007F]/.test(invoice)) {
     throw new ValidationError('The Hive payment URI contains invalid control characters');
   }
+  if (/^lightning:/i.test(invoice)) {
+    throw new ValidationError(
+      'This is a Lightning invoice. Scan a V4V Hive HBD payment QR beginning with hive://',
+    );
+  }
   return invoice;
 }
 
@@ -85,6 +90,17 @@ function requireExactTransfer(tx) {
   return value;
 }
 
+function resolveTransferSender(value, account) {
+  // Current V4V HBD invoices use an exact empty string as the payer placeholder.
+  // Bind only that value to the already verified server-side session account.
+  if (value === '') return account;
+  const sender = canonicalAccount(value, 'Transfer sender');
+  if (sender !== account) {
+    throw new ValidationError('The transfer sender does not match the verified account');
+  }
+  return sender;
+}
+
 function decodeHivePaymentInvoice(uri, { account: accountValue, merchantAccounts, maxHbd }) {
   const account = requireHiveAccount(accountValue, 'Verified payer account');
   const merchants = new Set(
@@ -113,11 +129,8 @@ function decodeHivePaymentInvoice(uri, { account: accountValue, merchantAccounts
   }
   const tx = resolveLibraryTransaction(decoded, account);
   const transfer = requireExactTransfer(tx);
-  const from = canonicalAccount(transfer.from, 'Transfer sender');
+  const from = resolveTransferSender(transfer.from, account);
   const to = canonicalAccount(transfer.to, 'Transfer recipient');
-  if (from !== account) {
-    throw new ValidationError('The transfer sender does not match the verified account');
-  }
   if (!merchants.has(to)) {
     throw new ValidationError('The transfer recipient is not an approved merchant account');
   }

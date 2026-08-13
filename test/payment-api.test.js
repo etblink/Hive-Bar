@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 const request = require('supertest');
 const hiveUri = require('hive-uri');
@@ -11,6 +13,10 @@ const { createFixtureRpc } = require('./support/fixture-rpc');
 
 const ORIGIN = 'http://localhost:3000';
 const SESSION_SECRET = 'test-session-secret-that-is-at-least-32-bytes';
+const v4vBlankPayerInvoice = fs.readFileSync(
+  path.join(__dirname, 'fixtures', 'payments', 'v4v-hbd-blank-payer.txt'),
+  'utf8',
+).trim();
 
 function invoice(memo = 'v4v-pos:tab-123') {
   return hiveUri.encodeOp([
@@ -131,6 +137,31 @@ test('preflights, reviews, records acceptance, and confirms one exact merchant p
   ).send({ uri: invoice() }).expect(409).expect(({ body }) => {
     assert.equal(body.error.code, 'DUPLICATE_PAYMENT');
   });
+});
+
+test('persists a current-format V4V blank-payer invoice only after verified-account binding', async () => {
+  const fixtureApp = controlledApp();
+  const preflight = await authorized(
+    request(fixtureApp.app).post('/api/payments/preflight'),
+    fixtureApp,
+  ).send({ uri: v4vBlankPayerInvoice }).expect(201);
+
+  assert.equal(preflight.body.state, 'Validated');
+  assert.equal(preflight.body.account, 'etblink');
+  assert.equal(preflight.body.amount, '0.100 HBD');
+  assert.deepEqual(preflight.body.operations, [[
+    'transfer',
+    {
+      from: 'etblink',
+      to: 'fourthstreetbar',
+      amount: '0.100 HBD',
+      memo: 'v4v-captured-format',
+    },
+  ]]);
+  assert.equal(
+    preflight.body.fingerprint,
+    'cdb61a94af3c79333086d3d605d19a326a2fb342b7d7ccd9f61e0375e21975d0',
+  );
 });
 
 test('keeps ambiguous or uncorrelated broadcasts pending and times out without a retry path', async () => {
@@ -263,6 +294,7 @@ test('renders the configured Pay Tab and hides the claim link until eligibility 
     .expect(200);
   assert.match(page.text, /@fourthstreetbar/);
   assert.match(page.text, /1\.000 HBD/);
+  assert.match(page.text, /Hive HBD payment QR—not a Lightning or LNURL invoice/);
   assert.doesNotMatch(page.text, /data-distriator-claim/);
 
   const enabled = controlledApp({ configOverrides: { DISTRIATOR_ENABLED: 'true' } });

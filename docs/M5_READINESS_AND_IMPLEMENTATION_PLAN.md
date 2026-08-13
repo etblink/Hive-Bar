@@ -1,6 +1,6 @@
 # M5 readiness and implementation plan
 
-Status: **Deterministic local implementation complete.** M4 is accepted. The M5 remote, physical-device, live-payment, and rebate-eligibility acceptance gates remain deliberately blocked until the separately authorized evidence listed below exists.
+Status: **Deterministic local implementation and current-V4V compatibility remediation complete.** M4 is accepted. The remediation successor's remote CI, physical-device, live-payment, and rebate-eligibility acceptance gates remain deliberately blocked until the separately authorized evidence listed below exists.
 
 Plan date: 2026-08-12
 
@@ -30,7 +30,7 @@ M5 exits only when:
 | PAY-03 | Decode Hive payment URIs through a pinned, audited `hive-uri` decoder. No application-owned base64 or generic URI-operation parser is allowed. |
 | PAY-04 | Accept the library-defined specialized transfer form and encoded single-operation form after the decoder compatibility gate below passes. |
 | PAY-05 | Resolve exactly one `transfer`; reject zero, multiple, or unsupported operations. |
-| PAY-06 | Require the transfer sender to equal the verified account, or a supported signer placeholder that resolves exactly to it. |
+| PAY-06 | Require the transfer sender to equal the verified account, a library-supported signer placeholder, or the exact empty payer placeholder emitted by current V4V HBD invoices. Resolve either placeholder only to the server-verified session account. |
 | PAY-07 | Require positive HBD with exactly three decimal places, at or below the configured maximum, and a recipient in the server-side merchant allowlist. |
 | PAY-08 | Freeze sender, recipient, asset, amount, and memo after validation. A changed invoice requires a new scan and fingerprint. |
 | PAY-09 | Ignore invoice-supplied callbacks, redirects, and other navigation targets. |
@@ -79,6 +79,8 @@ The current in-memory `PreflightStore` must not be repurposed as the receipt led
 
 The implementation does not work around this with an application-owned parser. A reproducible `patch-package` compatibility patch restores the library's documented specialized-transfer decoder and stable malformed-input errors. `package-lock.json` preserves the upstream package integrity, `patches/hive-uri+0.2.8.patch` preserves the exact delta (SHA-256 `e68145d75b25e660098569dc5c8211898cc680ea7f0f8a8e5ee5022be0b7fe8b`), and the positive plus negative compatibility corpus binds both required URI forms before intake can be enabled.
 
+A physical-device rehearsal subsequently established that current V4V HBD operation URIs encode `transfer.from` as the exact empty string. Hive-Bar treats only that exact value as a payer placeholder and substitutes the already verified server-session account before freezing and fingerprinting the operation. Missing, whitespace, malformed, non-canonical, foreign, or signer-mismatched senders remain rejected. This is a bounded payer resolution, not permission to edit invoice fields in the browser.
+
 Package reference: [`hive-uri`](https://www.npmjs.com/package/hive-uri).
 
 ### QR capture
@@ -104,7 +106,7 @@ Runtime reference: [Node.js 24 SQLite documentation](https://nodejs.org/download
 | `DISTRIATOR_ENABLED` | Explicit feature switch | `false` until REB-06 verification passes |
 | `DISTRIATOR_CLAIM_URL` | Exact official HTTPS URL, accepted only when the feature is enabled | `https://distriator.com/#/claim`, supplied by the product owner on 2026-08-13 |
 
-The merchant binding came from the product owner's explicit statement; it was not inferred from `@etblink`, `@fartman69`, prior M4 transfers, a display name, or search results. A controlled payment must still use a current V4V/POS invoice whose decoded recipient is exactly `@fourthstreetbar`. The official V4V POS page identifies its Receive flow as the source of a Hive payment QR: [V4V POS](https://v4v.app/pos).
+The merchant binding came from the product owner's explicit statement; it was not inferred from `@etblink`, `@fartman69`, prior M4 transfers, a display name, or search results. A controlled payment must still use V4V's current **Hive HBD** payment mode—not its Lightning/LNURL mode—and its decoded recipient must be exactly `@fourthstreetbar`. The official V4V POS page identifies its Receive flow as the source of a Hive payment QR: [V4V POS](https://v4v.app/pos).
 
 The product owner supplied the exact claim URL, but did not separately attest current 4th Street Bar eligibility. `DISTRIATOR_ENABLED` therefore remains `false`. The deterministic enabled-path test verifies the supplied URL, new-tab isolation, and confirmation gate without claiming current eligibility. General service reference: [Distriator on Hive](https://hive.blog/@thedistriator).
 
@@ -145,7 +147,7 @@ The negative corpus will bind at least:
 - transaction-not-found, partial field match, one-node-only observation, node disagreement, timeout, restart recovery, and later safe confirmation;
 - proof that no state before `ChainConfirmed` renders **Paid** or enables the rebate action.
 
-Positive fixtures will cover both required Hive URI forms, exact three-decimal HBD arithmetic, immutable review, one Active call, two-node confirmation, durable receipt rendering, safe restart recheck, and the disabled/enabled Distriator boundary. The full existing deterministic gate, secret scan, zero-warning lint, build, production audit, accessibility checks, and a physical-device QR scan remain required.
+Positive fixtures cover both required Hive URI forms, a non-sensitive hard-coded equivalent of the current V4V empty-payer HBD format, exact three-decimal HBD arithmetic, immutable review, one Active call, two-node confirmation, durable receipt rendering, safe restart recheck, and the disabled/enabled Distriator boundary. The full existing deterministic gate, secret scan, zero-warning lint, build, production audit, accessibility checks, and a physical-device QR scan remain required.
 
 ## Consolidated implementation sequence
 
@@ -154,14 +156,15 @@ The product owner authorized batches 1 through 4 as one consolidated local step 
 1. **Foundation — implemented locally:** runtime and pinned packages, configuration validation, audited URI compatibility patch, exact invoice/operation parsing, and negative corpus.
 2. **Durability and confirmation — implemented locally:** SQLite migration, receipt transitions, uniqueness, same-account recovery, independent two-node correlation, timeout, and safe recheck.
 3. **User flow — implemented locally:** Pay Tab navigation, camera/import/paste intake, immutable review, one-call Keychain boundary, pending/confirmed receipt UI, accessibility, and disabled-by-default Distriator handoff.
-4. **Verification — local gate complete:** lockfile reinstall, deterministic tests, security review, and documentation are local; physical-device rehearsal and deterministic remote CI require later authorization.
-5. **Controlled live exit gate:** after separate fingerprint-bound authorization, perform one minimum `0.001 HBD` payment to the bound merchant, observe exact two-node confirmation, reconcile the durable receipt, and preserve transaction evidence. No retry is implied or authorized.
+4. **Verification — remediation local gate complete:** lockfile reinstall, deterministic tests, security review, and documentation include the current V4V format; a successful preparation-only physical-device rehearsal and exact successor remote CI remain required.
+5. **Controlled live exit gate:** after separate fingerprint-bound authorization, perform one minimum current-V4V `0.100 HBD` payment to the bound merchant, observe exact two-node confirmation, reconcile the durable receipt, and preserve transaction evidence. No retry is implied or authorized.
 
 ## Readiness verdict and remaining decisions
 
 The accepted M4 code is a sound base for M5. The merchant allowlist and claim URL are now bound from product-owner statements. The Project Lead controls remain:
 
 - use a `1.000 HBD` maximum during controlled M5, with any production ceiling deferred to M6;
+- use the product-owner-confirmed current V4V HBD minimum of `0.100 HBD` for the later controlled exit gate;
 - keep Distriator disabled until current 4th Street Bar eligibility is authoritatively confirmed; and
 - retain the provenance-pinned `hive-uri` compatibility patch and its corpus until an equivalently tested upstream release replaces it.
 
@@ -169,4 +172,4 @@ Full M5 acceptance additionally requires a later exact live-payment authorizatio
 
 ## Readiness-plan validation
 
-The readiness-only baseline passed 119 tests on 2026-08-12. After M5 implementation, clean full and production-only `npm ci` installs reapplied the pinned `hive-uri` patch, and the complete gate passed under the declared Node `v24.19.0` runtime on 2026-08-13: 140 tests passed, the secret scan covered 144 repository files, ESLint completed with zero warnings, the production CSS build succeeded, and the production dependency audit reported zero vulnerabilities. No Keychain request, Hive operation, remote CI run, branch creation, commit, push, or PR change occurred.
+The readiness-only baseline passed 119 tests on 2026-08-12. After M5 implementation, clean full and production-only `npm ci` installs reapplied the pinned `hive-uri` patch, and the complete gate passed under the declared Node `v24.19.0` runtime on 2026-08-13: 140 tests passed, the secret scan covered 144 repository files, ESLint completed with zero warnings, the production CSS build succeeded, and the production dependency audit reported zero vulnerabilities. The later cross-platform baseline passed 142 tests on both Ubuntu and Windows. The current-V4V empty-payer remediation passes 144 local tests, a 146-file secret scan, zero-warning lint, the production CSS build, and a zero-vulnerability production audit. No Keychain request or Hive operation occurred during remediation.
