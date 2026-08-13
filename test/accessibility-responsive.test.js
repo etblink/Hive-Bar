@@ -22,6 +22,7 @@ const KEY_ROUTES = [
   '/profile/etblink/wall-posts',
   '/profile/etblink/followers',
   '/profile/etblink/following',
+  '/pay',
 ];
 
 async function renderKeyRoutes() {
@@ -53,6 +54,7 @@ async function renderControlledRoutes() {
     '/profile/etblink/wall-posts',
     '/profile/etblink/inbox',
     '/profile/etblink/settings',
+    '/pay',
   ];
   const responses = [];
   for (const route of routes) {
@@ -108,7 +110,7 @@ test('axe reports no serious or critical violations on key public documents', as
   }
 });
 
-test('controlled M3 and M4 forms pass structural and serious/critical accessibility gates', async () => {
+test('controlled M3, M4, and M5 forms pass structural and serious/critical accessibility gates', async () => {
   const validator = new HtmlValidate({
     extends: ['html-validate:recommended'],
     rules: { 'no-trailing-whitespace': 'off' },

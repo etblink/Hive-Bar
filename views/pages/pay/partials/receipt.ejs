@@ -1,0 +1,25 @@
+<section class="<%= receiptClass %> rounded-2xl border border-gray-700 bg-gray-950 p-6" aria-labelledby="receipt-heading" data-pay-receipt hidden>
+  <h2 id="receipt-heading" class="text-2xl font-bold text-white">2. Durable receipt</h2>
+  <p class="mt-2 text-lg font-bold text-bar-gold" data-pay-receipt-state></p>
+  <dl class="mt-5 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+    <div><dt class="text-gray-400">Payer</dt><dd class="mt-1 break-all text-white" data-pay-receipt-account></dd></div>
+    <div><dt class="text-gray-400">Merchant</dt><dd class="mt-1 break-all text-white" data-pay-receipt-merchant></dd></div>
+    <div><dt class="text-gray-400">Amount</dt><dd class="mt-1 text-white" data-pay-receipt-amount></dd></div>
+    <div><dt class="text-gray-400">Block</dt><dd class="mt-1 text-white" data-pay-receipt-block>Pending</dd></div>
+    <div class="sm:col-span-2"><dt class="text-gray-400">Transaction ID</dt><dd class="mt-1 break-all font-mono text-xs text-white" data-pay-receipt-transaction>Pending</dd></div>
+    <div class="sm:col-span-2"><dt class="text-gray-400">Operation fingerprint</dt><dd class="mt-1 break-all font-mono text-xs text-white" data-pay-receipt-fingerprint></dd></div>
+  </dl>
+  <p class="mt-5 text-sm leading-6 text-gray-300" data-pay-receipt-message></p>
+  <button type="button" class="button-secondary mt-5" data-pay-recheck hidden>Recheck Hive — do not pay again</button>
+
+  <% if (distriator.enabled) { %>
+    <div class="mt-6 rounded-xl border border-gray-700 bg-black p-4" data-pay-rebate hidden>
+      <h3 class="font-bold text-white">External rebate claim</h3>
+      <p class="mt-2 text-sm leading-6 text-gray-300">Distriator is an external service with its own eligibility, documentation, timing, review, and payout rules. Hive-Bar does not promise a percentage or track claim completion.</p>
+      <a class="button-secondary mt-4 inline-block" href="<%= distriator.claimUrl %>" target="_blank" rel="noopener noreferrer" data-distriator-claim>Open official Distriator claim</a>
+    </div>
+  <% } else { %>
+    <p class="mt-6 rounded-xl border border-gray-800 bg-black p-4 text-sm leading-6 text-gray-400">The external Distriator claim action remains disabled until current 4th Street Bar eligibility is confirmed.</p>
+  <% } %>
+  <p class="mt-5 text-xs leading-5 text-gray-400">This Hive-Bar receipt is user-facing evidence. It does not replace the merchant's V4V/POS reconciliation.</p>
+</section>

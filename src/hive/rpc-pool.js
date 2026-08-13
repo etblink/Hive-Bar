@@ -88,6 +88,20 @@ class HiveRpcPool {
     throw new UpstreamError('Hive data is temporarily unavailable', { cause: lastError });
   }
 
+  async callNode(nodeUrl, api, method, params = [], options = {}) {
+    const rpcMethod = assertReadOnlyRpcMethod(api, method);
+    const node = this.nodes.find((candidate) => candidate.url === nodeUrl);
+    if (!node) throw new TypeError('The requested Hive RPC node is not configured');
+    try {
+      const result = await this.#callNode(node, rpcMethod, params, options);
+      this.#recordSuccess(node);
+      return result;
+    } catch (error) {
+      this.#recordFailure(node, error, rpcMethod);
+      throw new UpstreamError('Hive data is temporarily unavailable', { cause: error });
+    }
+  }
+
   #orderedCandidates() {
     const now = this.now();
     const rotated = this.nodes.map((_, index) => this.nodes[(this.cursor + index) % this.nodes.length]);

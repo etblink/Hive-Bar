@@ -163,6 +163,31 @@ test('accepts an expected RPC application miss without failing over or penalizin
   assert.equal(pool.getStatus()[0].available, true);
 });
 
+test('queries one explicitly configured node without hidden failover', async () => {
+  const requests = [];
+  const pool = new HiveRpcPool({
+    nodes: ['https://one.example', 'https://two.example'],
+    fetchImpl: async (url, options) => {
+      requests.push(url);
+      return rpcResponse(JSON.parse(options.body).id, { transaction_id: 'a'.repeat(40) });
+    },
+    logger: silentLogger,
+  });
+
+  const result = await pool.callNode(
+    'https://two.example',
+    'account_history_api',
+    'get_transaction',
+    { id: 'a'.repeat(40), include_reversible: true },
+  );
+  assert.equal(result.transaction_id, 'a'.repeat(40));
+  assert.deepEqual(requests, ['https://two.example']);
+  await assert.rejects(
+    pool.callNode('https://unconfigured.example', 'bridge', 'get_post', {}),
+    /not configured/,
+  );
+});
+
 test('blocks write and unknown RPC methods before making a network request', async () => {
   let fetchCalls = 0;
   const pool = new HiveRpcPool({

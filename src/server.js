@@ -17,7 +17,16 @@ function startServer(options = {}) {
       cooldownMs: config.hive.rpcCooldownMs,
       logger,
     });
-  const app = options.app || createApp({ config, logger, rpcPool });
+  const app =
+    options.app ||
+    createApp({
+      config,
+      logger,
+      rpcPool,
+      now: options.now,
+      paymentObserver: options.paymentObserver,
+      receiptStore: options.receiptStore,
+    });
   const server = app.listen(config.server.port, () => {
     logger.info(
       {
@@ -36,6 +45,18 @@ function startServer(options = {}) {
   });
 
   let closing = false;
+  let resourcesClosed = false;
+  function closeResources() {
+    if (resourcesClosed) return;
+    resourcesClosed = true;
+    try {
+      app.locals.services?.receiptStore?.close?.();
+    } catch (error) {
+      logger.error({ err: error }, 'Hive-Bar receipt store shutdown failed');
+      process.exitCode = 1;
+    }
+  }
+  server.once('close', closeResources);
   function shutdown(signal) {
     if (closing) return;
     closing = true;

@@ -26,6 +26,13 @@ test('loads the accepted identifiers, secure session settings, and write-disable
   assert.equal(config.hive.defaultWallFee, '1.000 HBD');
   assert.deepEqual(config.hive.globalWallExclusions, []);
   assert.equal(config.hive.messageHistoryPageSize, 25);
+  assert.deepEqual(config.payments.merchantAccounts, ['fourthstreetbar']);
+  assert.equal(config.payments.maxHbd, '1.000 HBD');
+  assert.equal(config.payments.receiptDbPath, ':memory:');
+  assert.equal(config.payments.confirmationTimeoutMs, 120000);
+  assert.equal(config.payments.enabled, false);
+  assert.equal(config.distriator.enabled, false);
+  assert.equal(config.distriator.claimUrl, 'https://distriator.com/#/claim');
   assert.equal(config.auth.appOrigin, 'http://localhost:3000');
   assert.ok(config.auth.sessionSecret.length >= 32);
   assert.equal(config.site.business.address, '1114 E. 4th Street, Reno, NV 89512');
@@ -50,6 +57,11 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
         THREADS_CONTAINER_ACCOUNT: 'fourthst.threads',
         HIVE_RPC_NODES: 'https://api.hive.blog',
         HIVE_WALL_DEFAULT_FEE: '1.000 HBD',
+        HIVE_PAYMENT_MERCHANT_ACCOUNTS: 'fourthstreetbar',
+        HIVE_PAYMENT_MAX_HBD: '1.000 HBD',
+        HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:',
+        DISTRIATOR_ENABLED: 'false',
+        DISTRIATOR_CLAIM_URL: 'https://distriator.com/#/claim',
         APP_ORIGIN: 'https://hive-bar.example',
         SESSION_SECRET: 'a-production-session-secret-with-32-bytes',
       }),
@@ -60,7 +72,7 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
 test('fails closed when production settings are only implicit defaults', () => {
   assert.throws(
     () => loadConfig({ NODE_ENV: 'production' }, { loadDotenv: false }),
-    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, HIVE_WALL_DEFAULT_FEE, APP_ORIGIN, SESSION_SECRET/,
+    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, HIVE_WALL_DEFAULT_FEE, HIVE_PAYMENT_MERCHANT_ACCOUNTS, HIVE_PAYMENT_MAX_HBD, HIVE_PAYMENT_RECEIPT_DB_PATH, DISTRIATOR_ENABLED, DISTRIATOR_CLAIM_URL, APP_ORIGIN, SESSION_SECRET/,
   );
 });
 
@@ -93,6 +105,45 @@ test('validates the canonical M4 wall fee and both normalized exclusion layers',
   assert.equal(config.hive.messageHistoryPageSize, 50);
   assert.throws(() => configFrom({ HIVE_WALL_DEFAULT_FEE: '1.00 HBD' }), /three decimals/);
   assert.throws(() => configFrom({ HIVE_WALL_DEFAULT_FEE: '0.000 HBD' }), /positive HBD/);
+});
+
+test('binds the controlled M5 merchant, amount, receipt, timeout, and Distriator settings', () => {
+  const config = configFrom({
+    HIVE_WRITE_MODE: 'controlled',
+    HIVE_CONTROLLED_ACCOUNTS: 'etblink',
+    HIVE_PAYMENT_MERCHANT_ACCOUNTS: 'fourthstreetbar, fourthstreetbar',
+    HIVE_PAYMENT_MAX_HBD: '1.000 HBD',
+    HIVE_PAYMENT_RECEIPT_DB_PATH: '/var/lib/hive-bar/receipts.sqlite',
+    HIVE_PAYMENT_CONFIRMATION_TIMEOUT_MS: '90000',
+    DISTRIATOR_ENABLED: 'true',
+    DISTRIATOR_CLAIM_URL: 'https://distriator.com/#/claim',
+  });
+  assert.deepEqual(config.payments.merchantAccounts, ['fourthstreetbar']);
+  assert.equal(config.payments.enabled, true);
+  assert.equal(config.payments.maxHbd, '1.000 HBD');
+  assert.equal(config.payments.receiptDbPath, '/var/lib/hive-bar/receipts.sqlite');
+  assert.equal(config.payments.confirmationTimeoutMs, 90000);
+  assert.equal(config.distriator.enabled, true);
+  assert.equal(config.distriator.claimUrl, 'https://distriator.com/#/claim');
+  assert.throws(() => configFrom({ HIVE_PAYMENT_MAX_HBD: '1.00 HBD' }), /three decimals/);
+  assert.throws(() => configFrom({ DISTRIATOR_ENABLED: 'maybe' }), /true or false/);
+  assert.throws(
+    () => configFrom({ DISTRIATOR_CLAIM_URL: 'javascript:alert(1)' }),
+    /credential-free HTTPS URL/,
+  );
+  assert.throws(
+    () =>
+      loadConfig(
+        {
+          NODE_ENV: 'development',
+          HIVE_WRITE_MODE: 'controlled',
+          HIVE_CONTROLLED_ACCOUNTS: 'etblink',
+          HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:',
+        },
+        { loadDotenv: false },
+      ),
+    /Controlled mode requires an explicit durable receipt database path/,
+  );
 });
 
 test('rejects insecure or credential-bearing RPC URLs', () => {

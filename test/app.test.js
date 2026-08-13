@@ -39,6 +39,8 @@ test('renders a truthful, complete home document with hardened response headers'
   assert.doesNotMatch(response.text, /<script(?![^>]*\bsrc=)/i);
   assert.match(response.headers['content-security-policy'], /script-src 'self'/);
   assert.match(response.headers['content-security-policy'], /script-src-attr 'none'/);
+  assert.match(response.headers['content-security-policy'], /img-src 'self' data: blob:/);
+  assert.match(response.headers['content-security-policy'], /media-src 'self' blob:/);
   assert.doesNotMatch(response.headers['content-security-policy'], /unsplash|fourthstreetbar\.com/);
   assert.equal(response.headers['x-content-type-options'], 'nosniff');
   assert.equal(response.headers['x-powered-by'], undefined);
@@ -50,6 +52,13 @@ test('serves local HTMX rather than a third-party runtime script', async () => {
   const response = await request(app).get('/htmx/htmx.min.js').expect(200);
   assert.match(response.headers['content-type'], /javascript/);
   assert.match(response.text, /htmx/i);
+});
+
+test('serves the pinned QR reader locally rather than from a third-party CDN', async () => {
+  const { app } = createFixtureApp();
+  const response = await request(app).get('/vendor/zxing/zxing-browser.min.js').expect(200);
+  assert.match(response.headers['content-type'], /javascript/);
+  assert.match(response.text, /ZXingBrowser/);
 });
 
 test('reports liveness without touching Hive and readiness through Hive', async () => {

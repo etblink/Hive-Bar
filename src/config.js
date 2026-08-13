@@ -19,6 +19,11 @@ const PRODUCTION_REQUIRED_SETTINGS = [
   'HIVE_RPC_NODES',
   'HIVE_WRITE_MODE',
   'HIVE_WALL_DEFAULT_FEE',
+  'HIVE_PAYMENT_MERCHANT_ACCOUNTS',
+  'HIVE_PAYMENT_MAX_HBD',
+  'HIVE_PAYMENT_RECEIPT_DB_PATH',
+  'DISTRIATOR_ENABLED',
+  'DISTRIATOR_CLAIM_URL',
   'APP_ORIGIN',
   'SESSION_SECRET',
 ];
@@ -92,6 +97,23 @@ function parseWallFee(value, context) {
     return z.NEVER;
   }
   return parsed.canonical;
+}
+
+function parseBoolean(value, context) {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1') return true;
+  if (normalized === 'false' || normalized === '0') return false;
+  context.addIssue({ code: 'custom', message: 'Must be true or false' });
+  return z.NEVER;
+}
+
+function parseReceiptPath(value, context) {
+  const normalized = String(value ?? '').trim();
+  if (!normalized || normalized.includes('\0') || Buffer.byteLength(normalized, 'utf8') > 1024) {
+    context.addIssue({ code: 'custom', message: 'Must be an explicit SQLite file path or :memory:' });
+    return z.NEVER;
+  }
+  return normalized;
 }
 
 function parseAppOrigin(value, context) {
@@ -178,6 +200,24 @@ const envSchema = z
     HIVE_WALL_DEFAULT_FEE: z.string().default('1.000 HBD').transform(parseWallFee),
     HIVE_GLOBAL_WALL_EXCLUSIONS: z.string().default('').transform(parseAccountList),
     HIVE_MESSAGE_HISTORY_PAGE_SIZE: z.coerce.number().int().min(5).max(100).default(25),
+    HIVE_PAYMENT_MERCHANT_ACCOUNTS: z
+      .string()
+      .default('fourthstreetbar')
+      .transform(parseAccountList),
+    HIVE_PAYMENT_MAX_HBD: z.string().default('1.000 HBD').transform(parseWallFee),
+    HIVE_PAYMENT_RECEIPT_DB_PATH: z.string().default(':memory:').transform(parseReceiptPath),
+    HIVE_PAYMENT_CONFIRMATION_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(1000)
+      .max(600000)
+      .default(120000),
+    DISTRIATOR_ENABLED: z.string().default('false').transform(parseBoolean),
+    DISTRIATOR_CLAIM_URL: z
+      .string()
+      .trim()
+      .default('https://distriator.com/#/claim')
+      .transform(requireHttpsUrl),
     HIVE_APP_TAG: z
       .string()
       .trim()
@@ -229,6 +269,17 @@ const envSchema = z
         code: 'custom',
         path: ['HIVE_CONTROLLED_ACCOUNTS'],
         message: 'Controlled mode requires at least one explicitly allowlisted Hive account',
+      });
+    }
+    if (
+      env.NODE_ENV !== 'test' &&
+      env.HIVE_WRITE_MODE === 'controlled' &&
+      env.HIVE_PAYMENT_RECEIPT_DB_PATH === ':memory:'
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['HIVE_PAYMENT_RECEIPT_DB_PATH'],
+        message: 'Controlled mode requires an explicit durable receipt database path',
       });
     }
     if (env.HIVE_WRITE_MODE === 'production') {
@@ -306,6 +357,19 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
       appTag: result.data.HIVE_APP_TAG,
       writesEnabled: result.data.HIVE_WRITE_MODE === 'controlled',
     },
+    payments: {
+      merchantAccounts: result.data.HIVE_PAYMENT_MERCHANT_ACCOUNTS,
+      maxHbd: result.data.HIVE_PAYMENT_MAX_HBD,
+      receiptDbPath: result.data.HIVE_PAYMENT_RECEIPT_DB_PATH,
+      confirmationTimeoutMs: result.data.HIVE_PAYMENT_CONFIRMATION_TIMEOUT_MS,
+      enabled:
+        result.data.HIVE_WRITE_MODE === 'controlled' &&
+        result.data.HIVE_PAYMENT_MERCHANT_ACCOUNTS.length > 0,
+    },
+    distriator: {
+      enabled: result.data.DISTRIATOR_ENABLED,
+      claimUrl: result.data.DISTRIATOR_CLAIM_URL,
+    },
     auth: {
       appOrigin: result.data.APP_ORIGIN,
       sessionSecret: result.data.SESSION_SECRET || randomBytes(32).toString('base64url'),
@@ -332,6 +396,8 @@ module.exports = {
   HIVE_ACCOUNT_PATTERN,
   PRODUCTION_REQUIRED_SETTINGS,
   parseAccountList,
+  parseBoolean,
+  parseReceiptPath,
   parseWallFee,
   loadConfig,
 };

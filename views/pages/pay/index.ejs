@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../../common/head') %>
+</head>
+<body class="flex min-h-screen flex-col bg-black text-white">
+  <%- include('../../common/header') %>
+  <main id="main-content" class="container mx-auto w-full max-w-5xl px-4 py-10 sm:px-6" data-pay-tab>
+    <header class="max-w-3xl">
+      <p class="text-sm font-bold uppercase tracking-widest text-bar-gold">M5 verified payment</p>
+      <h1 class="mt-2 text-4xl font-black text-white">Pay your tab with HBD</h1>
+      <p class="mt-4 leading-7 text-gray-300">
+        Scan the current V4V/POS invoice or paste its Hive URI. Hive-Bar verifies one exact transfer to
+        <% payment.merchants.forEach((merchant, index) => { %><%= index ? ', ' : '' %><strong class="text-white">@<%= merchant %></strong><% }) %>
+        and will not confirm payment until two independent Hive nodes observe it.
+      </p>
+      <div class="mt-5 rounded-xl border border-amber-700 bg-amber-950/40 p-4 text-sm leading-6 text-amber-100">
+        Keychain acceptance means the broadcast is pending. Never pay again after a timeout until this receipt has been rechecked against Hive. The controlled maximum is <strong><%= payment.maxHbd %></strong>.
+      </div>
+    </header>
+
+    <% if (!hiveSession) { %>
+      <section class="mt-8 rounded-2xl border border-gray-700 bg-gray-950 p-6" aria-labelledby="pay-sign-in-heading">
+        <h2 id="pay-sign-in-heading" class="text-2xl font-bold text-white">Verified sign-in required</h2>
+        <p class="mt-3 text-gray-300">Use the Hive Keychain sign-in control in the header. Signing in uses Posting authority and does not create a transaction.</p>
+      </section>
+    <% } else if (!payment.enabled) { %>
+      <section class="mt-8 rounded-2xl border border-gray-700 bg-gray-950 p-6" aria-labelledby="pay-disabled-heading">
+        <h2 id="pay-disabled-heading" class="text-2xl font-bold text-white">Pay Tab is safely disabled</h2>
+        <p class="mt-3 text-gray-300">A separately authorized controlled run is required before Hive-Bar can prepare an Active-authority payment.</p>
+      </section>
+      <%- include('partials/receipt', { receiptClass: 'mt-6' }) %>
+    <% } else { %>
+      <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section class="rounded-2xl border border-gray-700 bg-gray-950 p-6" aria-labelledby="invoice-heading">
+          <h2 id="invoice-heading" class="text-2xl font-bold text-white">1. Read the invoice</h2>
+          <p class="mt-2 text-sm leading-6 text-gray-400">Camera data stays in this browser. Only the bounded URI is sent to Hive-Bar for strict validation.</p>
+
+          <div class="mt-5 flex flex-wrap gap-3">
+            <button type="button" class="button-secondary" data-pay-camera-start>Start camera</button>
+            <button type="button" class="button-secondary" data-pay-camera-stop hidden>Stop camera</button>
+            <label class="button-secondary cursor-pointer" for="pay-invoice-image">Import QR image</label>
+            <input id="pay-invoice-image" class="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-pay-image>
+          </div>
+          <video class="mt-4 hidden aspect-video w-full rounded-xl border border-gray-700 bg-black object-cover" playsinline muted aria-hidden="true" data-pay-video></video>
+
+          <form class="mt-5 space-y-4" data-pay-form>
+            <div>
+              <label for="pay-invoice-uri" class="block text-sm font-bold text-gray-200">Hive payment URI</label>
+              <textarea
+                id="pay-invoice-uri"
+                name="uri"
+                rows="5"
+                required
+                maxlength="16384"
+                spellcheck="false"
+                autocapitalize="none"
+                autocomplete="off"
+                class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 font-mono text-sm text-white"
+                placeholder="hive://sign/transfer/..."
+                data-pay-uri
+              ></textarea>
+            </div>
+            <button type="submit" class="button-primary w-full">Validate and review exact transfer</button>
+          </form>
+          <p class="mt-4 text-sm leading-6 text-gray-300" aria-live="polite" data-pay-status>Ready for a current V4V/POS invoice.</p>
+        </section>
+
+        <%- include('partials/receipt', { receiptClass: '' }) %>
+      </div>
+    <% } %>
+  </main>
+  <%- include('../../common/footer') %>
+  <% if (hiveSession) { %>
+    <% if (payment.enabled) { %><script src="/vendor/zxing/zxing-browser.min.js" defer></script><% } %>
+    <script src="/js/pay-tab.js" defer></script>
+  <% } %>
+</body>
+</html>

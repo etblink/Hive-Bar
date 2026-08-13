@@ -1,6 +1,6 @@
 # M4 verification evidence
 
-Status: M4 implementation and controlled verification complete on the current published candidate; the profile, reward-claim, public-wall, and encrypted-inbox trials succeeded irreversibly, and recipient-side local decryption succeeded; ready for the final read-only acceptance audit
+Status: M4 accepted after the final read-only acceptance audit on 2026-08-12; the profile, reward-claim, public-wall, and encrypted-inbox trials succeeded irreversibly, and recipient-side local decryption succeeded
 
 Baseline: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
@@ -272,3 +272,20 @@ All controlled live-operation evidence required by the M4 exit gate is complete.
 | Encrypted inbox | Complete for the one authorized `@etblink` to `@fartman69` trial above; preparation, exact fingerprint-bound Active broadcast, three-node exact observation and finality, state settlement, recipient-only local decryption, and privacy boundary are recorded. The two earlier consumed preparation incidents and both published remediations remain preserved above; no retry or additional encrypted-inbox transfer is authorized. |
 
 Each trial must follow [M4_CONTROLLED_WRITE_RUNBOOK.md](M4_CONTROLLED_WRITE_RUNBOOK.md). Normal `HIVE_WRITE_MODE=disabled` and rejection of production write mode remain unchanged.
+
+## Final M4 acceptance audit
+
+Verdict: **PASS — M4 is accepted with no open acceptance blocker.** The product owner accepted the Project Lead recommendation to close M4 and begin M5 readiness work on 2026-08-12.
+
+| Audit item | Accepted evidence |
+| --- | --- |
+| Frozen specification | Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4` |
+| Local closeout identity | Commit `48574fadc53004ef680a7643d97e02ad3ac0029c`; tree `616ad7245a03cae17d6e78dd1b7f08c71c6af809` |
+| Published closeout identity | Equivalent commit `8eba9ca3b203df8a91c30fe6605ee3888927f89a`; the same tree `616ad7245a03cae17d6e78dd1b7f08c71c6af809` on `codex/m4-profiles-settings-rewards-wall-inbox` |
+| Deterministic gate | 119 tests passed; secret scan covered 127 files; ESLint completed with zero warnings; production CSS built; production dependency audit reported zero vulnerabilities |
+| Controlled trials | The profile update, reward claim, public-wall transfer, and encrypted-inbox transfer each used an exact, separately authorized operation. Their transaction evidence, finality, settlement, safety boundaries, and consumed authorizations are recorded above. |
+| Encrypted-inbox exit evidence | Exact fingerprint-bound broadcast, three-node observation, irreversible transaction `8fb2f478323b04fc78ae9cb52324b7f1bbb4a5ec`, recipient-side local decryption, and plaintext privacy confirmation all passed. |
+| Repository boundary | PR #1 remained unchanged at commit `9085e9d00d73f61e0ea0b450832f28ac782ef36d`; it remained open, draft, and unmerged. No new PR or persistent CI branch was created for this audit. |
+| Operational boundary | The audit was read-only. It issued no Keychain request, performed no Hive operation, and consumed no additional authorization. Normal production write mode remains disabled. |
+
+M4 is therefore the accepted baseline for M5. Any later change must preserve this evidence and must not reinterpret an M4 test recipient as the production merchant account.

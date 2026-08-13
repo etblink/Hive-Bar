@@ -11,6 +11,8 @@ const { loadConfig } = require('./config');
 const { PostingAuthorityVerifier } = require('./hive/posting-authority');
 const { HiveReadService } = require('./hive/read-service');
 const { HiveRpcPool } = require('./hive/rpc-pool');
+const { PaymentObserver } = require('./payments/payment-observer');
+const { ReceiptStore } = require('./payments/receipt-store');
 const { createLogger } = require('./lib/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errors');
 const { requestContext } = require('./middleware/request-context');
@@ -19,6 +21,7 @@ const { PreflightStore } = require('./social/preflight-store');
 const { createHealthRouter } = require('./routes/health');
 const { createAuthRouter } = require('../routes/auth');
 const { createM4Router } = require('../routes/m4');
+const { createPaymentRouter } = require('../routes/payments');
 const { createSocialRouter } = require('../routes/social');
 
 function securityMiddleware(config) {
@@ -32,7 +35,8 @@ function securityMiddleware(config) {
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
         frameSrc: ["'none'"],
-        imgSrc: ["'self'", 'data:', 'https://images.hive.blog'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://images.hive.blog'],
+        mediaSrc: ["'self'", 'blob:'],
         objectSrc: ["'none'"],
         scriptSrc: ["'self'"],
         scriptSrcAttr: ["'none'"],
@@ -90,6 +94,18 @@ function createApp(options = {}) {
   const preflightStore =
     options.preflightStore ||
     new PreflightStore({ ttlMs: config.auth.preflightTtlMs, now: options.now });
+  const receiptStore =
+    options.receiptStore ||
+    new ReceiptStore({ filename: config.payments.receiptDbPath, now: options.now });
+  const paymentObserver =
+    options.paymentObserver ||
+    (typeof rpcPool.callNode === 'function'
+      ? new PaymentObserver({ rpcPool, nodeUrls: config.hive.rpcNodes })
+      : {
+          async observe() {
+            throw new TypeError('Independent Hive RPC-node access is unavailable');
+          },
+        });
 
   const app = express();
   app.disable('x-powered-by');
@@ -103,6 +119,7 @@ function createApp(options = {}) {
   app.locals.communityId = config.hive.communityId;
   app.locals.threadsContainerAccount = config.hive.threadsContainerAccount;
   app.locals.writesEnabled = config.hive.writesEnabled;
+  app.locals.paymentsEnabled = config.payments.enabled;
   app.locals.currentYear = new Date().getUTCFullYear();
   app.locals.formatPayout = (item) => {
     const value = item?.payout ?? 0;
@@ -135,6 +152,8 @@ function createApp(options = {}) {
     keychainAuth,
     logger,
     preflightStore,
+    paymentObserver,
+    receiptStore,
     rpcPool,
     sessionStore,
   };
@@ -171,6 +190,13 @@ function createApp(options = {}) {
   };
   app.use(express.static(path.join(__dirname, '..', 'public'), staticOptions));
   app.use('/htmx', express.static(path.dirname(require.resolve('htmx.org')), staticOptions));
+  app.use(
+    '/vendor/zxing',
+    express.static(path.join(path.dirname(require.resolve('@zxing/browser')), '..', 'umd'), {
+      ...staticOptions,
+      immutable: config.isProduction,
+    }),
+  );
 
   app.use(createHealthRouter({ config, rpcPool }));
 
@@ -194,6 +220,7 @@ function createApp(options = {}) {
   );
   app.use('/api/social', createSocialRouter({ config }));
   app.use('/api/m4', createM4Router({ config }));
+  app.use('/api/payments', createPaymentRouter({ config, now: options.now || Date.now }));
 
   const indexRouter = require('../routes/index');
   const communityRouter = require('../routes/community');

@@ -1,0 +1,106 @@
+diff --git a/node_modules/hive-uri/lib/index.js b/node_modules/hive-uri/lib/index.js
+index 0650ad3..3caf657 100644
+--- a/node_modules/hive-uri/lib/index.js
++++ b/node_modules/hive-uri/lib/index.js
+@@ -22,7 +22,15 @@ var b64uEnc = function (str) {
+     return btoa(unescape(encodeURIComponent(str))).replace(/(\+|\/|=)/g, function (m) { return B64U_LOOKUP[m]; });
+ };
+ var b64uDec = function (str) {
+-    return decodeURIComponent(escape(atob(str.replace(/(-|_|\.)/g, function (m) { return B64U_LOOKUP[m]; }))));
++    if (typeof str !== 'string' || !/^[A-Za-z0-9_.-]*$/.test(str) || str.length % 4 === 1) {
++        throw new Error('Invalid base64u value');
++    }
++    try {
++        return decodeURIComponent(escape(atob(str.replace(/(-|_|\.)/g, function (m) { return B64U_LOOKUP[m]; }))));
++    }
++    catch (error) {
++        throw new Error(error instanceof Error ? error.message : 'Invalid base64u value');
++    }
+ };
+ /**
+  * Parse a hive:// protocol link.
+@@ -40,38 +48,60 @@ function decode(hiveUrl) {
+     if (url.host !== 'sign') {
+         throw new Error("Invalid action, expected 'sign' got '" + url.host + "'");
+     }
+-    var _a = url.pathname.split('/').slice(1), type = _a[0], rawPayload = _a[1];
++    var pathParts = url.pathname.split('/').slice(1);
++    var type = pathParts[0], rawPayload = pathParts[1];
+     var payload;
+-    try {
+-        payload = JSON.parse(b64uDec(rawPayload));
+-    }
+-    catch (error) {
+-        error.message = "Invalid payload: " + error.message;
+-        throw error;
+-    }
+     var tx;
+-    switch (type) {
+-        case 'tx':
+-            tx = payload;
+-            break;
+-        case 'op':
+-        case 'ops':
+-            var operations = type === 'ops' ? payload : [payload];
++    if (type === 'transfer') {
++        if (pathParts.length < 3 || pathParts.length > 4 || !pathParts[1] || !pathParts[2]) {
++            throw new Error('Invalid transfer action');
++        }
++        try {
+             tx = {
+                 ref_block_num: '__ref_block_num',
+                 ref_block_prefix: '__ref_block_prefix',
+                 expiration: '__expiration',
+                 extensions: [],
+-                operations: operations,
++                operations: [['transfer', {
++                            from: '__signer',
++                            to: decodeURIComponent(pathParts[1]),
++                            amount: decodeURIComponent(pathParts[2]),
++                            memo: pathParts[3] ? b64uDec(pathParts[3]) : '',
++                        }]],
+             };
+-            break;
+-        // case 'transfer':
+-        // case 'follow':
+-        case 'msg':
+-            tx = payload;
+-            break;
+-        default:
+-            throw new Error("Invalid signing action '" + type + "'");
++        }
++        catch (error) {
++            throw new Error("Invalid transfer payload: " + (error instanceof Error ? error.message : 'invalid value'));
++        }
++    }
++    else {
++        try {
++            payload = JSON.parse(b64uDec(rawPayload));
++        }
++        catch (error) {
++            throw new Error("Invalid payload: " + (error instanceof Error ? error.message : 'invalid value'));
++        }
++        switch (type) {
++            case 'tx':
++                tx = payload;
++                break;
++            case 'op':
++            case 'ops':
++                var operations = type === 'ops' ? payload : [payload];
++                tx = {
++                    ref_block_num: '__ref_block_num',
++                    ref_block_prefix: '__ref_block_prefix',
++                    expiration: '__expiration',
++                    extensions: [],
++                    operations: operations,
++                };
++                break;
++            case 'msg':
++                tx = payload;
++                break;
++            default:
++                throw new Error("Invalid signing action '" + type + "'");
++        }
+     }
+     var queryParams = Object.fromEntries(url.query
+         .substring(1) // remove leading '?'

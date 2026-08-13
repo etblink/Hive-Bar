@@ -5,12 +5,13 @@
   "private": true,
   "main": "src/server.js",
   "engines": {
-    "node": ">=24 <25",
+    "node": ">=24.15 <25",
     "npm": ">=11"
   },
   "scripts": {
     "start": "node src/server.js",
     "dev": "npm run build:css && node --watch src/server.js",
+    "postinstall": "patch-package",
     "build": "npm run build:css",
     "build:css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
     "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
@@ -23,15 +24,18 @@
     "check": "npm run check:secrets && npm run lint && npm run build && npm test && npm run audit:prod"
   },
   "dependencies": {
+    "@zxing/browser": "0.2.1",
     "compression": "1.8.1",
     "dotenv": "17.4.2",
     "ejs": "6.0.1",
     "express": "5.2.1",
     "express-rate-limit": "8.6.2",
     "helmet": "8.3.0",
-    "htmx.org": "2.0.10",
     "hive-tx": "7.2.0",
+    "hive-uri": "0.2.8",
+    "htmx.org": "2.0.10",
     "markdown-it": "15.0.0",
+    "patch-package": "8.0.1",
     "pino": "10.3.1",
     "sanitize-html": "2.17.6",
     "zod": "4.4.3"
