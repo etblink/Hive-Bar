@@ -1,12 +1,14 @@
 # M6 public read-only release readiness
 
-Status: **local Privex operations package implemented; deployment not authorized.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
+Status: **Privex public read-only readiness slice published and cross-platform validated; full M6 is not accepted.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
 
 Planning date: 2026-08-13
 
 Frozen specification: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
 Published M5 documentation baseline: equivalent commit `2b1fbffccf76f874e056401988f4c3d2e1b97c53`; tree `9db2ad48413b4a3f1148192e3efe0b1c14034d74`
+
+Published M6 readiness candidate: equivalent commit `86f3edd5af9d4be0e606f2d1dfee4a81686ae839`; tree `39ab1213ffb9e9e1d78b75d60724fb73f6f42f13`; local equivalent `c8068899ec2593a053062f0705e7fd85925cd027`; patch SHA-256 `b7ddf7550532fd7ca1c4eb17d39b7381d9f9fb153208f75c072ac5200da1c58b`
 
 ## Why this is the next non-payment milestone
 
@@ -69,6 +71,46 @@ The target contract is machine-readable in `ops/privex/manifest.json`. `npm run 
 
 On 2026-08-13, the complete local `npm run check` gate passed on the prepared tree: the credential scan passed, ESLint passed with zero warnings, production CSS rebuilt deterministically, all 154 tests passed, and the production dependency audit reported zero vulnerabilities. The new tests exercise the redacted target gate, every material fail-closed topology deviation, CLI error hygiene, provider/runtime provenance, loopback and systemd controls, exact-commit deployment/rollback structure, LF enforcement, and POSIX shell syntax. No live Hive read, Keychain request, Hive operation, hosting action, DNS change, or deployment occurred.
 
+## Publication and cross-platform CI evidence
+
+The implementation was committed locally as `c8068899ec2593a053062f0705e7fd85925cd027`, with tree `39ab1213ffb9e9e1d78b75d60724fb73f6f42f13` and patch SHA-256 `b7ddf7550532fd7ca1c4eb17d39b7381d9f9fb153208f75c072ac5200da1c58b`. It was published as equivalent fast-forward child `86f3edd5af9d4be0e606f2d1dfee4a81686ae839` of expected remote head `9c3dac617432f24a92ad5f9d29c2d7bd728129a4`, preserving the exact tree.
+
+Temporary trigger commit `eface8a2bf6583eabd61d82f97d4a3120cc3a2d4`, tree `425b2c5a010bb459772d4ad5054c8b36c0917617`, differed from the candidate only by adding `codex/m6-ci-validation` to the existing workflow push trigger. GitHub Actions run `31733537039` completed successfully on that exact trigger commit:
+
+- Ubuntu Node 24 verification job `94559547889` passed;
+- Windows Node 24 verification job `94559547754` passed; and
+- live Hive read-only smoke job `94559832193` was skipped because the event was a push, not a manual dispatch.
+
+Temporary branch `codex/m6-ci-validation` was deleted and independently verified absent. The M6 candidate branch remained at `86f3edd5af9d4be0e606f2d1dfee4a81686ae839`. PR #1 remained open and draft at its original `codex/m2-read-only-slice` head `9085e9d00d73f61e0ea0b450832f28ac782ef36d`. No live Hive read, Keychain request, Hive operation, payment, Privex purchase, deployment, DNS/TLS change, or secret mutation occurred.
+
+## Final read-only M6 acceptance audit
+
+The controlling specification defines M6 as the **Production candidate**, not merely an operations-package design. Its exit gate requires every V1 MUST requirement to pass or receive an explicit product-owner waiver, with no unresolved financial or security blocker. The 2026-08-13 audit therefore separates deterministic readiness from full M6 acceptance:
+
+| M6 deliverable or exit condition | Current evidence | Audit result |
+| --- | --- | --- |
+| Real business content and final configuration | Name, address, telephone, hours, map, community, thread container, merchant, wall fee, and claim URL are bound. Owner-approved imagery remains pending; the canonical public hostname and final application tag are unset. | **Partial** |
+| Production deployment and HTTPS | A fail-closed Privex/Caddy contract exists, but no VPS was purchased, server provisioned, DNS changed, certificate issued, or application deployed. | **Open — not run** |
+| Durable store plus backup/restore check | The read-only profile deliberately binds the inert `:memory:` receipt store. No production durable volume, encrypted recovery record, backup, or restore rehearsal exists. | **Open — not run** |
+| Monitoring, redacted logs, health checks, and rollback | Deterministic tests cover prepared systemd, journald, health-timer, exact-commit deploy, and rollback assets. None has been exercised on the target host. | **Prepared; target verification open** |
+| Desktop/mobile physical-device acceptance | The separate M5 Windows camera preparation gate passed before Keychain, but no deployed M6 candidate has undergone desktop/mobile public-site acceptance or the required Android/iOS bar-floor checks. | **Open** |
+| Operator and patron quick-start documentation | The Privex operator runbook and repository README exist. Final host-specific operator records and a deployed patron quick-start/bar-floor rehearsal do not. | **Partial** |
+| Release checklist and known-limitations record | This readiness document, target manifest, runbook, explicit remaining gates, and this audit record the current boundaries without claiming deployment. | **Pass for the readiness slice** |
+| Deterministic quality and security gates | Local `npm run check` passed 154/154 tests, credential scan, zero-warning lint, production build, and zero-vulnerability production audit. The same gate passed on Ubuntu and Windows remote CI. | **Pass** |
+| Current candidate live-read integration | The CI live-read job was deliberately skipped. Earlier milestone evidence does not substitute for a candidate- and target-bound M6 live-read check. | **Open — not authorized** |
+| Every V1 MUST requirement passing or waived | Production imagery/deployment/operations/device requirements remain open, and no waiver has been granted. | **Blocked** |
+| No unresolved financial blocker | The frozen M5 genuine-purchase exit gate remains intentionally dormant; no real payment, exact chain confirmation, V4V/POS reconciliation, or product-owner waiver exists. | **Blocked** |
+
+Audit disposition:
+
+```text
+M6_READ_ONLY_RELEASE_READINESS = PASS
+M6_FULL_ACCEPTANCE = NOT_GRANTED
+PRODUCTION_DEPLOYMENT = NOT_AUTHORIZED
+```
+
+This is not a regression or failed implementation. It is the truthful boundary between a validated, publishable operations package and the external evidence required by the approved M6 milestone. Full M6 acceptance must not be inferred from this document, and the dormant M5 financial gate must not be manufactured merely to advance the roadmap.
+
 ## Deployment topology decision
 
 The first release must be a single application instance. Sessions, challenges, social preflights, and rate-limit counters are process-local; the SQLite receipt store is also designed for a narrow single-instance controlled flow. Horizontal scaling, rolling multi-instance deployment, or shared session state requires a later storage/topology design and must not be inferred from this plan.
@@ -98,4 +140,4 @@ No deployment is authorized by this document. Before a public read-only release,
 - no deployment, domain, DNS, TLS, hosting, or secret mutation; and
 - no claim that dormant M5 acceptance has been completed.
 
-M6 can proceed locally through deterministic release hardening while the genuine-purchase gate remains dormant. Any external deployment or live-read validation requires a separately bounded authorization.
+The M6 read-only readiness slice is complete. Full M6 remains open until its external gates are separately authorized, executed, and recorded, or the controlling specification is explicitly revised. Any purchase, deployment, DNS/TLS or secret mutation, live-read validation, Keychain request, Hive operation, payment, or waiver requires a separately bounded product-owner decision.
