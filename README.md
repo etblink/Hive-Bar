@@ -1,6 +1,6 @@
 # Hive-Bar
 
-Hive-Bar is a focused Hive community experience for 4th Street Bar in Reno, Nevada. M1–M4 are accepted. The current local M5 candidate adds a verified HBD Pay Tab, durable receipts, independent two-node confirmation, and a confirmation-gated external Distriator handoff while retaining the accepted public, social, profile, reward, wall, and encrypted-inbox features.
+Hive-Bar is a focused Hive community experience for 4th Street Bar in Reno, Nevada. M1–M4 are accepted. M5's verified Pay Tab is technically prepared but remains controlled with its genuine-purchase gate dormant. The current local M6 foundation adds a fail-closed public read-only release profile while retaining the accepted public, social, profile, reward, wall, and encrypted-inbox features.
 
 Normal operation remains write-disabled. The server verifies identity, reads authoritative Hive state, and prepares exact operations, but it has no private keys, signing path, decrypted inbox plaintext, or broadcast RPC method. Every controlled write requires an exact preflight review and confirmation in the user's local Hive Keychain extension.
 
@@ -41,6 +41,22 @@ Open `http://localhost:3000`. Development mode rebuilds CSS once and watches the
 ```sh
 npm run dev
 ```
+
+## Public read-only release gate
+
+The first M6 release profile keeps all controlled writes, payments, and Distriator disabled. After supplying the complete explicit production environment, validate it without contacting Hive:
+
+```sh
+npm run release:check:read-only
+```
+
+Start only after that exact environment passes:
+
+```sh
+npm run start:read-only
+```
+
+The gate requires production mode, HTTPS origin, three RPC nodes, write mode `disabled`, an explicitly empty controlled-account list, payments disabled, Distriator disabled, and explicit proxy/logging decisions. Its output is redacted and contains no secret or RPC URL. This command does not authorize deployment or a live-read smoke.
 
 ## Primary routes
 
@@ -114,8 +130,8 @@ Normal CI never depends on public Hive availability. A manual GitHub Actions dis
 - `routes/` and `views/` provide complete HTML with HTMX fragment enhancement.
 - `test/fixtures/hive/` records deterministic production-shaped RPC data.
 
-See [docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md](docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md), [docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md](docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md), and [docs/M5_VERIFICATION_EVIDENCE.md](docs/M5_VERIFICATION_EVIDENCE.md) for the current M5 boundary. Accepted M4 remains recorded in [docs/M4_VERIFICATION_EVIDENCE.md](docs/M4_VERIFICATION_EVIDENCE.md).
+See [docs/M6_READ_ONLY_RELEASE_READINESS.md](docs/M6_READ_ONLY_RELEASE_READINESS.md) for the current non-payment release boundary. The dormant M5 boundary remains recorded in [docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md](docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md), [docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md](docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md), and [docs/M5_VERIFICATION_EVIDENCE.md](docs/M5_VERIFICATION_EVIDENCE.md). Accepted M4 remains recorded in [docs/M4_VERIFICATION_EVIDENCE.md](docs/M4_VERIFICATION_EVIDENCE.md).
 
 ## Roadmap boundary
 
-M5 adds only invoice-bound HBD tab payment to the server allowlisted merchant and a conditional external claim link. Arbitrary transfers, conversions, markets, delegation, power-up, power-down, automatic rebroadcast, and production write mode remain disabled for later gates. Deterministic M5 completion does not authorize invoice preparation, Keychain access, a live transfer, retry, Distriator eligibility, or release; each operational boundary requires its own exact product-owner authorization.
+M5 adds only invoice-bound HBD tab payment to the server allowlisted merchant and a conditional external claim link; its genuine-purchase gate is intentionally dormant. M6 begins with a public read-only release profile. Arbitrary transfers, conversions, markets, delegation, power-up, power-down, automatic rebroadcast, controlled or production write mode, and Distriator remain disabled. Deterministic release readiness does not authorize deployment, live reads, Keychain access, a Hive operation, or release; each external boundary requires its own exact product-owner authorization.

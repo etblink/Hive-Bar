@@ -16,6 +16,8 @@
     "build:css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
     "watch:css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
     "smoke:live": "node scripts/live-read-smoke.js",
+    "release:check:read-only": "node scripts/check-read-only-release.js",
+    "start:read-only": "npm run release:check:read-only && node src/server.js",
     "lint": "eslint src routes public/js test scripts index.js eslint.config.js --max-warnings=0",
     "test": "node --test --test-concurrency=1 test/*.test.js",
     "test:coverage": "node --test --experimental-test-coverage --test-concurrency=1 test/*.test.js",
