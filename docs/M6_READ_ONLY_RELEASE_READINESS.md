@@ -1,6 +1,6 @@
 # M6 public read-only release readiness
 
-Status: **Privex public read-only readiness slice published and cross-platform validated; final business-content binding prepared locally; full M6 is not accepted.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
+Status: **Privex public read-only readiness and final business content are published and cross-platform validated; pre-deployment Cloudflare/Privex hardening is implemented in this candidate; full M6 is not accepted.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
 
 Planning date: 2026-08-13
 
@@ -9,6 +9,8 @@ Frozen specification: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b
 Published M5 documentation baseline: equivalent commit `2b1fbffccf76f874e056401988f4c3d2e1b97c53`; tree `9db2ad48413b4a3f1148192e3efe0b1c14034d74`
 
 Published M6 readiness candidate: equivalent commit `86f3edd5af9d4be0e606f2d1dfee4a81686ae839`; tree `39ab1213ffb9e9e1d78b75d60724fb73f6f42f13`; local equivalent `c8068899ec2593a053062f0705e7fd85925cd027`; patch SHA-256 `b7ddf7550532fd7ca1c4eb17d39b7381d9f9fb153208f75c072ac5200da1c58b`
+
+Published final-content candidate: equivalent commit `89343ba13b72cab1bbaf5245bf99da1edae135e4`; tree `33f55b5c026460a1e33e12742474b2edfb6725b8`; local equivalent `ca6ad821e4d0c0c54398f3ca964ce2d3e807b28d`; patch SHA-256 `012e95c10c57ea935cc17b4112f5c766b4ba6822806c722ff3a3e392f8de3fc4`
 
 ## Why this is the next non-payment milestone
 
@@ -34,7 +36,7 @@ The first M6 profile is `public-read-only`:
 
 ## Bound hosting target
 
-The first target is one Privex `V1-US-NVME` instance in US West running Debian 12. The recorded reference configuration is one virtual CPU, 1 GiB memory, 20 GiB NVMe storage, 100 Mbps networking, and both IPv4 and IPv6. The recorded price was USD 10 per month on 2026-08-13 and must be rechecked before any separately authorized purchase.
+The first target is one Privex `V1-US-NVME` instance in US West running Debian 13. The recorded reference configuration is one virtual CPU, 1 GiB memory, 20 GiB NVMe storage, 100 Mbps networking, and both IPv4 and IPv6. The recorded price was USD 10 per month on 2026-08-13 and must be rechecked before any separately authorized purchase.
 
 Privex offers stronger Hive ecosystem alignment and direct HIVE/HBD procurement than the earlier managed-platform option, but it is an unmanaged VPS. Hive-Bar therefore owns operating-system patching, TLS/reverse-proxy configuration, monitoring, release retention, rollback, and backups. This tradeoff is accepted only for the narrow single-instance read-only topology; it does not authorize procurement or deployment.
 
@@ -42,8 +44,8 @@ The target contract is machine-readable in `ops/privex/manifest.json`. `npm run 
 
 - a canonical lowercase DNS host and exactly matching HTTPS `APP_ORIGIN`;
 - Node bound only to `127.0.0.1:3000`;
-- exactly one trusted reverse-proxy hop;
-- Caddy as the only public listener;
+- Cloudflare's proxied edge, Cloudflare-only origin ingress, Full (strict), and one validated `CF-Connecting-IP` value;
+- Caddy as the sole public origin listener and Node trusting only its loopback Caddy peer;
 - an inert `:memory:` payment receipt database; and
 - a non-placeholder session secret.
 
@@ -60,8 +62,8 @@ The target contract is machine-readable in `ops/privex/manifest.json`. `npm run 
 | Secret hygiene | Summary contains no session secret, credential, receipt path, or RPC URL |
 | Operator entrypoint | `scripts/check-read-only-release.js` and `npm run start:read-only` use the same validated configuration as the application |
 | Privex target gate | `src/release/privex-readiness.js` binds host, origin, listener, proxy, port, receipt database, and placeholder-secret rejection |
-| Runtime provenance | `ops/privex/bin/hive-bar-install-node` downloads Node v24.19.0 from nodejs.org and verifies the pinned Linux x64 SHA-256 before installation |
-| Public boundary | Caddy terminates TLS; Node listens on loopback; port 3000 is not a public service |
+| Runtime provenance | `.nvmrc`, CI, package metadata, the target manifest, installer, and deploy path bind Node v24.19.0 with bundled npm 11.17.0; the installer verifies the pinned Linux x64 archive SHA-256 |
+| Public boundary | Cloudflare remains proxied; Caddy accepts origin requests only from reviewed Cloudflare CIDRs, sanitizes the client-IP chain, and redirects `www` to the canonical apex; Node listens on loopback and port 3000 is not public |
 | Service hardening | systemd runs an unprivileged static account with a read-only system view, empty capabilities, isolated temporary/devices, and bounded restart behavior |
 | Manual release control | Deploy and rollback require one exact full commit, validate stored commit/tree identity, rerun the Privex gate, and restore the prior symlink if health fails |
 | Operations | Local liveness timer, critical journal signal, seven-day/256 MiB journal bounds, and unattended Debian security updates are explicit assets |
@@ -69,7 +71,7 @@ The target contract is machine-readable in `ops/privex/manifest.json`. `npm run 
 
 ## Local deterministic validation
 
-On 2026-08-13, the complete local `npm run check` gate passed on the prepared tree: the credential scan passed, ESLint passed with zero warnings, production CSS rebuilt deterministically, all 154 tests passed, and the production dependency audit reported zero vulnerabilities. The new tests exercise the redacted target gate, every material fail-closed topology deviation, CLI error hygiene, provider/runtime provenance, loopback and systemd controls, exact-commit deployment/rollback structure, LF enforcement, and POSIX shell syntax. No live Hive read, Keychain request, Hive operation, hosting action, DNS change, or deployment occurred.
+On 2026-08-13, the complete local `npm run check` gate passed on this hardening candidate: the 178-file credential scan passed, ESLint passed with zero warnings, production CSS rebuilt deterministically, all 157 tests passed, and the production dependency audit reported zero vulnerabilities. The tests exercise the redacted target gate, every material fail-closed topology deviation, exact Node/npm provenance, Cloudflare CIDR consistency, sanitized visitor-IP forwarding, direct-origin refusal, canonical redirect preparation, Debian/resource preflight, loopback and systemd controls, exact-commit deployment/rollback structure, LF enforcement, and POSIX shell syntax. No live Hive read, Keychain request, Hive operation, hosting action, DNS change, or deployment occurred.
 
 ## Publication and cross-platform CI evidence
 
@@ -83,7 +85,7 @@ Temporary trigger commit `eface8a2bf6583eabd61d82f97d4a3120cc3a2d4`, tree `425b2
 
 Temporary branch `codex/m6-ci-validation` was deleted and independently verified absent. The M6 candidate branch remained at `86f3edd5af9d4be0e606f2d1dfee4a81686ae839`. PR #1 remained open and draft at its original `codex/m2-read-only-slice` head `9085e9d00d73f61e0ea0b450832f28ac782ef36d`. No live Hive read, Keychain request, Hive operation, payment, Privex purchase, deployment, DNS/TLS change, or secret mutation occurred.
 
-## Local final business-content binding
+## Published final business-content binding
 
 On 2026-08-13, the product owner supplied and approved four real 4th Street Bar photographs and selected `fourthstreetbar.com` as the canonical application hostname. The raw files were converted locally to metadata-free JPEG assets with descriptive repository names; no EXIF, ICC, IPTC, Photoshop application segment, or JPEG comment is retained. Their candidate SHA-256 identities are:
 
@@ -94,7 +96,23 @@ On 2026-08-13, the product owner supplied and approved four real 4th Street Bar 
 | `public/images/fourth-street-bar-patio.jpg` | `c65d5c0c00ea9ff6ce556586285eeabfa02e255fb87569556a58621014f1e100` |
 | `public/images/fourth-street-bar-pool-table.jpg` | `db6b18d3cb7f33778072fe980e6bfeade38e1e6c9aa895229d4b0ed4a687e18f` |
 
-The owner supplied the application-tag pattern `fourth-street-bar-app-v#`. Because Hive-Bar's validated Hive metadata contract requires `name/x.y.z`, the candidate binds the version-matched exact tag `fourth-street-bar-app/0.1.0`. The production and Privex release gates require that exact tag, and the Privex gate requires the exact canonical host `fourthstreetbar.com`. This binding is local and uncommitted at the time of this record; it does not imply DNS ownership verification, publication, deployment, TLS issuance, or any external mutation.
+The owner supplied the application-tag pattern `fourth-street-bar-app-v#`. Because Hive-Bar's validated Hive metadata contract requires `name/x.y.z`, the candidate binds the version-matched exact tag `fourth-street-bar-app/0.1.0`. The production and Privex release gates require that exact tag, and the Privex gate requires the exact canonical host `fourthstreetbar.com`. This binding was published in equivalent commit `89343ba13b72cab1bbaf5245bf99da1edae135e4` with tree `33f55b5c026460a1e33e12742474b2edfb6725b8`; it does not imply deployment, TLS issuance, or any external mutation.
+
+## Cloudflare and target-runtime hardening decision
+
+The product owner established that the apex record is Cloudflare **Proxied** and that `www.fourthstreetbar.com` did not resolve. The failed `curl` lookup was therefore classified as a missing-alias DNS condition, not an application failure. No DNS, Cloudflare, TLS, hosting, or secret mutation occurred during this audit.
+
+The prepared production path is now explicitly `visitor → Cloudflare → Caddy → Node`. The candidate:
+
+- rebinds the new VPS image from superseded Debian 12 to current stable Debian 13;
+- pins Node `24.19.0` and its bundled npm `11.17.0` across `.nvmrc`, package metadata, CI, installer, and deploy checks;
+- records the reviewed Cloudflare IPv4/IPv6 ranges, trusts `CF-Connecting-IP` only from those peers, enables strict proxy parsing, refuses direct-origin requests, and replaces upstream `X-Forwarded-For` with one validated address;
+- changes Node from numeric hop trust to `TRUST_PROXY=loopback`;
+- prepares a permanent `www`-to-apex redirect while leaving the missing DNS record untouched;
+- binds Full (strict), a hostname-valid origin certificate, Cloudflare-only firewall ingress, a read-only Debian/resource preflight, external uptime alerting, and an encrypted off-host recovery/restore requirement; and
+- keeps all deployment, DNS/TLS, secret, live-read, write, payment, and release boundaries closed.
+
+Cloudflare CIDRs are mutable external data. A later deployment must compare the committed list with `https://www.cloudflare.com/ips-v4` and `https://www.cloudflare.com/ips-v6` immediately before firewall or Caddy activation and stop on any difference.
 
 ## Final read-only M6 acceptance audit
 
@@ -102,14 +120,14 @@ The controlling specification defines M6 as the **Production candidate**, not me
 
 | M6 deliverable or exit condition | Current evidence | Audit result |
 | --- | --- | --- |
-| Real business content and final configuration | Name, address, telephone, hours, map, community, thread container, merchant, wall fee, claim URL, four metadata-free owner-approved photographs, canonical host `fourthstreetbar.com`, and exact application tag `fourth-street-bar-app/0.1.0` are bound locally. Publication and candidate validation remain pending. | **Prepared locally** |
-| Production deployment and HTTPS | A fail-closed Privex/Caddy contract exists, but no VPS was purchased, server provisioned, DNS changed, certificate issued, or application deployed. | **Open — not run** |
+| Real business content and final configuration | Name, address, telephone, hours, map, community, thread container, merchant, wall fee, claim URL, four metadata-free owner-approved photographs, canonical host `fourthstreetbar.com`, and exact application tag `fourth-street-bar-app/0.1.0` are published in tree `33f55b5c026460a1e33e12742474b2edfb6725b8`. | **Pass for published content binding** |
+| Production deployment and HTTPS | A fail-closed Cloudflare/Privex/Caddy contract exists, but no VPS was purchased, server provisioned, DNS changed, certificate issued, or application deployed. | **Open — not run** |
 | Durable store plus backup/restore check | The read-only profile deliberately binds the inert `:memory:` receipt store. No production durable volume, encrypted recovery record, backup, or restore rehearsal exists. | **Open — not run** |
 | Monitoring, redacted logs, health checks, and rollback | Deterministic tests cover prepared systemd, journald, health-timer, exact-commit deploy, and rollback assets. None has been exercised on the target host. | **Prepared; target verification open** |
 | Desktop/mobile physical-device acceptance | The separate M5 Windows camera preparation gate passed before Keychain, but no deployed M6 candidate has undergone desktop/mobile public-site acceptance or the required Android/iOS bar-floor checks. | **Open** |
 | Operator and patron quick-start documentation | The Privex operator runbook and repository README exist. Final host-specific operator records and a deployed patron quick-start/bar-floor rehearsal do not. | **Partial** |
 | Release checklist and known-limitations record | This readiness document, target manifest, runbook, explicit remaining gates, and this audit record the current boundaries without claiming deployment. | **Pass for the readiness slice** |
-| Deterministic quality and security gates | Local `npm run check` passed 154/154 tests, credential scan, zero-warning lint, production build, and zero-vulnerability production audit. The same gate passed on Ubuntu and Windows remote CI. | **Pass** |
+| Deterministic quality and security gates | This hardening candidate passed 157/157 local tests, the 178-file credential scan, zero-warning lint, production build, and zero-vulnerability production audit. The published baseline passed Ubuntu/Windows CI; the fresh candidate-bound CI identity is recorded externally after publication because a commit cannot contain its own run identity. | **Local pass; publication CI required** |
 | Current candidate live-read integration | The CI live-read job was deliberately skipped. Earlier milestone evidence does not substitute for a candidate- and target-bound M6 live-read check. | **Open — not authorized** |
 | Every V1 MUST requirement passing or waived | Production imagery/deployment/operations/device requirements remain open, and no waiver has been granted. | **Blocked** |
 | No unresolved financial blocker | The frozen M5 genuine-purchase exit gate remains intentionally dormant; no real payment, exact chain confirmation, V4V/POS reconciliation, or product-owner waiver exists. | **Blocked** |
@@ -134,14 +152,15 @@ Because the read-only profile cannot prepare a payment, `:memory:` is an accepta
 
 No deployment is authorized by this document. Before a public read-only release, record all of the following in one candidate-bound run:
 
-1. the exact current Privex package, region, price, terms, and backup decision for the already bound canonical host;
+1. the exact current Privex package, region, Debian 13 image, price, terms, and backup decision for the already bound canonical host;
 2. product-owner authorization to procure infrastructure and later mutate DNS/TLS, each kept separate from a release authorization;
-3. secret injection and rotation without exposing the secret in logs or shell history;
-4. deterministic cross-platform CI and both release gates on one exact candidate;
-5. startup, `/healthz`, `/readyz`, graceful shutdown, timer failure, restart, and rollback evidence on the target topology;
-6. a read-only live smoke only if separately authorized, with the RPC transport write allowlist still enforced;
-7. confirmation that controlled writes, Pay Tab preparation, and Distriator remain unavailable in the rendered production UI; and
-8. an explicit product-owner release decision bound to the exact commit, tree, host, and environment fingerprint.
+3. Cloudflare Full (strict), current CIDR comparison, Cloudflare-only origin firewall, valid origin certificate, proxied apex, and proxied `www` alias/redirect verification;
+4. secret injection and rotation without exposing the secret in logs or shell history;
+5. deterministic cross-platform CI and both release gates on one exact candidate;
+6. startup, `/healthz`, `/readyz`, graceful shutdown, timer failure, restart, rollback, external alert, encrypted recovery, and isolated restore evidence on the target topology;
+7. a read-only live smoke only if separately authorized, with the RPC transport write allowlist still enforced;
+8. confirmation that controlled writes, Pay Tab preparation, and Distriator remain unavailable in the rendered production UI; and
+9. an explicit product-owner release decision bound to the exact commit, tree, host, and environment fingerprint.
 
 ## Explicit non-goals
 
@@ -153,4 +172,4 @@ No deployment is authorized by this document. Before a public read-only release,
 - no deployment, domain, DNS, TLS, hosting, or secret mutation; and
 - no claim that dormant M5 acceptance has been completed.
 
-The M6 read-only readiness slice is complete, and its final business inputs are now prepared locally. Full M6 remains open until this content binding is published and validated and its external gates are separately authorized, executed, and recorded, or the controlling specification is explicitly revised. Any purchase, deployment, DNS/TLS or secret mutation, live-read validation, Keychain request, Hive operation, payment, or waiver requires a separately bounded product-owner decision.
+The M6 read-only readiness slice and final business-content binding are published. Full M6 remains open until the hardened candidate and its external gates are separately validated, authorized, executed, and recorded, or the controlling specification is explicitly revised. Any purchase, deployment, DNS/TLS or secret mutation, live-read validation, Keychain request, Hive operation, payment, or waiver requires a separately bounded product-owner decision.

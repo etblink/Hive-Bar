@@ -3,7 +3,7 @@
   "provider": "Privex",
   "package": "V1-US-NVME",
   "region": "US West",
-  "operatingSystem": "Debian 12",
+  "operatingSystem": "Debian 13",
   "resources": {
     "virtualCpu": 1,
     "memoryMiB": 1024,
@@ -16,20 +16,27 @@
   },
   "runtime": {
     "nodeVersion": "24.19.0",
+    "npmVersion": "11.17.0",
     "platform": "linux-x64",
     "source": "https://nodejs.org/dist/v24.19.0/node-v24.19.0-linux-x64.tar.xz",
     "sha256": "14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647"
   },
   "topology": {
     "instances": 1,
+    "edgeProxy": "Cloudflare",
+    "edgeDnsMode": "proxied",
     "reverseProxy": "Caddy",
     "applicationAddress": "127.0.0.1:3000",
-    "trustProxyHops": 1
+    "applicationTrustProxy": "loopback",
+    "visitorIpHeader": "CF-Connecting-IP",
+    "originIngress": "cloudflare-only",
+    "cloudflareTlsMode": "full-strict"
   },
   "release": {
     "root": "/opt/hive-bar",
     "service": "hive-bar.service",
     "publicHost": "fourthstreetbar.com",
+    "redirectHost": "www.fourthstreetbar.com",
     "hiveAppTag": "fourth-street-bar-app/0.1.0",
     "healthPath": "/healthz",
     "readinessPath": "/readyz",
@@ -39,6 +46,11 @@
   "retention": {
     "journalDays": 7,
     "journalMaxBytes": 268435456
+  },
+  "hostPreflight": {
+    "architecture": "x86_64",
+    "minimumMemoryKiB": 900000,
+    "minimumFreeStorageKiB": 8388608
   },
   "boundaries": {
     "writeMode": "disabled",

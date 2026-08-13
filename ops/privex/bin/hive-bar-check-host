@@ -1,0 +1,30 @@
+#!/bin/bash
+set -Eeuo pipefail
+
+readonly minimum_memory_kib=900000
+readonly minimum_free_storage_kib=8388608
+
+fail() {
+  printf 'Hive-Bar host preflight refused: %s\n' "$1" >&2
+  exit 1
+}
+
+[[ $# -eq 0 ]] || fail 'this read-only preflight accepts no arguments'
+[[ "$(uname -s)" == Linux ]] || fail 'the target host must run Linux'
+[[ "$(uname -m)" == x86_64 ]] || fail 'the target host must use x86_64'
+[[ -r /etc/os-release ]] || fail '/etc/os-release is unavailable'
+
+os_id="$(sed -n 's/^ID=//p' /etc/os-release | tr -d '"' | head -n 1)"
+version_id="$(sed -n 's/^VERSION_ID=//p' /etc/os-release | tr -d '"' | head -n 1)"
+[[ "$os_id" == debian ]] || fail 'the target operating system must be Debian'
+[[ "$version_id" == 13 ]] || fail 'the target operating system must be Debian 13'
+
+memory_kib="$(awk '/^MemTotal:/ { print $2; exit }' /proc/meminfo)"
+[[ "$memory_kib" =~ ^[0-9]+$ ]] || fail 'total memory could not be measured'
+(( memory_kib >= minimum_memory_kib )) || fail 'available system memory is below the reviewed floor'
+
+free_storage_kib="$(df -Pk /opt | awk 'NR == 2 { print $4; exit }')"
+[[ "$free_storage_kib" =~ ^[0-9]+$ ]] || fail 'free /opt storage could not be measured'
+(( free_storage_kib >= minimum_free_storage_kib )) || fail 'free /opt storage is below the reviewed floor'
+
+printf 'Host preflight passed: Debian 13 x86_64, memory and free-storage floors satisfied.\n'

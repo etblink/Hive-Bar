@@ -8,6 +8,7 @@ readonly releases="$app_root/releases"
 readonly current="$app_root/current"
 readonly environment_file=/etc/hive-bar/hive-bar.env
 readonly runtime=/usr/local/bin/node
+readonly npm_runtime=/usr/local/bin/npm
 readonly service=hive-bar.service
 readonly health_url=http://127.0.0.1:3000/healthz
 
@@ -33,7 +34,9 @@ commit="$1"
 [[ -r "$environment_file" ]] || fail 'the protected environment file is missing'
 [[ "$(stat -c '%U:%G:%a' "$environment_file")" == 'root:hivebar:640' ]] || fail 'the environment file must be root:hivebar mode 0640'
 [[ -x "$runtime" ]] || fail 'the pinned Node runtime is missing'
+[[ -x "$npm_runtime" ]] || fail 'the pinned npm runtime is missing'
 [[ "$($runtime --version)" == 'v24.19.0' ]] || fail 'the Node runtime is not v24.19.0'
+[[ "$($npm_runtime --version)" == '11.17.0' ]] || fail 'the npm runtime is not 11.17.0'
 [[ -d "$releases" ]] || fail 'the release directory is missing'
 
 git --git-dir="$repository" cat-file -e "${commit}^{commit}" 2>/dev/null || fail 'commit is absent from the reviewed repository'
@@ -53,6 +56,7 @@ if [[ ! -d "$release" ]]; then
     sh -c '
     set -eu
     cd "$1"
+    node scripts/check-pinned-runtime.js
     npm ci --ignore-scripts --no-audit --no-fund
     npx --no-install patch-package
     npm run build

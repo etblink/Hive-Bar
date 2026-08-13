@@ -19,13 +19,14 @@ Normal operation remains write-disabled. The server verifies identity, reads aut
 | Pay Tab merchant | `fourthstreetbar` |
 | Controlled payment maximum | `1.000 HBD` |
 | Distriator URL | `https://distriator.com/#/claim`; disabled until current business eligibility is confirmed |
-| Runtime | Node.js `>=24.15 <25` |
+| Runtime | Node.js `24.19.0` with bundled npm `11.17.0` |
 
 Production startup requires the business facts, target identifiers, wall fee, payment allowlist/ceiling/database, Distriator settings, application origin, a 32-byte-or-longer session secret, write mode, and at least three credential-free HTTPS RPC nodes to be set explicitly. `HIVE_WRITE_MODE=production` remains rejected before the V1 release gate.
 
 ## Run locally
 
-Prerequisites: Node.js 24.15 or newer within major 24, and npm 11 or newer.
+Prerequisites: the release runtime is pinned to Node.js `24.19.0` and npm `11.17.0`.
+Development on another Node 24 minor may run, but it does not satisfy the release provenance check.
 
 ```sh
 git clone https://github.com/etblink/Hive-Bar.git
@@ -58,19 +59,26 @@ npm run start:read-only
 
 The gate requires production mode, HTTPS origin, three RPC nodes, write mode `disabled`, an explicitly empty controlled-account list, payments disabled, Distriator disabled, and explicit proxy/logging decisions. Its output is redacted and contains no secret or RPC URL. This command does not authorize deployment or a live-read smoke.
 
-The stricter target-specific gate binds the reviewed Privex `V1-US-NVME` topology, canonical host, loopback-only Node listener, one trusted Caddy hop, port `3000`, and inert in-memory receipt store:
+The stricter target-specific gate binds the reviewed Privex `V1-US-NVME` topology, Debian 13,
+the canonical host, Cloudflare's proxied edge, a Cloudflare-only Caddy origin, loopback-only Node
+listener, `TRUST_PROXY=loopback`, port `3000`, and an inert in-memory receipt store:
 
 ```sh
 npm run release:check:privex
 ```
 
-`npm run start:privex` applies that same gate immediately before listening. The exact runtime, systemd, Caddy, health-check, manual exact-commit deploy/rollback, log-retention, and unattended-security-update assets live in `ops/privex/`. They are preparation artifacts only; they do not purchase a VPS, mutate DNS, fetch a release, deploy, or contact Hive.
+`npm run release:check:runtime` separately verifies exact Node/npm provenance. `npm run
+start:privex` applies the target gate immediately before listening. The exact runtime, host
+preflight, Cloudflare CIDR contract, systemd, Caddy, health-check, manual exact-commit
+deploy/rollback, log-retention, and unattended-security-update assets live in `ops/privex/`.
+They are preparation artifacts only; they do not purchase a VPS, mutate DNS, fetch a release,
+deploy, or contact Hive.
 
 ## Primary routes
 
 | Route | Surface |
 | --- | --- |
-| `GET /` | Bar facts, community entry, and clearly marked pending owner photos |
+| `GET /` | Bar facts, community entry, and owner-approved venue photos |
 | `GET /community` | Community information and paginated/sortable posts |
 | `GET /community/threads` | Current production thread container or intentional sparse state |
 | `GET /post/:author/:permlink` | Full sanitized post and flattened reply discussion |

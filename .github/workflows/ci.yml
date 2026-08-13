@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Node 24 verification (${{ matrix.os }})
+    name: Node 24.19.0 / npm 11.17.0 verification (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -37,6 +37,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           package-manager-cache: false
+
+      - name: Verify exact runtime provenance
+        run: npm run release:check:runtime
 
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund

@@ -47,8 +47,8 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
   if (config.server.port !== 3000) {
     issues.push('PORT must be 3000 to match the reviewed Caddy and health-check assets');
   }
-  if (config.server.trustProxy !== 1) {
-    issues.push('TRUST_PROXY must be exactly 1 for the single local Caddy hop');
+  if (config.server.trustProxy !== 'loopback') {
+    issues.push('TRUST_PROXY must be exactly loopback so only the local Caddy peer is trusted');
   }
   if (config.payments.receiptDbPath !== ':memory:') {
     issues.push('HIVE_PAYMENT_RECEIPT_DB_PATH must be :memory: for the inert read-only profile');
@@ -67,8 +67,11 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
     provider: 'Privex',
     package: 'V1-US-NVME',
     region: 'US West',
-    operatingSystem: 'Debian 12',
-    topology: 'single-instance-caddy',
+    operatingSystem: 'Debian 13',
+    topology: 'single-instance-cloudflare-caddy',
+    edgeProxy: 'Cloudflare',
+    tlsMode: 'full-strict',
+    visitorIpHeader: 'CF-Connecting-IP',
     publicHost,
     port: config.server.port,
   });

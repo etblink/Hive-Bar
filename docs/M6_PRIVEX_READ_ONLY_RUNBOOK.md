@@ -2,11 +2,14 @@
 
 Status: **prepared and unexecuted.** Nothing in this runbook authorizes a Privex purchase, cryptocurrency payment, server creation, DNS/TLS change, secret creation, Git fetch, deployment, live Hive read, or release. Each external boundary requires separate product-owner authorization.
 
-Target contract: `ops/privex/manifest.json` — `fourthstreetbar.com`, application tag `fourth-street-bar-app/0.1.0`, one Privex `V1-US-NVME` US West VPS, Debian 12, Caddy, and one loopback-only Hive-Bar process. Recheck the package, price, terms, and availability immediately before any purchase. Privex procurement currency is independent of Hive-Bar's write-disabled application profile.
+Target contract: `ops/privex/manifest.json` — `fourthstreetbar.com`, application tag `fourth-street-bar-app/0.1.0`, one Privex `V1-US-NVME` US West VPS, Debian 13, Cloudflare's proxied edge, Caddy as a Cloudflare-only origin, and one loopback-only Hive-Bar process. Recheck the package, price, terms, Cloudflare IP ranges, and availability immediately before any purchase or deployment. Privex procurement currency is independent of Hive-Bar's write-disabled application profile.
 
 ## Safety invariants
 
-- Public ports are SSH, HTTP, and HTTPS only; `127.0.0.1:3000` is never exposed by the firewall or provider rules.
+- Public SSH is separately restricted to reviewed administrator sources. Origin HTTP/HTTPS accepts only current Cloudflare egress ranges; `127.0.0.1:3000` is never exposed by the firewall or provider rules.
+- Cloudflare remains proxied and uses **Full (strict)** with a hostname-valid origin certificate. Flexible mode is prohibited.
+- Caddy trusts `CF-Connecting-IP` only from the reviewed Cloudflare CIDRs, blocks direct-origin requests, overwrites upstream `X-Forwarded-For` with one validated client IP, and removes alternative client-IP headers before Node.
+- Node trusts only its loopback Caddy peer (`TRUST_PROXY=loopback`). The canonical origin remains `https://fourthstreetbar.com`; the future proxied `www` record redirects permanently to the apex.
 - Caddy receives only `/etc/hive-bar/caddy.env`; it never receives the application session secret.
 - `/etc/hive-bar/hive-bar.env` is `root:hivebar` mode `0640`, and its placeholder secret deliberately fails the release gate.
 - The service runs as `hivebar`, never root, and the release tree is read-only to that account after installation.
@@ -21,12 +24,14 @@ Target contract: `ops/privex/manifest.json` — `fourthstreetbar.com`, applicati
 | `hive-bar.env.example` | `/etc/hive-bar/hive-bar.env` |
 | `caddy.env.example` | `/etc/hive-bar/caddy.env` |
 | `Caddyfile` | `/etc/caddy/Caddyfile` on a new dedicated host |
+| `cloudflare-origin-cidrs.json` | Reviewed input for Caddy and the host firewall; do not install it as an executable configuration |
 | `caddy-hive-bar.conf` | `/etc/systemd/system/caddy.service.d/hive-bar.conf` |
 | `hive-bar.service` | `/etc/systemd/system/hive-bar.service` |
 | health service/timer/alert | `/etc/systemd/system/` |
 | `journald-hive-bar.conf` | `/etc/systemd/journald.conf.d/hive-bar.conf` |
 | `apt-20auto-upgrades` | `/etc/apt/apt.conf.d/20auto-upgrades` after reviewing any existing policy |
 | `bin/hive-bar-install-node` | `/usr/local/sbin/hive-bar-install-node` |
+| `bin/hive-bar-check-host` | `/usr/local/sbin/hive-bar-check-host` |
 | `bin/hive-bar-deploy` | `/usr/local/sbin/hive-bar-deploy` |
 | `bin/hive-bar-rollback` | `/usr/local/sbin/hive-bar-rollback` |
 | `bin/hive-bar-healthcheck` | `/usr/local/libexec/hive-bar-healthcheck` |
@@ -35,16 +40,19 @@ Do not overwrite an existing Caddy, journald, unattended-upgrades, or firewall c
 
 ## Provisioning checklist — only after separate authorization
 
-1. Provision the exact reviewed plan with Debian 12. Record the provider instance identifier, image, addresses, invoice, and current terms without placing credentials in the repository.
-2. Establish key-only SSH, a named administrator with `sudo`, provider-console recovery, time synchronization, and a firewall. Confirm a second SSH session works before enabling a default-deny policy. Allow 80/443 publicly and keep 3000 closed.
+1. Provision the exact reviewed plan with Debian 13. Record the provider instance identifier, image, addresses, invoice, and current terms without placing credentials in the repository.
+2. Establish key-only SSH, a named administrator with `sudo`, provider-console recovery, time synchronization, and a default-deny firewall. Confirm a second SSH session works before restricting ingress. Allow SSH only from separately reviewed administrator sources; allow 80/443 only from every current CIDR at `https://www.cloudflare.com/ips-v4` and `https://www.cloudflare.com/ips-v6`; keep 3000 closed. Compare those lists byte-for-byte with `cloudflare-origin-cidrs.json` and stop on any drift.
 3. Install only reviewed Debian packages: CA certificates, `curl`, `git`, `xz-utils`, Caddy, `unattended-upgrades`, and the tools already used by the scripts. Use the [official Caddy Debian instructions](https://caddyserver.com/docs/install#debian-ubuntu-raspbian); do not pipe a downloaded script into a shell.
 4. Create the static `hivebar` system user and the exact directories in the asset table. Keep `/etc/hive-bar` `root:hivebar` mode `0750`, releases root-owned, and the bare repository root-owned.
-5. Install `hive-bar-install-node`, inspect its constants, then invoke it with no arguments. It downloads the [official Node v24.19.0 Linux x64 archive](https://nodejs.org/dist/v24.19.0/node-v24.19.0-linux-x64.tar.xz), verifies SHA-256 `14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647`, and refuses to replace unmanaged `/usr/local/bin` files.
-6. Copy the two environment examples with the ownership/modes stated above. Verify that both remain bound to `fourthstreetbar.com`, that `APP_ORIGIN` is exactly `https://fourthstreetbar.com`, and that `HIVE_APP_TAG` is exactly `fourth-street-bar-app/0.1.0`. A different host or tag requires a new reviewed candidate. Generate a unique session secret of at least 32 random bytes directly into a protected editor/password-manager workflow; never place it in a command argument, chat, source file, or shell history.
-7. Install and review the systemd, Caddy, health-check, log-retention, and unattended-upgrade assets. Validate Caddy's configuration before restart. Confirm Node is listening only on loopback after startup.
-8. Populate `/opt/hive-bar/repository.git` through a separately authorized Git operation. Fetch one exact candidate, verify its commit and tree against the approved identities, and inspect that it is a fast-forward descendant of the accepted baseline. The deploy script intentionally performs no network fetch.
-9. Run `/usr/local/sbin/hive-bar-deploy <full-commit-sha>` once. The script installs locked dependencies with lifecycle scripts disabled, explicitly applies the pinned compatibility patch, builds/prunes the release, runs `release:check:privex`, records the exact commit/tree, atomically switches `current`, and requires local write-disabled liveness.
-10. Enable the health timer only after its one-shot service succeeds. Record `systemctl` status, effective hardening, journal retention, the exact current symlink, and the deployed identity files.
+5. Install and run `hive-bar-check-host` before any release installation. It must report Debian 13 x86_64 and satisfy the reviewed memory/free-storage floors without changing the host.
+6. Install `hive-bar-install-node`, inspect its constants, then invoke it with no arguments. It downloads the [official Node v24.19.0 Linux x64 archive](https://nodejs.org/dist/v24.19.0/node-v24.19.0-linux-x64.tar.xz), verifies SHA-256 `14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647`, and requires the archive's exact bundled npm `11.17.0`. It refuses to replace unmanaged `/usr/local/bin` files.
+7. Copy the two environment examples with the ownership/modes stated above. Verify that both remain bound to `fourthstreetbar.com`, that `APP_ORIGIN` is exactly `https://fourthstreetbar.com`, `TRUST_PROXY` is exactly `loopback`, and `HIVE_APP_TAG` is exactly `fourth-street-bar-app/0.1.0`. A different host or tag requires a new reviewed candidate. Generate a unique session secret of at least 32 random bytes directly into a protected editor/password-manager workflow; never place it in a command argument, chat, source file, or shell history.
+8. Install and review the systemd, Caddy, health-check, log-retention, and unattended-upgrade assets. Validate Caddy's configuration before restart. Confirm Caddy refuses a direct-origin request and Node is listening only on loopback.
+9. Under a separately authorized Cloudflare mutation, require Full (strict), confirm the apex remains proxied, add a proxied `www` CNAME targeting the apex, and verify the origin certificate covers both names before treating the alias as ready. Do not use Flexible mode or expose the origin to make certificate issuance convenient.
+10. Populate `/opt/hive-bar/repository.git` through a separately authorized Git operation. Fetch one exact candidate, verify its commit and tree against the approved identities, and inspect that it is a fast-forward descendant of the accepted baseline. The deploy script intentionally performs no network fetch.
+11. Run `/usr/local/sbin/hive-bar-deploy <full-commit-sha>` once. The script verifies exact Node/npm provenance, installs locked dependencies with lifecycle scripts disabled, explicitly applies the pinned compatibility patch, builds/prunes the release, runs `release:check:privex`, records the exact commit/tree, atomically switches `current`, and requires local write-disabled liveness.
+12. Enable the health timer only after its one-shot service succeeds. Record `systemctl` status, effective hardening, journal retention, the exact current symlink, and the deployed identity files.
+13. Configure an external HTTPS uptime check for the canonical `/healthz` endpoint and an owner-controlled alert destination. This is observational only; it must not issue Hive requests, restart services automatically, or contain credentials.
 
 ## Verification boundary
 
@@ -53,6 +61,7 @@ The deploy script checks only `/healthz`, which makes no Hive call. `/readyz`, r
 - `release:check:privex` passes with a redacted summary;
 - port 3000 is loopback-only and unreachable externally;
 - HTTP redirects to HTTPS and the canonical host has a valid certificate;
+- Cloudflare reports Full (strict), direct origin access is refused, `www` redirects permanently to the apex, and Node receives one validated client address rather than an attacker-supplied chain;
 - controlled actions, Pay Tab preparation, and Distriator remain unavailable;
 - graceful stop/restart succeeds without data mutation;
 - the health timer emits a local critical journal event under a rehearsed failure; and
@@ -60,8 +69,8 @@ The deploy script checks only `/healthz`, which makes no Hive call. `/readyz`, r
 
 ## Operations and recovery
 
-- Review unattended-upgrade and Hive-Bar journals regularly; the prepared journal bound is seven days and 256 MiB.
-- Privex infrastructure does not replace application-owner backups. The read-only profile has no durable receipt database, but the protected environment, DNS records, instance setup record, and reviewed release identities still need an encrypted recovery record outside the VPS.
+- Review unattended-upgrade and Hive-Bar journals regularly; the prepared journal bound is seven days and 256 MiB. Review the external uptime alert path after every operator or DNS change.
+- Privex infrastructure does not replace application-owner backups. Before release, maintain one encrypted recovery record outside the VPS containing the non-secret instance/DNS topology, exact release identities, firewall/CIDR review date, and a protected copy or regeneration procedure for the application secret. Perform a restore rehearsal into an isolated path without changing production.
 - Retain at least the current and last known-good release. The scripts deliberately do not delete releases.
 - Roll back only to a full installed SHA with `/usr/local/sbin/hive-bar-rollback <full-commit-sha>`. It reruns the target gate before switching and restores the prior symlink if the target is unhealthy.
 - For uncertain external state, stop, preserve logs, and observe read-only state. Do not introduce a write mode, payment, DNS change, package upgrade, or deployment retry without new authorization.

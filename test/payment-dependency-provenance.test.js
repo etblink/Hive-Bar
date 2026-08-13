@@ -34,6 +34,8 @@ test('binds the exact M5 decoder, compatibility patch, scanner, and runtime prov
   const patch = fs.readFileSync(path.join(root, 'patches', 'hive-uri+0.2.8.patch'), 'utf8');
 
   assert.equal(packageJson.engines.node, '>=24.15 <25');
+  assert.equal(packageJson.engines.npm, '>=11');
+  assert.equal(packageJson.packageManager, 'npm@11.17.0');
   assert.equal(packageJson.dependencies['hive-uri'], '0.2.8');
   assert.equal(packageJson.dependencies['@zxing/browser'], '0.2.1');
   assert.equal(packageJson.dependencies['patch-package'], '8.0.1');

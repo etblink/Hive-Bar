@@ -3,6 +3,7 @@ set -Eeuo pipefail
 umask 022
 
 readonly node_version=24.19.0
+readonly npm_version=11.17.0
 readonly archive="node-v${node_version}-linux-x64.tar.xz"
 readonly archive_sha256=14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647
 readonly download_url="https://nodejs.org/dist/v${node_version}/${archive}"
@@ -55,7 +56,7 @@ if [[ ! -d "$install_root" ]]; then
   )
   tar -xJf "$work/$archive" -C "$staging" --strip-components=1
   [[ "$($staging/bin/node --version)" == "v$node_version" ]] || fail 'the extracted Node version is unexpected'
-  [[ "$($staging/bin/npm --version | cut -d. -f1)" -ge 11 ]] || fail 'the extracted npm major version is below 11'
+  [[ "$($staging/bin/npm --version)" == "$npm_version" ]] || fail 'the extracted npm version is unexpected'
   chown -R root:root "$staging"
   chmod -R go-w "$staging"
   mv -T "$staging" "$install_root"
@@ -64,9 +65,10 @@ fi
 
 [[ -x "$install_root/bin/node" ]] || fail 'the installed Node binary is missing'
 [[ "$($install_root/bin/node --version)" == "v$node_version" ]] || fail 'the existing Node runtime has the wrong version'
+[[ "$($install_root/bin/npm --version)" == "$npm_version" ]] || fail 'the existing npm runtime has the wrong version'
 
 link_runtime_command node
 link_runtime_command npm
 link_runtime_command npx
 
-printf 'Installed verified Node v%s from %s.\n' "$node_version" "$download_url"
+printf 'Installed verified Node v%s with npm %s from %s.\n' "$node_version" "$npm_version" "$download_url"

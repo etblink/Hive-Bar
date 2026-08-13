@@ -11,6 +11,7 @@ const {
   assertPrivexReadOnlyRelease,
   normalizePublicHost,
 } = require('../src/release/privex-readiness');
+const { assertPinnedRuntime, normalizeVersion } = require('../scripts/check-pinned-runtime');
 
 const root = path.join(__dirname, '..');
 const opsRoot = path.join(root, 'ops', 'privex');
@@ -43,7 +44,7 @@ function productionSource(overrides = {}) {
     HIVE_APP_TAG: 'fourth-street-bar-app/0.1.0',
     APP_ORIGIN: 'https://fourthstreetbar.com',
     SESSION_SECRET: sessionSecret,
-    TRUST_PROXY: '1',
+    TRUST_PROXY: 'loopback',
     LOG_LEVEL: 'info',
     ...overrides,
   };
@@ -77,13 +78,16 @@ test('binds one redacted Privex public read-only topology', () => {
     paymentsEnabled: false,
     distriatorEnabled: false,
     rpcNodeCount: 3,
-    trustProxy: 1,
+    trustProxy: 'loopback',
     logLevel: 'info',
     provider: 'Privex',
     package: 'V1-US-NVME',
     region: 'US West',
-    operatingSystem: 'Debian 12',
-    topology: 'single-instance-caddy',
+    operatingSystem: 'Debian 13',
+    topology: 'single-instance-cloudflare-caddy',
+    edgeProxy: 'Cloudflare',
+    tlsMode: 'full-strict',
+    visitorIpHeader: 'CF-Connecting-IP',
     publicHost: 'fourthstreetbar.com',
     port: 3000,
   });
@@ -99,7 +103,7 @@ test('rejects every material deviation from the Privex topology', () => {
     [{ APP_ORIGIN: 'https://www.fourthstreetbar.com' }, /APP_ORIGIN must exactly match/],
     [{ BIND_HOST: '0.0.0.0' }, /BIND_HOST must be 127\.0\.0\.1/],
     [{ PORT: '3001' }, /PORT must be 3000/],
-    [{ TRUST_PROXY: 'false' }, /TRUST_PROXY must be exactly 1/],
+    [{ TRUST_PROXY: '1' }, /TRUST_PROXY must be exactly loopback/],
     [
       { HIVE_PAYMENT_RECEIPT_DB_PATH: '/var/lib/hive-bar/receipts.sqlite' },
       /HIVE_PAYMENT_RECEIPT_DB_PATH must be :memory:/,
@@ -153,14 +157,18 @@ test('runs the Privex gate as a safe non-network CLI', () => {
   assert.equal(refused.stderr.includes('REPLACE_WITH_AT_LEAST_32_RANDOM_BYTES'), false);
 });
 
-test('pins the exact Privex resource and Node runtime provenance', () => {
+test('pins the exact Privex resource, host, and runtime provenance', () => {
   const manifest = JSON.parse(read('manifest.json'));
   const installer = read('bin/hive-bar-install-node');
+  const hostPreflight = read('bin/hive-bar-check-host');
+  const packageManifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const nodeVersionFile = fs.readFileSync(path.join(root, '.nvmrc'), 'utf8');
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
 
   assert.equal(manifest.provider, 'Privex');
   assert.equal(manifest.package, 'V1-US-NVME');
   assert.equal(manifest.region, 'US West');
-  assert.equal(manifest.operatingSystem, 'Debian 12');
+  assert.equal(manifest.operatingSystem, 'Debian 13');
   assert.deepEqual(manifest.resources, {
     virtualCpu: 1,
     memoryMiB: 1024,
@@ -173,14 +181,31 @@ test('pins the exact Privex resource and Node runtime provenance', () => {
   });
   assert.deepEqual(manifest.runtime, {
     nodeVersion: '24.19.0',
+    npmVersion: '11.17.0',
     platform: 'linux-x64',
     source: 'https://nodejs.org/dist/v24.19.0/node-v24.19.0-linux-x64.tar.xz',
     sha256: '14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647',
   });
-  assert.equal(manifest.topology.applicationAddress, '127.0.0.1:3000');
+  assert.equal(nodeVersionFile, '24.19.0\n');
+  assert.deepEqual(packageManifest.engines, { node: '>=24.15 <25', npm: '>=11' });
+  assert.equal(packageManifest.packageManager, 'npm@11.17.0');
+  assert.match(workflow, /node-version-file: \.nvmrc/);
+  assert.match(workflow, /npm run release:check:runtime/);
+  assert.deepEqual(manifest.topology, {
+    instances: 1,
+    edgeProxy: 'Cloudflare',
+    edgeDnsMode: 'proxied',
+    reverseProxy: 'Caddy',
+    applicationAddress: '127.0.0.1:3000',
+    applicationTrustProxy: 'loopback',
+    visitorIpHeader: 'CF-Connecting-IP',
+    originIngress: 'cloudflare-only',
+    cloudflareTlsMode: 'full-strict',
+  });
   assert.equal(manifest.release.automaticDeploys, false);
   assert.equal(manifest.release.exactCommitRequired, true);
   assert.equal(manifest.release.publicHost, 'fourthstreetbar.com');
+  assert.equal(manifest.release.redirectHost, 'www.fourthstreetbar.com');
   assert.equal(manifest.release.hiveAppTag, 'fourth-street-bar-app/0.1.0');
   assert.deepEqual(manifest.boundaries, {
     writeMode: 'disabled',
@@ -191,11 +216,32 @@ test('pins the exact Privex resource and Node runtime provenance', () => {
   });
 
   assert.match(installer, /readonly node_version=24\.19\.0/);
+  assert.match(installer, /readonly npm_version=11\.17\.0/);
   assert.match(installer, new RegExp(`readonly archive_sha256=${manifest.runtime.sha256}`));
   assert.match(installer, /sha256sum --check --strict/);
   assert.match(installer, /curl --proto '=https' --tlsv1\.2 --fail/);
   assert.doesNotMatch(installer, /nodesource/i);
   assert.doesNotMatch(installer, /curl[^\n]*\|\s*(?:ba)?sh/);
+
+  assert.deepEqual(manifest.hostPreflight, {
+    architecture: 'x86_64',
+    minimumMemoryKiB: 900000,
+    minimumFreeStorageKiB: 8388608,
+  });
+  assert.match(hostPreflight, /VERSION_ID=/);
+  assert.match(hostPreflight, /\[\[ "\$version_id" == 13 \]\]/);
+  assert.match(hostPreflight, /minimum_memory_kib=900000/);
+  assert.match(hostPreflight, /minimum_free_storage_kib=8388608/);
+});
+
+test('binds exact Node and npm versions without accepting compatible drift', () => {
+  assert.deepEqual(assertPinnedRuntime('v24.19.0', '11.17.0'), {
+    nodeVersion: '24.19.0',
+    npmVersion: '11.17.0',
+  });
+  assert.equal(normalizeVersion(' v24.19.0\n'), '24.19.0');
+  assert.throws(() => assertPinnedRuntime('24.18.0', '11.17.0'), /Node must be exactly/);
+  assert.throws(() => assertPinnedRuntime('24.19.0', '11.16.0'), /npm must be exactly/);
 });
 
 test('hardens one loopback service and one exact-commit manual release path', () => {
@@ -207,6 +253,7 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   const healthcheck = read('bin/hive-bar-healthcheck');
   const environment = read('hive-bar.env.example');
   const caddyEnv = read('caddy.env.example');
+  const cloudflareCidrs = JSON.parse(read('cloudflare-origin-cidrs.json'));
 
   assert.match(service, /^User=hivebar$/m);
   assert.match(service, /^ExecStart=\/usr\/local\/bin\/node .*start-privex\.js$/m);
@@ -218,7 +265,15 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   assert.match(service, /^RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX$/m);
   assert.doesNotMatch(service, /Environment=.*SESSION_SECRET/);
 
+  assert.match(caddy, /^www\.\{\$HIVE_BAR_HOST\} \{$/m);
   assert.match(caddy, /^\{\$HIVE_BAR_HOST\} \{$/m);
+  assert.equal(caddy.match(/^\s*route \{$/gm).length, 2);
+  assert.match(caddy, /^\s*trusted_proxies_strict$/m);
+  assert.match(caddy, /^\s*client_ip_headers CF-Connecting-IP$/m);
+  assert.match(caddy, /^\s*header_up X-Forwarded-For \{client_ip\}$/m);
+  assert.match(caddy, /^\s*header_up -CF-Connecting-IP$/m);
+  assert.match(caddy, /^\s*redir https:\/\/\{\$HIVE_BAR_HOST\}\{uri\} permanent$/m);
+  assert.match(caddy, /Direct origin access is not permitted\./);
   assert.match(caddy, /^\s*reverse_proxy 127\.0\.0\.1:3000 \{$/m);
   assert.match(caddy, /^\s*health_uri \/healthz$/m);
   assert.match(caddyEnvironment, /EnvironmentFile=\/etc\/hive-bar\/caddy\.env/);
@@ -234,13 +289,15 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   assert.match(environment, /^HIVE_CONTROLLED_ACCOUNTS=$/m);
   assert.match(environment, /^HIVE_PAYMENT_RECEIPT_DB_PATH=:memory:$/m);
   assert.match(environment, /^DISTRIATOR_ENABLED=false$/m);
-  assert.match(environment, /^TRUST_PROXY=1$/m);
+  assert.match(environment, /^TRUST_PROXY=loopback$/m);
   assert.match(environment, /owner root:hivebar and mode 0640/);
 
   assert.match(deploy, /commit must be 40 lowercase hexadecimal characters/);
   assert.match(deploy, /cat-file -e "\$\{commit\}\^\{commit\}"/);
   assert.match(deploy, /git --git-dir="\$repository" archive --format=tar "\$commit"/);
   assert.match(deploy, /npm ci --ignore-scripts --no-audit --no-fund/);
+  assert.match(deploy, /npm runtime is not 11\.17\.0/);
+  assert.match(deploy, /node scripts\/check-pinned-runtime\.js/);
   assert.match(deploy, /npx --no-install patch-package/);
   assert.match(deploy, /runuser -u hivebar -- env -i/);
   assert.match(deploy, /node scripts\/check-privex-release\.js/);
@@ -253,6 +310,13 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   assert.match(rollback, /node scripts\/check-privex-release\.js/);
   assert.match(healthcheck, /http:\/\/127\.0\.0\.1:3000\/healthz/);
   assert.match(healthcheck, /'"writeMode":"disabled"'/);
+
+  assert.equal(cloudflareCidrs.reviewedAt, '2026-08-13');
+  assert.equal(cloudflareCidrs.ipv4.length, 15);
+  assert.equal(cloudflareCidrs.ipv6.length, 7);
+  for (const cidr of [...cloudflareCidrs.ipv4, ...cloudflareCidrs.ipv6]) {
+    assert.equal(caddy.split(cidr).length - 1, 2, `${cidr} must bind trust and ingress`);
+  }
 });
 
 test('keeps every Privex asset LF-stable and shell syntax valid', () => {
@@ -275,6 +339,7 @@ test('keeps every Privex asset LF-stable and shell syntax valid', () => {
       'bin/hive-bar-deploy',
       'bin/hive-bar-rollback',
       'bin/hive-bar-healthcheck',
+      'bin/hive-bar-check-host',
     ]) {
       execFileSync('bash', ['-n', path.join(opsRoot, relativePath)], { stdio: 'pipe' });
     }
