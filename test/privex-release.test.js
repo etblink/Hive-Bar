@@ -326,6 +326,7 @@ test('keeps every Privex asset LF-stable and shell syntax valid', () => {
     .filter((entry) => entry.isFile())
     .map((entry) => path.join(entry.parentPath, entry.name));
 
+  assert.match(attributes, /^\.nvmrc text eol=lf$/m);
   assert.match(attributes, /^ops\/privex\/\*\* text eol=lf$/m);
   assert.ok(files.length >= 14);
   for (const file of files) {
