@@ -36,7 +36,7 @@ test('matches the exact post operation golden vector', () => {
         title: 'Welcome to 4th Street',
         body: 'Pull up a stool. 🍺',
         json_metadata:
-          '{"tags":["hive-108590","reno","nightlife"],"app":"hivebar/0.1.0","format":"markdown"}',
+          '{"tags":["hive-108590","reno","nightlife"],"app":"fourth-street-bar-app/0.1.0","format":"markdown"}',
       },
     ],
   ]);
@@ -63,7 +63,7 @@ test('matches the exact resolved-container thread operation golden vector', () =
         title: '',
         body: 'Who is stopping by tonight?',
         json_metadata:
-          '{"tags":["hive-108590","threads"],"app":"hivebar/0.1.0","format":"markdown"}',
+          '{"tags":["hive-108590","threads"],"app":"fourth-street-bar-app/0.1.0","format":"markdown"}',
       },
     ],
   ]);
@@ -86,7 +86,7 @@ test('matches the exact comment and vote operation golden vectors', () => {
         permlink: 're-hello-reno-1',
         title: '',
         body: 'See you there.',
-        json_metadata: '{"app":"hivebar/0.1.0","format":"markdown"}',
+        json_metadata: '{"app":"fourth-street-bar-app/0.1.0","format":"markdown"}',
       },
     ],
   ]);

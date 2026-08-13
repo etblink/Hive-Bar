@@ -1,6 +1,6 @@
 # M6 public read-only release readiness
 
-Status: **Privex public read-only readiness slice published and cross-platform validated; full M6 is not accepted.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
+Status: **Privex public read-only readiness slice published and cross-platform validated; final business-content binding prepared locally; full M6 is not accepted.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
 
 Planning date: 2026-08-13
 
@@ -83,13 +83,26 @@ Temporary trigger commit `eface8a2bf6583eabd61d82f97d4a3120cc3a2d4`, tree `425b2
 
 Temporary branch `codex/m6-ci-validation` was deleted and independently verified absent. The M6 candidate branch remained at `86f3edd5af9d4be0e606f2d1dfee4a81686ae839`. PR #1 remained open and draft at its original `codex/m2-read-only-slice` head `9085e9d00d73f61e0ea0b450832f28ac782ef36d`. No live Hive read, Keychain request, Hive operation, payment, Privex purchase, deployment, DNS/TLS change, or secret mutation occurred.
 
+## Local final business-content binding
+
+On 2026-08-13, the product owner supplied and approved four real 4th Street Bar photographs and selected `fourthstreetbar.com` as the canonical application hostname. The raw files were converted locally to metadata-free JPEG assets with descriptive repository names; no EXIF, ICC, IPTC, Photoshop application segment, or JPEG comment is retained. Their candidate SHA-256 identities are:
+
+| Asset | SHA-256 |
+| --- | --- |
+| `public/images/fourth-street-bar-bartender.jpg` | `aff6d1d746820f78cd659e658801cac0d20a2485e4b367d0c71eb14ee4a518fa` |
+| `public/images/fourth-street-bar-exterior.jpg` | `585b3e80a50723b3cd0209b244f3a57efb14c018313f64ea34bd7f3108bc654a` |
+| `public/images/fourth-street-bar-patio.jpg` | `c65d5c0c00ea9ff6ce556586285eeabfa02e255fb87569556a58621014f1e100` |
+| `public/images/fourth-street-bar-pool-table.jpg` | `db6b18d3cb7f33778072fe980e6bfeade38e1e6c9aa895229d4b0ed4a687e18f` |
+
+The owner supplied the application-tag pattern `fourth-street-bar-app-v#`. Because Hive-Bar's validated Hive metadata contract requires `name/x.y.z`, the candidate binds the version-matched exact tag `fourth-street-bar-app/0.1.0`. The production and Privex release gates require that exact tag, and the Privex gate requires the exact canonical host `fourthstreetbar.com`. This binding is local and uncommitted at the time of this record; it does not imply DNS ownership verification, publication, deployment, TLS issuance, or any external mutation.
+
 ## Final read-only M6 acceptance audit
 
 The controlling specification defines M6 as the **Production candidate**, not merely an operations-package design. Its exit gate requires every V1 MUST requirement to pass or receive an explicit product-owner waiver, with no unresolved financial or security blocker. The 2026-08-13 audit therefore separates deterministic readiness from full M6 acceptance:
 
 | M6 deliverable or exit condition | Current evidence | Audit result |
 | --- | --- | --- |
-| Real business content and final configuration | Name, address, telephone, hours, map, community, thread container, merchant, wall fee, and claim URL are bound. Owner-approved imagery remains pending; the canonical public hostname and final application tag are unset. | **Partial** |
+| Real business content and final configuration | Name, address, telephone, hours, map, community, thread container, merchant, wall fee, claim URL, four metadata-free owner-approved photographs, canonical host `fourthstreetbar.com`, and exact application tag `fourth-street-bar-app/0.1.0` are bound locally. Publication and candidate validation remain pending. | **Prepared locally** |
 | Production deployment and HTTPS | A fail-closed Privex/Caddy contract exists, but no VPS was purchased, server provisioned, DNS changed, certificate issued, or application deployed. | **Open — not run** |
 | Durable store plus backup/restore check | The read-only profile deliberately binds the inert `:memory:` receipt store. No production durable volume, encrypted recovery record, backup, or restore rehearsal exists. | **Open — not run** |
 | Monitoring, redacted logs, health checks, and rollback | Deterministic tests cover prepared systemd, journald, health-timer, exact-commit deploy, and rollback assets. None has been exercised on the target host. | **Prepared; target verification open** |
@@ -121,7 +134,7 @@ Because the read-only profile cannot prepare a payment, `:memory:` is an accepta
 
 No deployment is authorized by this document. Before a public read-only release, record all of the following in one candidate-bound run:
 
-1. a canonical production hostname and the exact current Privex package, region, price, terms, and backup decision;
+1. the exact current Privex package, region, price, terms, and backup decision for the already bound canonical host;
 2. product-owner authorization to procure infrastructure and later mutate DNS/TLS, each kept separate from a release authorization;
 3. secret injection and rotation without exposing the secret in logs or shell history;
 4. deterministic cross-platform CI and both release gates on one exact candidate;
@@ -140,4 +153,4 @@ No deployment is authorized by this document. Before a public read-only release,
 - no deployment, domain, DNS, TLS, hosting, or secret mutation; and
 - no claim that dormant M5 acceptance has been completed.
 
-The M6 read-only readiness slice is complete. Full M6 remains open until its external gates are separately authorized, executed, and recorded, or the controlling specification is explicitly revised. Any purchase, deployment, DNS/TLS or secret mutation, live-read validation, Keychain request, Hive operation, payment, or waiver requires a separately bounded product-owner decision.
+The M6 read-only readiness slice is complete, and its final business inputs are now prepared locally. Full M6 remains open until this content binding is published and validated and its external gates are separately authorized, executed, and recorded, or the controlling specification is explicitly revised. Any purchase, deployment, DNS/TLS or secret mutation, live-read validation, Keychain request, Hive operation, payment, or waiver requires a separately bounded product-owner decision.

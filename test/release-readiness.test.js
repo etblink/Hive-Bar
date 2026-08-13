@@ -30,6 +30,7 @@ function productionSource(overrides = {}) {
     HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:',
     DISTRIATOR_ENABLED: 'false',
     DISTRIATOR_CLAIM_URL: 'https://distriator.com/#/claim',
+    HIVE_APP_TAG: 'fourth-street-bar-app/0.1.0',
     APP_ORIGIN: 'https://hive-bar.example',
     SESSION_SECRET: 'a-production-session-secret-with-32-bytes',
     TRUST_PROXY: 'false',
@@ -54,6 +55,7 @@ test('binds a redacted, explicitly configured public read-only release profile',
     bindHost: '127.0.0.1',
     writeMode: 'disabled',
     controlledAccountCount: 0,
+    appTag: 'fourth-street-bar-app/0.1.0',
     paymentsEnabled: false,
     distriatorEnabled: false,
     rpcNodeCount: 3,
@@ -105,6 +107,12 @@ test('rejects controlled writes, latent account scope, payments, and Distriator'
   assert.throws(
     () => assertReadOnlyRelease(configFrom(distriatorSource), distriatorSource),
     /DISTRIATOR_ENABLED must be false/,
+  );
+
+  const wrongTagSource = productionSource({ HIVE_APP_TAG: 'another-app/0.1.0' });
+  assert.throws(
+    () => assertReadOnlyRelease(configFrom(wrongTagSource), wrongTagSource),
+    /HIVE_APP_TAG must be exactly fourth-street-bar-app\/0\.1\.0/,
   );
 });
 

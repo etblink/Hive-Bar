@@ -33,7 +33,13 @@ test('renders a truthful, complete home document with hardened response headers'
   assert.match(response.text, /1114 E\. 4th Street, Reno, NV 89512/);
   assert.match(response.text, /\(775\) 324-7827/);
   assert.match(response.text, /Daily, 12:00 p\.m.–2:00 a\.m\./);
-  assert.match(response.text, /owner-approved photographs/);
+  assert.match(response.text, /Owner-approved photographs/);
+  assert.match(response.text, /\/images\/fourth-street-bar-patio\.jpg/);
+  assert.match(response.text, /\/images\/fourth-street-bar-pool-table\.jpg/);
+  assert.match(response.text, /\/images\/fourth-street-bar-bartender\.jpg/);
+  assert.match(response.text, /\/images\/fourth-street-bar-exterior\.jpg/);
+  assert.equal((response.text.match(/loading="lazy"/g) || []).length, 4);
+  assert.doesNotMatch(response.text, /Bar photos are coming|photo-placeholder/);
   assert.doesNotMatch(response.text, /John D\.|Sarah M\.|Mike R\.|images\.unsplash/);
   assert.doesNotMatch(response.text, /\son[a-z]+\s*=/i);
   assert.doesNotMatch(response.text, /<script(?![^>]*\bsrc=)/i);

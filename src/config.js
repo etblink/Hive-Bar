@@ -24,6 +24,7 @@ const PRODUCTION_REQUIRED_SETTINGS = [
   'HIVE_PAYMENT_RECEIPT_DB_PATH',
   'DISTRIATOR_ENABLED',
   'DISTRIATOR_CLAIM_URL',
+  'HIVE_APP_TAG',
   'BIND_HOST',
   'APP_ORIGIN',
   'SESSION_SECRET',
@@ -224,7 +225,7 @@ const envSchema = z
       .string()
       .trim()
       .regex(/^[a-z][a-z0-9.-]{1,31}\/[0-9]+\.[0-9]+\.[0-9]+$/)
-      .default('hivebar/0.1.0'),
+      .default('fourth-street-bar-app/0.1.0'),
     HIVE_RPC_TIMEOUT_MS: z.coerce.number().int().min(250).max(30000).default(8000),
     HIVE_RPC_FAILURE_THRESHOLD: z.coerce.number().int().min(1).max(10).default(2),
     HIVE_RPC_COOLDOWN_MS: z.coerce.number().int().min(1000).max(300000).default(30000),

@@ -29,6 +29,8 @@
   "release": {
     "root": "/opt/hive-bar",
     "service": "hive-bar.service",
+    "publicHost": "fourthstreetbar.com",
+    "hiveAppTag": "fourth-street-bar-app/0.1.0",
     "healthPath": "/healthz",
     "readinessPath": "/readyz",
     "automaticDeploys": false,

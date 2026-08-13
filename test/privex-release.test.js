@@ -21,7 +21,7 @@ function productionSource(overrides = {}) {
     NODE_ENV: 'production',
     PORT: '3000',
     BIND_HOST: '127.0.0.1',
-    HIVE_BAR_HOST: 'hive-bar.example',
+    HIVE_BAR_HOST: 'fourthstreetbar.com',
     SITE_NAME: '4th Street Bar',
     BAR_ADDRESS: '1114 E. 4th Street, Reno, NV 89512',
     BAR_PHONE: '(775) 324-7827',
@@ -40,7 +40,8 @@ function productionSource(overrides = {}) {
     HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:',
     DISTRIATOR_ENABLED: 'false',
     DISTRIATOR_CLAIM_URL: 'https://distriator.com/#/claim',
-    APP_ORIGIN: 'https://hive-bar.example',
+    HIVE_APP_TAG: 'fourth-street-bar-app/0.1.0',
+    APP_ORIGIN: 'https://fourthstreetbar.com',
     SESSION_SECRET: sessionSecret,
     TRUST_PROXY: '1',
     LOG_LEVEL: 'info',
@@ -68,10 +69,11 @@ test('binds one redacted Privex public read-only topology', () => {
   assert.deepEqual(summary, {
     profile: 'privex-public-read-only',
     environment: 'production',
-    origin: 'https://hive-bar.example',
+    origin: 'https://fourthstreetbar.com',
     bindHost: '127.0.0.1',
     writeMode: 'disabled',
     controlledAccountCount: 0,
+    appTag: 'fourth-street-bar-app/0.1.0',
     paymentsEnabled: false,
     distriatorEnabled: false,
     rpcNodeCount: 3,
@@ -82,7 +84,7 @@ test('binds one redacted Privex public read-only topology', () => {
     region: 'US West',
     operatingSystem: 'Debian 12',
     topology: 'single-instance-caddy',
-    publicHost: 'hive-bar.example',
+    publicHost: 'fourthstreetbar.com',
     port: 3000,
   });
   assert.equal(JSON.stringify(summary).includes(sessionSecret), false);
@@ -91,9 +93,10 @@ test('binds one redacted Privex public read-only topology', () => {
 
 test('rejects every material deviation from the Privex topology', () => {
   const cases = [
-    [{ HIVE_BAR_HOST: 'Hive-Bar.example' }, /HIVE_BAR_HOST must be a canonical DNS hostname/],
-    [{ HIVE_BAR_HOST: 'https://hive-bar.example' }, /HIVE_BAR_HOST must be a canonical DNS hostname/],
-    [{ APP_ORIGIN: 'https://www.hive-bar.example' }, /APP_ORIGIN must exactly match/],
+    [{ HIVE_BAR_HOST: 'FourthStreetBar.com' }, /HIVE_BAR_HOST must be a canonical DNS hostname/],
+    [{ HIVE_BAR_HOST: 'https://fourthstreetbar.com' }, /HIVE_BAR_HOST must be a canonical DNS hostname/],
+    [{ HIVE_BAR_HOST: 'other.example', APP_ORIGIN: 'https://other.example' }, /HIVE_BAR_HOST must be exactly fourthstreetbar\.com/],
+    [{ APP_ORIGIN: 'https://www.fourthstreetbar.com' }, /APP_ORIGIN must exactly match/],
     [{ BIND_HOST: '0.0.0.0' }, /BIND_HOST must be 127\.0\.0\.1/],
     [{ PORT: '3001' }, /PORT must be 3000/],
     [{ TRUST_PROXY: 'false' }, /TRUST_PROXY must be exactly 1/],
@@ -177,6 +180,8 @@ test('pins the exact Privex resource and Node runtime provenance', () => {
   assert.equal(manifest.topology.applicationAddress, '127.0.0.1:3000');
   assert.equal(manifest.release.automaticDeploys, false);
   assert.equal(manifest.release.exactCommitRequired, true);
+  assert.equal(manifest.release.publicHost, 'fourthstreetbar.com');
+  assert.equal(manifest.release.hiveAppTag, 'fourth-street-bar-app/0.1.0');
   assert.deepEqual(manifest.boundaries, {
     writeMode: 'disabled',
     controlledAccounts: 0,
@@ -218,10 +223,13 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   assert.match(caddy, /^\s*health_uri \/healthz$/m);
   assert.match(caddyEnvironment, /EnvironmentFile=\/etc\/hive-bar\/caddy\.env/);
   assert.doesNotMatch(caddyEnvironment, /hive-bar\.env/);
-  assert.match(caddyEnv, /^HIVE_BAR_HOST=REPLACE_WITH_PUBLIC_HOST$/m);
+  assert.match(caddyEnv, /^HIVE_BAR_HOST=fourthstreetbar\.com$/m);
   assert.doesNotMatch(caddyEnv, /SECRET|HIVE_RPC|WRITE_MODE/);
 
   assert.match(environment, /^BIND_HOST=127\.0\.0\.1$/m);
+  assert.match(environment, /^HIVE_BAR_HOST=fourthstreetbar\.com$/m);
+  assert.match(environment, /^APP_ORIGIN=https:\/\/fourthstreetbar\.com$/m);
+  assert.match(environment, /^HIVE_APP_TAG=fourth-street-bar-app\/0\.1\.0$/m);
   assert.match(environment, /^HIVE_WRITE_MODE=disabled$/m);
   assert.match(environment, /^HIVE_CONTROLLED_ACCOUNTS=$/m);
   assert.match(environment, /^HIVE_PAYMENT_RECEIPT_DB_PATH=:memory:$/m);

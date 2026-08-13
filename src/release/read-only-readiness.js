@@ -1,10 +1,13 @@
 'use strict';
 
+const RELEASE_APP_TAG = 'fourth-street-bar-app/0.1.0';
+
 const EXPLICIT_READ_ONLY_SETTINGS = Object.freeze([
   'NODE_ENV',
   'BIND_HOST',
   'HIVE_WRITE_MODE',
   'HIVE_CONTROLLED_ACCOUNTS',
+  'HIVE_APP_TAG',
   'DISTRIATOR_ENABLED',
   'TRUST_PROXY',
   'LOG_LEVEL',
@@ -30,6 +33,9 @@ function assertReadOnlyRelease(config, source = {}) {
   if (config.hive.controlledAccounts.length !== 0) {
     issues.push('HIVE_CONTROLLED_ACCOUNTS must be explicitly empty');
   }
+  if (config.hive.appTag !== RELEASE_APP_TAG) {
+    issues.push(`HIVE_APP_TAG must be exactly ${RELEASE_APP_TAG}`);
+  }
   if (config.payments.enabled) {
     issues.push('payment preparation must be disabled');
   }
@@ -54,6 +60,7 @@ function assertReadOnlyRelease(config, source = {}) {
     bindHost: config.server.bindHost,
     writeMode: config.hive.writeMode,
     controlledAccountCount: config.hive.controlledAccounts.length,
+    appTag: config.hive.appTag,
     paymentsEnabled: config.payments.enabled,
     distriatorEnabled: config.distriator.enabled,
     rpcNodeCount: config.hive.rpcNodes.length,
@@ -64,5 +71,6 @@ function assertReadOnlyRelease(config, source = {}) {
 
 module.exports = {
   EXPLICIT_READ_ONLY_SETTINGS,
+  RELEASE_APP_TAG,
   assertReadOnlyRelease,
 };

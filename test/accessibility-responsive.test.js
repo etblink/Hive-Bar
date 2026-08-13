@@ -152,7 +152,14 @@ test('key routes satisfy the automated 360 CSS-pixel responsive contract', async
 
     for (const element of document.querySelectorAll('[width]')) {
       const width = Number(element.getAttribute('width'));
-      assert.ok(!Number.isFinite(width) || width <= 360, `${route}: fixed width ${width}`);
+      if (Number.isFinite(width) && width > 360) {
+        assert.equal(element.tagName, 'IMG', `${route}: fixed width ${width}`);
+        assert.match(
+          element.getAttribute('class') || '',
+          /(?:^|\s)(?:w-full|max-w-full)(?:\s|$)/,
+          `${route}: ${width}px intrinsic image must be explicitly responsive`,
+        );
+      }
     }
     assert.doesNotMatch(
       response.text,

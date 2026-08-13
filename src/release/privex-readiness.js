@@ -2,6 +2,8 @@
 
 const { assertReadOnlyRelease } = require('./read-only-readiness');
 
+const RELEASE_PUBLIC_HOST = 'fourthstreetbar.com';
+
 const PRIVEX_EXPLICIT_SETTINGS = Object.freeze([
   'HIVE_BAR_HOST',
   'PORT',
@@ -32,6 +34,9 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
   }
   if (!publicHost || suppliedHost !== publicHost) {
     issues.push('HIVE_BAR_HOST must be a canonical DNS hostname without a scheme, port, or path');
+  }
+  if (publicHost && publicHost !== RELEASE_PUBLIC_HOST) {
+    issues.push(`HIVE_BAR_HOST must be exactly ${RELEASE_PUBLIC_HOST}`);
   }
   if (config.auth.appOrigin !== `https://${publicHost}`) {
     issues.push('APP_ORIGIN must exactly match https://HIVE_BAR_HOST');
@@ -71,6 +76,7 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
 
 module.exports = {
   PRIVEX_EXPLICIT_SETTINGS,
+  RELEASE_PUBLIC_HOST,
   assertPrivexReadOnlyRelease,
   normalizePublicHost,
 };

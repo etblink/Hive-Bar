@@ -26,6 +26,7 @@ test('loads the accepted identifiers, secure session settings, and write-disable
   assert.equal(config.hive.defaultWallFee, '1.000 HBD');
   assert.deepEqual(config.hive.globalWallExclusions, []);
   assert.equal(config.hive.messageHistoryPageSize, 25);
+  assert.equal(config.hive.appTag, 'fourth-street-bar-app/0.1.0');
   assert.deepEqual(config.payments.merchantAccounts, ['fourthstreetbar']);
   assert.equal(config.payments.maxHbd, '1.000 HBD');
   assert.equal(config.payments.receiptDbPath, ':memory:');
@@ -63,6 +64,7 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
         HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:',
         DISTRIATOR_ENABLED: 'false',
         DISTRIATOR_CLAIM_URL: 'https://distriator.com/#/claim',
+        HIVE_APP_TAG: 'fourth-street-bar-app/0.1.0',
         BIND_HOST: '127.0.0.1',
         APP_ORIGIN: 'https://hive-bar.example',
         SESSION_SECRET: 'a-production-session-secret-with-32-bytes',
@@ -74,7 +76,7 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
 test('fails closed when production settings are only implicit defaults', () => {
   assert.throws(
     () => loadConfig({ NODE_ENV: 'production' }, { loadDotenv: false }),
-    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, HIVE_WALL_DEFAULT_FEE, HIVE_PAYMENT_MERCHANT_ACCOUNTS, HIVE_PAYMENT_MAX_HBD, HIVE_PAYMENT_RECEIPT_DB_PATH, DISTRIATOR_ENABLED, DISTRIATOR_CLAIM_URL, BIND_HOST, APP_ORIGIN, SESSION_SECRET/,
+    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, HIVE_WALL_DEFAULT_FEE, HIVE_PAYMENT_MERCHANT_ACCOUNTS, HIVE_PAYMENT_MAX_HBD, HIVE_PAYMENT_RECEIPT_DB_PATH, DISTRIATOR_ENABLED, DISTRIATOR_CLAIM_URL, HIVE_APP_TAG, BIND_HOST, APP_ORIGIN, SESSION_SECRET/,
   );
 });
 
@@ -107,6 +109,14 @@ test('validates the canonical M4 wall fee and both normalized exclusion layers',
   assert.equal(config.hive.messageHistoryPageSize, 50);
   assert.throws(() => configFrom({ HIVE_WALL_DEFAULT_FEE: '1.00 HBD' }), /three decimals/);
   assert.throws(() => configFrom({ HIVE_WALL_DEFAULT_FEE: '0.000 HBD' }), /positive HBD/);
+});
+
+test('binds a protocol-valid versioned application tag', () => {
+  assert.equal(configFrom().hive.appTag, 'fourth-street-bar-app/0.1.0');
+  assert.throws(
+    () => configFrom({ HIVE_APP_TAG: 'fourth-street-bar-app-v#' }),
+    /Invalid Hive-Bar configuration: HIVE_APP_TAG/,
+  );
 });
 
 test('binds the controlled M5 merchant, amount, receipt, timeout, and Distriator settings', () => {

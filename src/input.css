@@ -111,13 +111,28 @@
     @apply underline hover:text-bar-gold;
   }
 
-  .photo-placeholder {
-    @apply grid aspect-[4/3] place-items-center rounded-2xl border border-dashed border-gray-600 bg-gray-900;
-    background-image: linear-gradient(135deg, rgb(244 164 96 / 0.08), transparent);
+  .venue-photo-card {
+    @apply overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 shadow-xl;
   }
 
-  .photo-placeholder span {
-    @apply text-xl font-black tracking-[0.25em] text-gray-500;
+  .venue-photo {
+    @apply block w-full object-cover;
+  }
+
+  .venue-photo--wide {
+    @apply aspect-[16/7];
+  }
+
+  .venue-photo--portrait {
+    @apply aspect-[3/4];
+  }
+
+  .venue-photo--top {
+    object-position: center 20%;
+  }
+
+  .venue-photo-caption {
+    @apply px-4 py-3 text-sm font-semibold text-gray-200;
   }
 
   .content-tab {
