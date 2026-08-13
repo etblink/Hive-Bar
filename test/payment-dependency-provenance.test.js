@@ -29,3 +29,16 @@ test('binds the exact M5 decoder, compatibility patch, scanner, and runtime prov
     'e68145d75b25e660098569dc5c8211898cc680ea7f0f8a8e5ee5022be0b7fe8b',
   );
 });
+
+test('applies the pinned dependency patch explicitly after script-disabled CI installs', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
+  const installAndPatch = [
+    '      - name: Install locked dependencies',
+    '        run: npm ci --ignore-scripts --no-fund',
+    '',
+    '      - name: Apply pinned dependency patch',
+    '        run: npx --no-install patch-package',
+  ].join('\n');
+
+  assert.equal(workflow.split(installAndPatch).length - 1, 2);
+});
