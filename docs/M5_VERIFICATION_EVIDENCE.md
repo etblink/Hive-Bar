@@ -1,6 +1,6 @@
 # M5 verification evidence
 
-Status: current-V4V empty-payer remediation and local gate complete. The published portability baseline passed Ubuntu/Windows CI. The later physical-device attempts stopped safely before payment preflight, and no live payment exists.
+Status: the current-V4V empty-payer remediation is published and has passed deterministic Ubuntu/Windows CI. The authorized physical-device preparation gate passed and was durably cancelled before Keychain. No live payment exists; M5 remains controlled pending the exact payment and confirmation gate.
 
 Baseline: accepted M4 published commit `8eba9ca3b203df8a91c30fe6605ee3888927f89a`; tree `616ad7245a03cae17d6e78dd1b7f08c71c6af809`
 
@@ -14,9 +14,9 @@ Evidence date: 2026-08-13
 | --- | --- |
 | Merchant allowlist | `fourthstreetbar`, supplied explicitly by the product owner on 2026-08-13 |
 | Controlled maximum | `1.000 HBD` |
-| Minimum later live exit-gate payment | `0.100 HBD`, confirmed by the product owner from the current physical V4V HBD receive flow on 2026-08-13; not prepared, authorized, or broadcast in this remediation |
+| Minimum later live exit-gate payment | `0.100 HBD`, confirmed by the product owner from the current physical V4V HBD receive flow on 2026-08-13; the preparation gate passed, but no broadcast or payment is authorized by this evidence |
 | Distriator claim URL | `https://distriator.com/#/claim`, supplied explicitly by the product owner on 2026-08-13 |
-| Distriator eligibility | Not yet authoritatively confirmed; `DISTRIATOR_ENABLED=false` remains the accepted setting |
+| Distriator eligibility | Read-only audit of the official public directory on 2026-08-13 found exactly one `Fourth Street Bar` listing at `1114 E. 4th Street, Reno, NV, 89512` and displayed `Only 30 unverified claims left.` The public record does not expose its Hive payout account; the separate current V4V invoice resolved that payment binding to `fourthstreetbar`. `DISTRIATOR_ENABLED=false` remains the accepted candidate setting until the live payment gate is complete. |
 
 ## Local implementation evidence
 
@@ -56,6 +56,8 @@ The workflow remediation was published as equivalent fast-forward child `434be7a
 
 The Windows portability remediation was published as equivalent fast-forward child `ada990d0009fc21f7bd34d49421a6a90392bcb6a`, tree `06e2b4070d9a4a4f80923e18f7711e0aa431eccc`. Cross-platform CI run `31686321120` passed 142/142 tests on both Ubuntu and Windows together with the secret scan, zero-warning lint, production build, and production audit. Its live-read job was skipped, and temporary branch `codex/m5-ci-validation` was verified deleted.
 
+The current-V4V exact-empty-payer remediation was committed locally as `a98f70ddf0fabc0857ed30056a8db70f62b4a4a9`, tree `dc7a95831e99135952f91cb879c38cc247576196`, with patch SHA-256 `e3b6c8df23131b81784b015d790e735e473ff6658945d7ee4467dafdeb587237`. It was published as equivalent fast-forward child `bb88a4116f060c495c897b622c1dfd3f61e211fb` with the same tree. Cross-platform CI run `31691781934` passed 144/144 tests on both Ubuntu and Windows together with the secret scan, zero-warning lint, production build, and production audit. Its live-read job was skipped, and temporary branch `codex/m5-ci-validation` was verified deleted.
+
 ## Windows physical-device preparation incident
 
 The product owner authorized exactly one preparation-only rehearsal on published candidate `434be7a8f4565bdae32c5c0caf7ad3725bc8d047`, tree `360121aef784942bde4b08c1b765af5cb230a58a`, for `0.001 HBD` from `@etblink` to `@fourthstreetbar`. The Windows clean checkout passed 139/141 tests and stopped before controlled-server startup. Therefore no Posting sign-in, QR scan, payment preflight, Active request, Keychain broadcast, Hive operation, or payment occurred.
@@ -87,11 +89,26 @@ The product owner clarified that current V4V requires a minimum `0.100 HBD` Hive
 
 The complete local remediation gate passed on 2026-08-13: 144/144 tests, a 146-file secret scan, zero-warning lint, production CSS build, and zero-vulnerability production audit. No Keychain request, Hive operation, payment, or physical-device retry occurred during implementation.
 
+## Successful physical-device preparation gate
+
+The product owner authorized exactly one preparation-only rehearsal on published candidate `bb88a4116f060c495c897b622c1dfd3f61e211fb`, tree `dc7a95831e99135952f91cb879c38cc247576196`, from `@etblink` to `@fourthstreetbar` for the current V4V minimum of `0.100 HBD`. The clean Windows checkout passed 144/144 tests before controlled-server startup. At most one Posting sign-in was approved, and the physical camera decoded exactly one current V4V Hive payment QR.
+
+The **Review exact Hive operation** dialog opened and showed Active authority, exactly one transfer, resolved sender `etblink`, recipient `fourthstreetbar`, amount `0.100 HBD`, and memo `v4v-dUq0a`. Every bound field matched. The immutable operation fingerprint was `78c390432962aec3ff718c96931cb29576ff5b95255e285d164d2704b09e38b1`.
+
+The product owner cancelled at review before Keychain. Hive-Bar displayed `Cancelled before broadcast. Nothing was paid.` and `Cancelled before Keychain. Nothing was broadcast.` No Active Keychain popup appeared. The durable receipt independently verified state `Cancelled`, account `@etblink`, merchant `@fourthstreetbar`, amount `0.100 HBD`, Active authority, the exact fingerprint above, and no transaction. No error text appeared, and cleanup completed independently.
+
+This preparation gate therefore passes. No Keychain Active request, broadcast, Hive operation, or payment occurred. The cancelled receipt is terminal, and its fingerprint is evidence only; it does not authorize or identify a future payment operation.
+
+After this evidence update, the complete deterministic local gate passed under Node `v24.19.0`: 144/144 tests, a 146-file secret scan, zero-warning lint, production CSS build, and zero-vulnerability production audit.
+
+## Current Distriator read-only audit
+
+On 2026-08-13, the official public [Distriator businesses directory](https://distriator.com/#/businesses) contained 630 businesses. Searching `fourth street bar` returned exactly one result and its public [Fourth Street Bar record](https://distriator.com/#/business/Fourth%20Street%20Bar) matched the expected Reno name and address, identified the business as a bar, displayed HBD support, and stated `Only 30 unverified claims left.` The record marked its onboarding post pending.
+
+This establishes a current public Distriator listing and displayed claim capacity for the tested business. The page does not expose a Hive payout account, so it does not independently prove the `@fourthstreetbar` account binding; that binding is separately evidenced by the exact decoded V4V HBD invoice and the successful controlled preflight above. No login, claim, Keychain request, Hive-Bar live-read smoke, Hive operation, or other external action was performed during this audit.
+
 ## Open M5 acceptance gates
 
-- deterministic Ubuntu and Windows remote CI on the exact current-V4V remediation successor;
-- a newly and separately authorized physical-device camera rehearsal, stopping at exact review;
-- authoritative confirmation of current 4th Street Bar Distriator eligibility before enabling its link; and
-- one separately authorized, fingerprint-bound `0.100 HBD` payment to `@fourthstreetbar`, exact two-node confirmation, durable receipt verification, and V4V/POS reconciliation.
+Deterministic cross-platform CI, the physical-device preparation gate, and current public Distriator listing verification are complete. The remaining acceptance gate is one separately authorized, newly fingerprint-bound `0.100 HBD` payment to `@fourthstreetbar`, exact two-node confirmation, durable receipt verification, and V4V/POS reconciliation. Enabling the Distriator link is a final accepted-configuration decision after that payment gate, not an authorization inferred from this document.
 
 Until every applicable gate is recorded, M5 is a controlled candidate. No authorization for preparation, Keychain, payment, retry, or broadcast may be inferred from this evidence.
