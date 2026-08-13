@@ -1,0 +1,72 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 022
+
+readonly node_version=24.19.0
+readonly archive="node-v${node_version}-linux-x64.tar.xz"
+readonly archive_sha256=14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647
+readonly download_url="https://nodejs.org/dist/v${node_version}/${archive}"
+readonly install_root="/opt/node-v${node_version}"
+
+work=
+staging=
+
+fail() {
+  printf 'Hive-Bar Node install refused: %s\n' "$1" >&2
+  exit 1
+}
+
+cleanup() {
+  if [[ -n "$work" && -d "$work" && "$work" == /tmp/hive-bar-node.* ]]; then
+    rm -rf -- "$work"
+  fi
+  if [[ -n "$staging" && -d "$staging" && "$staging" == /opt/.node-v24.19.0.* ]]; then
+    rm -rf -- "$staging"
+  fi
+}
+trap cleanup EXIT
+
+link_runtime_command() {
+  local command_name="$1"
+  local target="$install_root/bin/$command_name"
+  local link="/usr/local/bin/$command_name"
+
+  [[ -e "$target" ]] || fail "the runtime is missing $command_name"
+  if [[ -e "$link" && ! -L "$link" ]]; then
+    fail "$link exists and is not a managed symlink"
+  fi
+  ln -sfn -- "$target" "$link"
+}
+
+[[ $EUID -eq 0 ]] || fail 'run as root'
+[[ $# -eq 0 ]] || fail 'this pinned installer accepts no arguments'
+[[ "$(uname -s)" == Linux ]] || fail 'the pinned runtime requires Linux'
+[[ "$(uname -m)" == x86_64 ]] || fail 'the pinned runtime requires x86_64'
+
+if [[ ! -d "$install_root" ]]; then
+  work="$(mktemp -d /tmp/hive-bar-node.XXXXXX)"
+  staging="$(mktemp -d /opt/.node-v24.19.0.XXXXXX)"
+
+  curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error \
+    --output "$work/$archive" "$download_url"
+  (
+    cd "$work"
+    printf '%s  %s\n' "$archive_sha256" "$archive" | sha256sum --check --strict -
+  )
+  tar -xJf "$work/$archive" -C "$staging" --strip-components=1
+  [[ "$($staging/bin/node --version)" == "v$node_version" ]] || fail 'the extracted Node version is unexpected'
+  [[ "$($staging/bin/npm --version | cut -d. -f1)" -ge 11 ]] || fail 'the extracted npm major version is below 11'
+  chown -R root:root "$staging"
+  chmod -R go-w "$staging"
+  mv -T "$staging" "$install_root"
+  staging=
+fi
+
+[[ -x "$install_root/bin/node" ]] || fail 'the installed Node binary is missing'
+[[ "$($install_root/bin/node --version)" == "v$node_version" ]] || fail 'the existing Node runtime has the wrong version'
+
+link_runtime_command node
+link_runtime_command npm
+link_runtime_command npx
+
+printf 'Installed verified Node v%s from %s.\n' "$node_version" "$download_url"

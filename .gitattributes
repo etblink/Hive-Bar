@@ -2,3 +2,4 @@
 patches/*.patch text eol=lf
 .github/workflows/*.yml text eol=lf
 .github/workflows/*.yaml text eol=lf
+ops/privex/** text eol=lf

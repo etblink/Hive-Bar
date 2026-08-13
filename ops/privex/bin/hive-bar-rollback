@@ -1,0 +1,62 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 027
+
+readonly app_root=/opt/hive-bar
+readonly releases="$app_root/releases"
+readonly current="$app_root/current"
+readonly environment_file=/etc/hive-bar/hive-bar.env
+readonly runtime=/usr/local/bin/node
+readonly service=hive-bar.service
+readonly health_url=http://127.0.0.1:3000/healthz
+
+fail() {
+  printf 'Hive-Bar rollback refused: %s\n' "$1" >&2
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || fail 'run as root'
+[[ $# -eq 1 ]] || fail 'provide exactly one previously installed full commit SHA'
+commit="$1"
+[[ "$commit" =~ ^[0-9a-f]{40}$ ]] || fail 'commit must be 40 lowercase hexadecimal characters'
+[[ -r "$environment_file" ]] || fail 'the protected environment file is missing'
+[[ "$(stat -c '%U:%G:%a' "$environment_file")" == 'root:hivebar:640' ]] || fail 'the environment file must be root:hivebar mode 0640'
+[[ -x "$runtime" ]] || fail 'the pinned Node runtime is missing'
+[[ "$($runtime --version)" == 'v24.19.0' ]] || fail 'the Node runtime is not v24.19.0'
+release="$releases/$commit"
+[[ -d "$release" ]] || fail 'the requested release is not installed'
+[[ -r "$release/.hive-bar-commit" ]] || fail 'the release identity record is missing'
+[[ "$(<"$release/.hive-bar-commit")" == "$commit" ]] || fail 'the release identity record does not match'
+
+runuser -u hivebar -- env -i HOME=/nonexistent PATH=/usr/local/bin:/usr/bin:/bin sh -c '
+  set -eu
+  set -a
+  . /etc/hive-bar/hive-bar.env
+  set +a
+  PATH=/usr/local/bin:/usr/bin:/bin
+  export PATH
+  cd "$1"
+  node scripts/check-privex-release.js
+' sh "$release"
+
+previous="$(readlink -f "$current" 2>/dev/null || true)"
+next_link="$app_root/.current.rollback.${commit}.$$"
+ln -s "$release" "$next_link"
+mv -Tf "$next_link" "$current"
+systemctl restart "$service"
+
+for _attempt in {1..20}; do
+  if curl --fail --silent --show-error --max-time 5 "$health_url" | grep -Fq '"writeMode":"disabled"'; then
+    printf 'Hive-Bar rolled back to exact commit %s.\n' "$commit"
+    exit 0
+  fi
+  sleep 1
+done
+
+if [[ -n "$previous" && -d "$previous" ]]; then
+  recovery_link="$app_root/.current.recovery.$$"
+  ln -s "$previous" "$recovery_link"
+  mv -Tf "$recovery_link" "$current"
+  systemctl restart "$service"
+fi
+fail 'rollback target failed its health check; the prior release was restored when available'

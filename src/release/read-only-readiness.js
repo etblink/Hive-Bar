@@ -2,6 +2,7 @@
 
 const EXPLICIT_READ_ONLY_SETTINGS = Object.freeze([
   'NODE_ENV',
+  'BIND_HOST',
   'HIVE_WRITE_MODE',
   'HIVE_CONTROLLED_ACCOUNTS',
   'DISTRIATOR_ENABLED',
@@ -50,6 +51,7 @@ function assertReadOnlyRelease(config, source = {}) {
     profile: 'public-read-only',
     environment: config.env,
     origin: config.auth.appOrigin,
+    bindHost: config.server.bindHost,
     writeMode: config.hive.writeMode,
     controlledAccountCount: config.hive.controlledAccounts.length,
     paymentsEnabled: config.payments.enabled,

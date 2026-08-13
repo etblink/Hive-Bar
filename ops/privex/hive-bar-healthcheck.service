@@ -1,0 +1,18 @@
+[Unit]
+Description=Check the local Hive-Bar read-only process
+After=hive-bar.service
+OnFailure=hive-bar-health-alert@%n.service
+
+[Service]
+Type=oneshot
+User=nobody
+Group=nogroup
+ExecStart=/usr/local/libexec/hive-bar-healthcheck
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+CapabilityBoundingSet=

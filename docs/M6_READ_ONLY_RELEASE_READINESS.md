@@ -1,6 +1,6 @@
 # M6 public read-only release readiness
 
-Status: **local foundation implemented; deployment not authorized.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
+Status: **local Privex operations package implemented; deployment not authorized.** M5 technical preparation is complete, while its genuine-purchase gate is dormant. M6 begins with a public read-only release profile and does not enable any Hive write, payment, Keychain request, or Distriator claim.
 
 Planning date: 2026-08-13
 
@@ -30,6 +30,23 @@ The first M6 profile is `public-read-only`:
 
 `npm run release:check:read-only` validates the actual process environment without making a network request and prints only a redacted release summary. `npm run start:read-only` runs that gate immediately before server startup. The standard `npm start` remains available for controlled local procedures and is not reinterpreted as a release command.
 
+## Bound hosting target
+
+The first target is one Privex `V1-US-NVME` instance in US West running Debian 12. The recorded reference configuration is one virtual CPU, 1 GiB memory, 20 GiB NVMe storage, 100 Mbps networking, and both IPv4 and IPv6. The recorded price was USD 10 per month on 2026-08-13 and must be rechecked before any separately authorized purchase.
+
+Privex offers stronger Hive ecosystem alignment and direct HIVE/HBD procurement than the earlier managed-platform option, but it is an unmanaged VPS. Hive-Bar therefore owns operating-system patching, TLS/reverse-proxy configuration, monitoring, release retention, rollback, and backups. This tradeoff is accepted only for the narrow single-instance read-only topology; it does not authorize procurement or deployment.
+
+The target contract is machine-readable in `ops/privex/manifest.json`. `npm run release:check:privex` layers these requirements onto the generic gate:
+
+- a canonical lowercase DNS host and exactly matching HTTPS `APP_ORIGIN`;
+- Node bound only to `127.0.0.1:3000`;
+- exactly one trusted reverse-proxy hop;
+- Caddy as the only public listener;
+- an inert `:memory:` payment receipt database; and
+- a non-placeholder session secret.
+
+`npm run start:privex` validates the same contract before opening the listener. It makes no Hive request during its release check.
+
 ## Deterministic controls
 
 | Control | Evidence |
@@ -40,7 +57,17 @@ The first M6 profile is `public-read-only`:
 | Production transport | Existing configuration requires HTTPS origin and three distinct credential-free HTTPS RPC nodes |
 | Secret hygiene | Summary contains no session secret, credential, receipt path, or RPC URL |
 | Operator entrypoint | `scripts/check-read-only-release.js` and `npm run start:read-only` use the same validated configuration as the application |
+| Privex target gate | `src/release/privex-readiness.js` binds host, origin, listener, proxy, port, receipt database, and placeholder-secret rejection |
+| Runtime provenance | `ops/privex/bin/hive-bar-install-node` downloads Node v24.19.0 from nodejs.org and verifies the pinned Linux x64 SHA-256 before installation |
+| Public boundary | Caddy terminates TLS; Node listens on loopback; port 3000 is not a public service |
+| Service hardening | systemd runs an unprivileged static account with a read-only system view, empty capabilities, isolated temporary/devices, and bounded restart behavior |
+| Manual release control | Deploy and rollback require one exact full commit, validate stored commit/tree identity, rerun the Privex gate, and restore the prior symlink if health fails |
+| Operations | Local liveness timer, critical journal signal, seven-day/256 MiB journal bounds, and unattended Debian security updates are explicit assets |
 | Regression suite | LF/CRLF CI, source-safety, configuration, browser, HTTP, accessibility, receipt, and exact-operation tests remain in the full gate |
+
+## Local deterministic validation
+
+On 2026-08-13, the complete local `npm run check` gate passed on the prepared tree: the credential scan passed, ESLint passed with zero warnings, production CSS rebuilt deterministically, all 154 tests passed, and the production dependency audit reported zero vulnerabilities. The new tests exercise the redacted target gate, every material fail-closed topology deviation, CLI error hygiene, provider/runtime provenance, loopback and systemd controls, exact-commit deployment/rollback structure, LF enforcement, and POSIX shell syntax. No live Hive read, Keychain request, Hive operation, hosting action, DNS change, or deployment occurred.
 
 ## Deployment topology decision
 
@@ -52,14 +79,14 @@ Because the read-only profile cannot prepare a payment, `:memory:` is an accepta
 
 No deployment is authorized by this document. Before a public read-only release, record all of the following in one candidate-bound run:
 
-1. the chosen hosting target, canonical HTTPS origin, TLS termination, and explicit `TRUST_PROXY` value;
-2. secret injection and rotation procedure without exposing the secret in logs or shell history;
-3. `npm ci --ignore-scripts`, explicit pinned patch application, deterministic cross-platform CI, and `release:check:read-only` on the exact candidate;
-4. startup, `/healthz`, `/readyz`, graceful shutdown, and restart evidence on the target topology;
-5. a read-only live smoke only if separately authorized, with the RPC transport write allowlist still enforced;
-6. log retention, alerting, rollback to an exact commit, and a maintenance/incident owner;
+1. a canonical production hostname and the exact current Privex package, region, price, terms, and backup decision;
+2. product-owner authorization to procure infrastructure and later mutate DNS/TLS, each kept separate from a release authorization;
+3. secret injection and rotation without exposing the secret in logs or shell history;
+4. deterministic cross-platform CI and both release gates on one exact candidate;
+5. startup, `/healthz`, `/readyz`, graceful shutdown, timer failure, restart, and rollback evidence on the target topology;
+6. a read-only live smoke only if separately authorized, with the RPC transport write allowlist still enforced;
 7. confirmation that controlled writes, Pay Tab preparation, and Distriator remain unavailable in the rendered production UI; and
-8. an explicit product-owner release decision.
+8. an explicit product-owner release decision bound to the exact commit, tree, host, and environment fingerprint.
 
 ## Explicit non-goals
 

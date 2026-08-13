@@ -1,0 +1,13 @@
+{
+	admin 127.0.0.1:2019
+}
+
+{$HIVE_BAR_HOST} {
+	encode zstd gzip
+	header -Server
+	reverse_proxy 127.0.0.1:3000 {
+		health_uri /healthz
+		health_interval 30s
+		health_timeout 5s
+	}
+}

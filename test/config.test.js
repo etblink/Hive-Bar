@@ -39,6 +39,7 @@ test('loads the accepted identifiers, secure session settings, and write-disable
   assert.equal(config.site.business.phone, '(775) 324-7827');
   assert.equal(config.site.business.websiteUrl, 'https://4thstreetbarreno.com/');
   assert.equal(config.server.port, 3000);
+  assert.equal(config.server.bindHost, '127.0.0.1');
   assert.equal(config.hive.rpcNodes.length, 3);
 });
 
@@ -62,6 +63,7 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
         HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:',
         DISTRIATOR_ENABLED: 'false',
         DISTRIATOR_CLAIM_URL: 'https://distriator.com/#/claim',
+        BIND_HOST: '127.0.0.1',
         APP_ORIGIN: 'https://hive-bar.example',
         SESSION_SECRET: 'a-production-session-secret-with-32-bytes',
       }),
@@ -72,7 +74,7 @@ test('rejects a production configuration with fewer than three RPC nodes', () =>
 test('fails closed when production settings are only implicit defaults', () => {
   assert.throws(
     () => loadConfig({ NODE_ENV: 'production' }, { loadDotenv: false }),
-    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, HIVE_WALL_DEFAULT_FEE, HIVE_PAYMENT_MERCHANT_ACCOUNTS, HIVE_PAYMENT_MAX_HBD, HIVE_PAYMENT_RECEIPT_DB_PATH, DISTRIATOR_ENABLED, DISTRIATOR_CLAIM_URL, APP_ORIGIN, SESSION_SECRET/,
+    /production requires explicit SITE_NAME, BAR_ADDRESS, BAR_PHONE, BAR_HOURS, BAR_WEBSITE_URL, BAR_MAP_URL, HIVE_COMMUNITY_ID, THREADS_CONTAINER_ACCOUNT, HIVE_RPC_NODES, HIVE_WRITE_MODE, HIVE_WALL_DEFAULT_FEE, HIVE_PAYMENT_MERCHANT_ACCOUNTS, HIVE_PAYMENT_MAX_HBD, HIVE_PAYMENT_RECEIPT_DB_PATH, DISTRIATOR_ENABLED, DISTRIATOR_CLAIM_URL, BIND_HOST, APP_ORIGIN, SESSION_SECRET/,
   );
 });
 

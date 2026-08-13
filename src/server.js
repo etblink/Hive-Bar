@@ -27,10 +27,11 @@ function startServer(options = {}) {
       paymentObserver: options.paymentObserver,
       receiptStore: options.receiptStore,
     });
-  const server = app.listen(config.server.port, () => {
+  const server = app.listen(config.server.port, config.server.bindHost, () => {
     logger.info(
       {
         port: config.server.port,
+        bindHost: config.server.bindHost,
         communityId: config.hive.communityId,
         threadsContainerAccount: config.hive.threadsContainerAccount,
         writeMode: config.hive.writeMode,

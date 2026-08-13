@@ -1,0 +1,12 @@
+[Unit]
+Description=Record a critical Hive-Bar health-check failure
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger -p daemon.crit -t hive-bar-healthcheck Health check unit %i failed
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+CapabilityBoundingSet=

@@ -1,0 +1,45 @@
+[Unit]
+Description=Hive-Bar public read-only service
+Documentation=https://github.com/etblink/Hive-Bar
+Wants=network-online.target caddy.service
+After=network-online.target caddy.service
+
+[Service]
+Type=simple
+User=hivebar
+Group=hivebar
+WorkingDirectory=/opt/hive-bar/current
+EnvironmentFile=/etc/hive-bar/hive-bar.env
+ExecStart=/usr/local/bin/node /opt/hive-bar/current/scripts/start-privex.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=15s
+KillSignal=SIGTERM
+UMask=0027
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProtectSystem=strict
+ProcSubset=pid
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+LockPersonality=true
+SystemCallArchitectures=native
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hive-bar
+
+[Install]
+WantedBy=multi-user.target

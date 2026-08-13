@@ -1,6 +1,6 @@
 # Hive-Bar
 
-Hive-Bar is a focused Hive community experience for 4th Street Bar in Reno, Nevada. M1–M4 are accepted. M5's verified Pay Tab is technically prepared but remains controlled with its genuine-purchase gate dormant. The current local M6 foundation adds a fail-closed public read-only release profile while retaining the accepted public, social, profile, reward, wall, and encrypted-inbox features.
+Hive-Bar is a focused Hive community experience for 4th Street Bar in Reno, Nevada. M1–M4 are accepted. M5's verified Pay Tab is technically prepared but remains controlled with its genuine-purchase gate dormant. The current local M6 foundation binds a fail-closed public read-only profile to a reviewed Privex single-VPS topology while retaining the accepted public, social, profile, reward, wall, and encrypted-inbox features.
 
 Normal operation remains write-disabled. The server verifies identity, reads authoritative Hive state, and prepares exact operations, but it has no private keys, signing path, decrypted inbox plaintext, or broadcast RPC method. Every controlled write requires an exact preflight review and confirmation in the user's local Hive Keychain extension.
 
@@ -57,6 +57,14 @@ npm run start:read-only
 ```
 
 The gate requires production mode, HTTPS origin, three RPC nodes, write mode `disabled`, an explicitly empty controlled-account list, payments disabled, Distriator disabled, and explicit proxy/logging decisions. Its output is redacted and contains no secret or RPC URL. This command does not authorize deployment or a live-read smoke.
+
+The stricter target-specific gate binds the reviewed Privex `V1-US-NVME` topology, canonical host, loopback-only Node listener, one trusted Caddy hop, port `3000`, and inert in-memory receipt store:
+
+```sh
+npm run release:check:privex
+```
+
+`npm run start:privex` applies that same gate immediately before listening. The exact runtime, systemd, Caddy, health-check, manual exact-commit deploy/rollback, log-retention, and unattended-security-update assets live in `ops/privex/`. They are preparation artifacts only; they do not purchase a VPS, mutate DNS, fetch a release, deploy, or contact Hive.
 
 ## Primary routes
 
@@ -127,10 +135,12 @@ Normal CI never depends on public Hive availability. A manual GitHub Actions dis
 - `src/hive/wallet.js` contains deterministic HP and regenerated manabar calculations.
 - `src/hive/milestones.js` is the single tested beer-themed HP threshold table.
 - `src/content/markdown.js` is the Markdown/XSS boundary.
+- `src/release/` owns the generic and Privex-specific fail-closed release gates.
+- `ops/privex/` contains the pinned single-VPS operations contract and manually invoked deployment assets.
 - `routes/` and `views/` provide complete HTML with HTMX fragment enhancement.
 - `test/fixtures/hive/` records deterministic production-shaped RPC data.
 
-See [docs/M6_READ_ONLY_RELEASE_READINESS.md](docs/M6_READ_ONLY_RELEASE_READINESS.md) for the current non-payment release boundary. The dormant M5 boundary remains recorded in [docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md](docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md), [docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md](docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md), and [docs/M5_VERIFICATION_EVIDENCE.md](docs/M5_VERIFICATION_EVIDENCE.md). Accepted M4 remains recorded in [docs/M4_VERIFICATION_EVIDENCE.md](docs/M4_VERIFICATION_EVIDENCE.md).
+See [docs/M6_READ_ONLY_RELEASE_READINESS.md](docs/M6_READ_ONLY_RELEASE_READINESS.md) for the current non-payment release boundary and [docs/M6_PRIVEX_READ_ONLY_RUNBOOK.md](docs/M6_PRIVEX_READ_ONLY_RUNBOOK.md) for the unexecuted target procedure. The dormant M5 boundary remains recorded in [docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md](docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md), [docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md](docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md), and [docs/M5_VERIFICATION_EVIDENCE.md](docs/M5_VERIFICATION_EVIDENCE.md). Accepted M4 remains recorded in [docs/M4_VERIFICATION_EVIDENCE.md](docs/M4_VERIFICATION_EVIDENCE.md).
 
 ## Roadmap boundary
 

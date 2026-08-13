@@ -38,6 +38,7 @@ test('starts on a real TCP socket in production mode and shuts down cleanly', as
       HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:',
       DISTRIATOR_ENABLED: 'false',
       DISTRIATOR_CLAIM_URL: 'https://distriator.com/#/claim',
+      BIND_HOST: '127.0.0.1',
       APP_ORIGIN: 'https://hive-bar.example',
       SESSION_SECRET: 'a-production-session-secret-with-32-bytes',
       LOG_LEVEL: 'silent',
@@ -54,6 +55,7 @@ test('starts on a real TCP socket in production mode and shuts down cleanly', as
 
   try {
     const address = running.server.address();
+    assert.equal(address.address, '127.0.0.1');
     const response = await fetch(`http://127.0.0.1:${address.port}/healthz`);
 
     assert.equal(response.status, 200);

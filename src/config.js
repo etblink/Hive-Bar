@@ -24,6 +24,7 @@ const PRODUCTION_REQUIRED_SETTINGS = [
   'HIVE_PAYMENT_RECEIPT_DB_PATH',
   'DISTRIATOR_ENABLED',
   'DISTRIATOR_CLAIM_URL',
+  'BIND_HOST',
   'APP_ORIGIN',
   'SESSION_SECRET',
 ];
@@ -164,6 +165,7 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+    BIND_HOST: z.enum(['127.0.0.1', '::1', '0.0.0.0', '::']).default('127.0.0.1'),
     SITE_NAME: z.string().trim().min(1).max(80).default('4th Street Bar'),
     BAR_ADDRESS: z
       .string()
@@ -325,6 +327,7 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
     isProduction: result.data.NODE_ENV === 'production',
     server: {
       port: result.data.PORT,
+      bindHost: result.data.BIND_HOST,
       trustProxy,
       rateLimit: {
         windowMs: result.data.RATE_LIMIT_WINDOW_MS,

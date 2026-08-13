@@ -11,6 +11,7 @@ const {
 function productionSource(overrides = {}) {
   return {
     NODE_ENV: 'production',
+    BIND_HOST: '127.0.0.1',
     SITE_NAME: '4th Street Bar',
     BAR_ADDRESS: '1114 E. 4th Street, Reno, NV 89512',
     BAR_PHONE: '(775) 324-7827',
@@ -50,6 +51,7 @@ test('binds a redacted, explicitly configured public read-only release profile',
     profile: 'public-read-only',
     environment: 'production',
     origin: 'https://hive-bar.example',
+    bindHost: '127.0.0.1',
     writeMode: 'disabled',
     controlledAccountCount: 0,
     paymentsEnabled: false,
