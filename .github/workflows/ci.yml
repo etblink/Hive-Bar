@@ -16,8 +16,14 @@ concurrency:
 
 jobs:
   verify:
-    name: Node 24 verification
-    runs-on: ubuntu-latest
+    name: Node 24 verification (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
 
     steps:

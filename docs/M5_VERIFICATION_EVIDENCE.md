@@ -1,6 +1,6 @@
 # M5 verification evidence
 
-Status: local deterministic implementation and declared-runtime gate complete; no physical-device, remote-CI, or live-payment evidence exists
+Status: local cross-platform remediation and declared-runtime gate complete; the first physical-device preparation attempt stopped safely on a Windows-only provenance-test defect before server startup. Ubuntu/Windows remote CI is pending; no live payment exists.
 
 Baseline: accepted M4 published commit `8eba9ca3b203df8a91c30fe6605ee3888927f89a`; tree `616ad7245a03cae17d6e78dd1b7f08c71c6af809`
 
@@ -48,10 +48,31 @@ The exact lockfile was reinstalled with both full `npm ci` and production-only `
 
 No Keychain request, Hive operation, remote CI run, branch creation, commit, push, or PR change occurred during local implementation.
 
+## Publication and remote-CI evidence
+
+The original M5 implementation was published as equivalent commit `9003519ff3f9a75b2bf50a447f8467112cbdc209`, tree `4556b8d6548ee0e7922e67207743ab451c0fba85`. CI run `31682683076` correctly failed with 139/140 tests because the existing workflow used `npm ci --ignore-scripts` without explicitly applying the pinned patch. Its live-read job was skipped.
+
+The workflow remediation was published as equivalent fast-forward child `434be7a8f4565bdae32c5c0caf7ad3725bc8d047`, tree `360121aef784942bde4b08c1b765af5cb230a58a`. CI run `31683474576` then passed the explicit `patch-package 8.0.1` step, 141/141 tests, secret scan, zero-warning lint, production build, and production audit. Its live-read job was skipped, and temporary branch `codex/m5-ci-validation` was verified deleted.
+
+## Windows physical-device preparation incident
+
+The product owner authorized exactly one preparation-only rehearsal on published candidate `434be7a8f4565bdae32c5c0caf7ad3725bc8d047`, tree `360121aef784942bde4b08c1b765af5cb230a58a`, for `0.001 HBD` from `@etblink` to `@fourthstreetbar`. The Windows clean checkout passed 139/141 tests and stopped before controlled-server startup. Therefore no Posting sign-in, QR scan, payment preflight, Active request, Keychain broadcast, Hive operation, or payment occurred.
+
+Both failures were deterministic line-ending assumptions in `test/payment-dependency-provenance.test.js`:
+
+- Git converted `patches/hive-uri+0.2.8.patch` from canonical LF to CRLF. Its raw working-tree hash became `fea7b742e98481e60e2bf77fe51cf325efa9cb22a6f58867f8ecc2eb7eac342d` instead of canonical LF hash `e68145d75b25e660098569dc5c8211898cc680ea7f0f8a8e5ee5022be0b7fe8b`.
+- The workflow check searched for an LF-only multiline sequence, yielding zero matches under CRLF; normalization restored the required two matches.
+
+The payment decoder's specialized and encoded URI tests passed on Windows, so the incident did not expose a payment-decoding defect. Exact run-specific temporary files were subsequently removed with validated paths, and cleanup completed independently. The preparation authorization is consumed and does not permit a retry.
+
+The cross-platform remediation adds targeted LF attributes for patch/workflow files, canonicalizes text only for provenance comparison, simulates both LF and CRLF fixtures, and requires the deterministic verification job on both Ubuntu and Windows. This does not authorize another physical-device attempt.
+
+The remediated local tree passed the exact script-disabled install followed by explicit `patch-package 8.0.1`, the canonical and simulated-Windows provenance checks, and the complete Node `v24.19.0` gate: 142/142 tests, 145-file secret scan, zero-warning lint, production build, and zero-vulnerability production audit.
+
 ## Open M5 acceptance gates
 
-- deterministic remote CI on the exact published candidate;
-- physical-device camera and QR-image rehearsal, stopping at exact review;
+- deterministic Ubuntu and Windows remote CI on the exact remediated candidate;
+- a newly and separately authorized physical-device camera rehearsal, stopping at exact review;
 - authoritative confirmation of current 4th Street Bar Distriator eligibility before enabling its link; and
 - one separately authorized, fingerprint-bound `0.001 HBD` payment to `@fourthstreetbar`, exact two-node confirmation, durable receipt verification, and V4V/POS reconciliation.
 

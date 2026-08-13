@@ -1,0 +1,4 @@
+# Keep security-sensitive patch and workflow bytes canonical across operating systems.
+patches/*.patch text eol=lf
+.github/workflows/*.yml text eol=lf
+.github/workflows/*.yaml text eol=lf
