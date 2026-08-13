@@ -1,6 +1,6 @@
 # M5 controlled payment runbook
 
-Status: deterministic and preparation procedures only. No instruction in this file authorizes a Keychain request, Hive transfer, retry, or broadcast.
+Status: deterministic implementation and the preparation-only physical-device gate are complete. Live-payment procedures are dormant until a genuine customer purchase independently exists. No instruction in this file authorizes a Keychain request, Hive transfer, retry, claim, or broadcast.
 
 Frozen specification: Hive-Bar V1 acceptance specification 0.1.4; SHA-256 `a2b6b3203681c7e908f8aec988e429a912139c80767d0687ee5772e27bc951e4`
 
@@ -10,7 +10,7 @@ Controlled invoice maximum: `1.000 HBD`
 
 Minimum current-V4V live exit-gate amount: `0.100 HBD`, confirmed by the product owner from the physical V4V HBD receive flow on 2026-08-13
 
-Configured claim URL: `https://distriator.com/#/claim`; keep `DISTRIATOR_ENABLED=false` until current 4th Street Bar eligibility is authoritatively confirmed.
+Configured claim URL: `https://distriator.com/#/claim`; the public business listing is verified, but keep `DISTRIATOR_ENABLED=false` until a genuine purchase is chain-confirmed and enablement is separately accepted.
 
 ## Non-negotiable boundaries
 
@@ -23,10 +23,13 @@ Configured claim URL: `https://distriator.com/#/claim`; keep `DISTRIATOR_ENABLED
 - Cancellation, Keychain failure, node disagreement, missing transaction ID, and timeout do not authorize retry or rebroadcast.
 - The Hive-Bar receipt supplements but does not replace the merchant's V4V/POS reconciliation.
 - Distriator is external. Do not promise a percentage, eligibility, timing, approval, or payout and do not claim to track completion.
+- Do not create a synthetic, circular, self-directed, or otherwise unnecessary payment merely to pass M5 or qualify for cashback. A live procedure may begin only when a genuine purchase independently exists; acceptance may remain deferred indefinitely.
 
 ## Required authorization sequence
 
 Use separate product-owner authorizations for each boundary:
+
+Steps 3 through 5 below are dormant unless a genuine purchase independently exists. The successful cancelled preparation gate does not create a reason to initiate them.
 
 1. **Local deterministic setup:** checkout, install, full tests, and controlled server startup; no Keychain or Hive operation.
 2. **Preparation-only rehearsal:** at most one Posting sign-in if needed and local QR parsing; stop and cancel at the exact-operation dialog. No Active Keychain request.
@@ -35,6 +38,8 @@ Use separate product-owner authorizations for each boundary:
 5. **Observation only:** observe the returned transaction ID on independently selected configured nodes, require exact equality, preserve pending/timeout/disagreement honestly, and reconcile the durable receipt with V4V/POS.
 
 No earlier authorization carries forward to a later step.
+
+As of 2026-08-13, steps 1 and 2 have been evidenced on the published current-V4V candidate. The product owner has withheld synthetic payment and claim activity. Do not generate a candidate-bound execution script until a genuine purchase exists and a new preparation authorization is granted.
 
 ## PowerShell controlled setup template
 
@@ -95,7 +100,7 @@ finally {
 }
 ```
 
-The final candidate-specific command set must create its temporary checkout and receipt path under a validated temporary directory and must remove them only after the browser and server are closed. Never use an unresolved environment variable, wildcard, home directory, project root, or broad recursive target for cleanup.
+Any later candidate-specific command set must create its temporary checkout and receipt path under a validated temporary directory and must remove them only after the browser and server are closed. Never use an unresolved environment variable, wildcard, home directory, project root, or broad recursive target for cleanup. This template is dormant and is not a ready-to-run payment instruction.
 
 ## Exact preparation review
 
@@ -118,7 +123,7 @@ If anything differs, cancel. Do not repair the operation in place and do not ret
 
 ## Post-broadcast evidence
 
-If and only if an exact live authorization is granted and consumed, preserve:
+If and only if a genuine purchase exists and an exact live authorization is granted and consumed, preserve:
 
 - Keychain transaction ID and non-sensitive outcome text;
 - Hive-Bar receipt ID, fingerprint, `BroadcastAccepted` state, and absence of premature **Paid** text;

@@ -1,6 +1,6 @@
 # M5 verification evidence
 
-Status: the current-V4V empty-payer remediation is published and has passed deterministic Ubuntu/Windows CI. The authorized physical-device preparation gate passed and was durably cancelled before Keychain. No live payment exists; M5 remains controlled pending the exact payment and confirmation gate.
+Status: the current-V4V empty-payer remediation is published and has passed deterministic Ubuntu/Windows CI. The authorized physical-device preparation gate passed and was durably cancelled before Keychain. No live payment exists. The product owner has intentionally deferred the live-payment gate until a genuine customer purchase exists; M5 remains controlled without manufacturing a transaction.
 
 Baseline: accepted M4 published commit `8eba9ca3b203df8a91c30fe6605ee3888927f89a`; tree `616ad7245a03cae17d6e78dd1b7f08c71c6af809`
 
@@ -107,8 +107,14 @@ On 2026-08-13, the official public [Distriator businesses directory](https://dis
 
 This establishes a current public Distriator listing and displayed claim capacity for the tested business. The page does not expose a Hive payout account, so it does not independently prove the `@fourthstreetbar` account binding; that binding is separately evidenced by the exact decoded V4V HBD invoice and the successful controlled preflight above. No login, claim, Keychain request, Hive-Bar live-read smoke, Hive operation, or other external action was performed during this audit.
 
+## Genuine-purchase policy decision
+
+On 2026-08-13, the product owner directed Hive-Bar to withhold an actual payment because a transaction created solely for acceptance testing or cashback eligibility could conflict with the purpose of Distriator and be perceived as abusive. The [current public service description](https://distriator.com/) describes Distriator as **Spend to Earn**, while the official [participation guide](https://hive.blog/hive-106130/%40thedistriator/call-to-action-use-distriatorcom-to-claim-rewards) instructs users to pay at a listed business, make or complete a purchase, and document that real experience. The reviewed public material did not state a specific rule using the terms `test payment` or `fraud`, so this evidence makes no such legal or policy determination.
+
+The Project Lead therefore adopts the conservative control: do not create a synthetic, circular, self-directed, or otherwise unnecessary payment or claim for M5 validation. The frozen live-payment exit gate is deferred until a genuine purchase independently exists. No candidate-bound execution script, fingerprint preflight, Active request, broadcast, payment, or claim was prepared or performed for this decision. `DISTRIATOR_ENABLED=false` remains mandatory.
+
 ## Open M5 acceptance gates
 
-Deterministic cross-platform CI, the physical-device preparation gate, and current public Distriator listing verification are complete. The remaining acceptance gate is one separately authorized, newly fingerprint-bound `0.100 HBD` payment to `@fourthstreetbar`, exact two-node confirmation, durable receipt verification, and V4V/POS reconciliation. Enabling the Distriator link is a final accepted-configuration decision after that payment gate, not an authorization inferred from this document.
+Deterministic cross-platform CI, the physical-device preparation gate, and current public Distriator listing verification are complete. Under the frozen specification, the remaining acceptance gate is exact two-node confirmation, durable receipt verification, and V4V/POS reconciliation of a genuine purchase. That gate is intentionally dormant and may remain deferred indefinitely; it must not be satisfied by manufacturing a `0.100 HBD` transaction. If a genuine purchase later exists, it requires a new invoice and separate candidate- and fingerprint-bound authorization. Enabling the Distriator link remains a later accepted-configuration decision, not an authorization inferred from this document.
 
-Until every applicable gate is recorded, M5 is a controlled candidate. No authorization for preparation, Keychain, payment, retry, or broadcast may be inferred from this evidence.
+Until every applicable gate is recorded, M5 is a controlled candidate. No authorization for a preparation script, Keychain, payment, claim, retry, or broadcast may be inferred from this evidence.
