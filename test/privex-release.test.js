@@ -220,6 +220,16 @@ test('pins the exact Privex resource, host, and runtime provenance', () => {
   assert.match(installer, new RegExp(`readonly archive_sha256=${manifest.runtime.sha256}`));
   assert.match(installer, /sha256sum --check --strict/);
   assert.match(installer, /curl --proto '=https' --tlsv1\.2 --fail/);
+  assert.match(installer, /"\$runtime_root\/bin\/node"/);
+  assert.match(
+    installer,
+    /"\$runtime_root\/lib\/node_modules\/npm\/bin\/npm-cli\.js" --version/,
+  );
+  assert.deepEqual(installer.match(/read_bundled_npm_version "\$(?:staging|install_root)"/g), [
+    'read_bundled_npm_version "$staging"',
+    'read_bundled_npm_version "$install_root"',
+  ]);
+  assert.doesNotMatch(installer, /"\$(?:staging|install_root)\/bin\/npm" --version/);
   assert.doesNotMatch(installer, /nodesource/i);
   assert.doesNotMatch(installer, /curl[^\n]*\|\s*(?:ba)?sh/);
 
