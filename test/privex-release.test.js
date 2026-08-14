@@ -317,6 +317,26 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   assert.match(deploy, /the previous release was restored when available/);
   assert.doesNotMatch(deploy, /git (?:fetch|pull)/);
   assert.doesNotMatch(deploy, /npm install/);
+  const releaseRootModeIndex = deploy.indexOf('chmod 0750 "$staging"');
+  assert.notEqual(
+    releaseRootModeIndex,
+    -1,
+    'the release root must receive an explicit service-traversable mode',
+  );
+  assert.ok(
+    releaseRootModeIndex < deploy.indexOf('mv -T "$staging" "$release"'),
+    'the release root must become service-traversable before installation',
+  );
+  assert.match(deploy, /stat -c '%U:%G:%a' "\$release"/);
+  assert.match(deploy, /root:hivebar:750/);
+  assert.match(
+    deploy,
+    /runuser -u hivebar -- \/usr\/bin\/test -x "\$release"/,
+  );
+  assert.match(
+    deploy,
+    /runuser -u hivebar -- \/usr\/bin\/test -r "\$release\/scripts\/start-privex\.js"/,
+  );
   const runtimeRootModeIndex = installNode.indexOf('chmod 0755 "$staging"');
   assert.notEqual(
     runtimeRootModeIndex,

@@ -80,10 +80,14 @@ if [[ ! -d "$release" ]]; then
   printf '%s\n' "$tree" >"$staging/.hive-bar-tree"
   chown -R root:hivebar "$staging"
   chmod -R go-w "$staging"
+  chmod 0750 "$staging"
   mv -T "$staging" "$release"
   staging=
 fi
 
+[[ "$(stat -c '%U:%G:%a' "$release")" == 'root:hivebar:750' ]] || fail 'the installed release root ownership or mode is unsafe'
+runuser -u hivebar -- /usr/bin/test -x "$release" || fail 'the hivebar service account cannot traverse the installed release'
+runuser -u hivebar -- /usr/bin/test -r "$release/scripts/start-privex.js" || fail 'the hivebar service account cannot read the installed startup entrypoint'
 [[ -r "$release/.hive-bar-commit" ]] || fail 'stored release commit identity is missing'
 [[ -r "$release/.hive-bar-tree" ]] || fail 'stored release tree identity is missing'
 [[ "$(<"$release/.hive-bar-commit")" == "$commit" ]] || fail 'stored release commit does not match'
