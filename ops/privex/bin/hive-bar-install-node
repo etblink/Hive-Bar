@@ -66,13 +66,23 @@ if [[ ! -d "$install_root" ]]; then
   [[ "$(read_bundled_npm_version "$staging")" == "$npm_version" ]] || fail 'the extracted npm version is unexpected'
   chown -R root:root "$staging"
   chmod -R go-w "$staging"
+  chmod 0755 "$staging"
   mv -T "$staging" "$install_root"
   staging=
 fi
 
 [[ -x "$install_root/bin/node" ]] || fail 'the installed Node binary is missing'
+[[ "$(stat -c '%U:%G:%a' "$install_root")" == root:root:755 ]] \
+  || fail 'the installed runtime root ownership or mode is unsafe'
 [[ "$($install_root/bin/node --version)" == "v$node_version" ]] || fail 'the existing Node runtime has the wrong version'
 [[ "$(read_bundled_npm_version "$install_root")" == "$npm_version" ]] || fail 'the existing npm runtime has the wrong version'
+[[ -x /usr/sbin/runuser ]] || fail 'runuser is unavailable'
+id -u hivebar >/dev/null 2>&1 || fail 'the hivebar service account is missing'
+[[ "$(/usr/sbin/runuser -u hivebar -- "$install_root/bin/node" --version)" == "v$node_version" ]] \
+  || fail 'the hivebar service account cannot execute the installed Node runtime'
+[[ "$(/usr/sbin/runuser -u hivebar -- "$install_root/bin/node" \
+  "$install_root/lib/node_modules/npm/bin/npm-cli.js" --version)" == "$npm_version" ]] \
+  || fail 'the hivebar service account cannot execute the installed npm runtime'
 
 link_runtime_command node
 link_runtime_command npm

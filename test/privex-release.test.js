@@ -259,6 +259,7 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   const caddy = read('Caddyfile');
   const caddyEnvironment = read('caddy-hive-bar.conf');
   const deploy = read('bin/hive-bar-deploy');
+  const installNode = read('bin/hive-bar-install-node');
   const rollback = read('bin/hive-bar-rollback');
   const healthcheck = read('bin/hive-bar-healthcheck');
   const environment = read('hive-bar.env.example');
@@ -316,6 +317,31 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   assert.match(deploy, /the previous release was restored when available/);
   assert.doesNotMatch(deploy, /git (?:fetch|pull)/);
   assert.doesNotMatch(deploy, /npm install/);
+  const runtimeRootModeIndex = installNode.indexOf('chmod 0755 "$staging"');
+  assert.notEqual(
+    runtimeRootModeIndex,
+    -1,
+    'the runtime root must receive an explicit traversable mode',
+  );
+  assert.ok(
+    runtimeRootModeIndex < installNode.indexOf('mv -T "$staging" "$install_root"'),
+    'the runtime root must become traversable before installation',
+  );
+  assert.match(installNode, /stat -c '%U:%G:%a' "\$install_root"/);
+  assert.match(installNode, /root:root:755/);
+  assert.match(
+    installNode,
+    /runuser -u hivebar -- "\$install_root\/bin\/node" --version/,
+  );
+  assert.equal(
+    installNode.match(/runuser -u hivebar -- "\$install_root\/bin\/node"/g)
+      .length,
+    2,
+  );
+  assert.match(
+    installNode,
+    /"\$install_root\/lib\/node_modules\/npm\/bin\/npm-cli\.js" --version/,
+  );
   assert.match(rollback, /provide exactly one previously installed full commit SHA/);
   assert.match(rollback, /node scripts\/check-privex-release\.js/);
   assert.match(healthcheck, /http:\/\/127\.0\.0\.1:3000\/healthz/);
