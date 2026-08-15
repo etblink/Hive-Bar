@@ -26,6 +26,11 @@ function inspectTransaction(transaction, receipt) {
   };
 }
 
+function irreversibleBlockNumber(properties) {
+  const value = Number(properties?.last_irreversible_block_num);
+  return Number.isSafeInteger(value) && value > 0 ? value : null;
+}
+
 class PaymentObserver {
   constructor({ rpcPool, nodeUrls }) {
     if (!rpcPool || typeof rpcPool.callNode !== 'function') {
@@ -52,7 +57,22 @@ class PaymentObserver {
             { id: receipt.transactionId, include_reversible: true },
             { acceptRpcError: (error) => isUnknownTransaction(error, receipt.transactionId) },
           );
-          return { nodeUrl, ...inspectTransaction(transaction, receipt) };
+          const inspected = inspectTransaction(transaction, receipt);
+          if (inspected.status !== 'matched') return { nodeUrl, ...inspected };
+          const properties = await this.rpcPool.callNode(
+            nodeUrl,
+            'condenser_api',
+            'get_dynamic_global_properties',
+            [],
+          );
+          const lastIrreversibleBlock = irreversibleBlockNumber(properties);
+          if (!lastIrreversibleBlock) return { nodeUrl, status: 'error' };
+          return {
+            nodeUrl,
+            ...inspected,
+            lastIrreversibleBlock,
+            irreversible: inspected.blockNumber <= lastIrreversibleBlock,
+          };
         } catch {
           return { nodeUrl, status: 'error' };
         }
@@ -74,17 +94,28 @@ class PaymentObserver {
         corroborations: matches.length,
       };
     }
-    if (matches.length >= 2) {
-      const observation = matches[0];
+
+    const irreversibleMatches = matches.filter((result) => result.irreversible);
+    if (irreversibleMatches.length >= 2) {
+      const observation = irreversibleMatches[0];
       return {
         status: 'confirmed',
         diagnostic: null,
         blockNumber: observation.blockNumber,
         transactionIndex: observation.transactionIndex,
         chainTimestamp: observation.chainTimestamp,
-        corroborations: matches.length,
+        corroborations: irreversibleMatches.length,
       };
     }
+
+    if (matches.length >= 2) {
+      return {
+        status: 'pending',
+        diagnostic: `Exact payment observed by ${matches.length} configured nodes but irreversibly confirmed by only ${irreversibleMatches.length}; awaiting irreversible confirmation`,
+        corroborations: irreversibleMatches.length,
+      };
+    }
+
     return {
       status: 'pending',
       diagnostic: `Exact payment observed by ${matches.length} of ${results.length} configured nodes; awaiting independent corroboration`,
@@ -93,4 +124,4 @@ class PaymentObserver {
   }
 }
 
-module.exports = { PaymentObserver, inspectTransaction };
+module.exports = { PaymentObserver, inspectTransaction, irreversibleBlockNumber };

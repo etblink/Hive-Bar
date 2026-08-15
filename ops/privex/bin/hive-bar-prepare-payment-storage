@@ -1,0 +1,24 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 077
+
+readonly payment_dir=/var/lib/hive-bar/payments
+readonly receipt_db="$payment_dir/receipts.sqlite3"
+
+fail() {
+  printf 'Hive-Bar payment storage preparation refused: %s\n' "$1" >&2
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || fail 'run as root'
+[[ ! -L /var/lib/hive-bar ]] || fail '/var/lib/hive-bar must not be a symlink'
+install -d -o hivebar -g hivebar -m 0700 "$payment_dir"
+[[ ! -L "$payment_dir" ]] || fail 'payment directory must not be a symlink'
+
+if [[ -e "$receipt_db" ]]; then
+  [[ -f "$receipt_db" && ! -L "$receipt_db" ]] || fail 'receipt database must be a regular non-symlink file'
+  chown hivebar:hivebar "$receipt_db"
+  chmod 0600 "$receipt_db"
+fi
+
+printf 'Hive-Bar payment storage ready at %s. No payment mode was enabled.\n' "$receipt_db"

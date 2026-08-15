@@ -2,7 +2,10 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { PaymentObserver } = require('../src/payments/payment-observer');
+const {
+  PaymentObserver,
+  irreversibleBlockNumber,
+} = require('../src/payments/payment-observer');
 
 const transactionId = 'a'.repeat(40);
 const operations = [[
@@ -27,11 +30,16 @@ function transaction(overrides = {}) {
   };
 }
 
-function observer(responses) {
+function observer(responses, irreversibleBlocks = {}) {
   const calls = [];
   const rpcPool = {
     async callNode(nodeUrl, api, method, params) {
       calls.push({ nodeUrl, api, method, params });
+      if (method === 'get_dynamic_global_properties') {
+        const value = irreversibleBlocks[nodeUrl];
+        if (value instanceof Error) throw value;
+        return { last_irreversible_block_num: value ?? 109000100 };
+      }
       const value = responses[nodeUrl];
       if (value instanceof Error) throw value;
       return value;
@@ -46,7 +54,7 @@ function observer(responses) {
   };
 }
 
-test('confirms only after two independent nodes return the exact transaction', async () => {
+test('confirms only after two independent nodes return the exact transaction irreversibly', async () => {
   const fixture = observer({
     'https://node-1.example': transaction(),
     'https://node-2.example': transaction(),
@@ -56,9 +64,27 @@ test('confirms only after two independent nodes return the exact transaction', a
   assert.equal(result.status, 'confirmed');
   assert.equal(result.corroborations, 2);
   assert.equal(result.blockNumber, 109000000);
-  assert.equal(fixture.calls.length, 3);
-  assert.deepEqual(new Set(fixture.calls.map((call) => call.nodeUrl)).size, 3);
-  assert.ok(fixture.calls.every((call) => call.method === 'get_transaction'));
+  assert.equal(fixture.calls.filter((call) => call.method === 'get_transaction').length, 3);
+  assert.equal(fixture.calls.filter((call) => call.method === 'get_dynamic_global_properties').length, 2);
+});
+
+test('keeps reversible exact observations pending until two nodes report irreversibility', async () => {
+  const fixture = observer(
+    {
+      'https://node-1.example': transaction(),
+      'https://node-2.example': transaction(),
+      'https://node-3.example': transaction(),
+    },
+    {
+      'https://node-1.example': 108999999,
+      'https://node-2.example': 109000000,
+      'https://node-3.example': 108999998,
+    },
+  );
+  const result = await fixture.service.observe(receipt);
+  assert.equal(result.status, 'pending');
+  assert.equal(result.corroborations, 1);
+  assert.match(result.diagnostic, /irreversibly confirmed by only 1/);
 });
 
 test('keeps one-node observation pending and treats an exact-field mismatch as disagreement', async () => {
@@ -102,4 +128,11 @@ test('rejects confirmation inputs without a transaction id or independent nodes'
   );
   const fixture = observer({});
   await assert.rejects(() => fixture.service.observe({ ...receipt, transactionId: null }), /valid transaction id/);
+});
+
+test('normalizes only valid positive last irreversible block numbers', () => {
+  assert.equal(irreversibleBlockNumber({ last_irreversible_block_num: 123 }), 123);
+  assert.equal(irreversibleBlockNumber({ last_irreversible_block_num: '123' }), 123);
+  assert.equal(irreversibleBlockNumber({ last_irreversible_block_num: 0 }), null);
+  assert.equal(irreversibleBlockNumber({}), null);
 });

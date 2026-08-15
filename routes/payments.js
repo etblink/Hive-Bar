@@ -1,8 +1,7 @@
 'use strict';
 
 const express = require('express');
-const { requireControlledAction, requireControlledMode } = require('./social');
-const { FeatureUnavailableError } = require('../src/lib/errors');
+const { AuthorizationError, FeatureUnavailableError } = require('../src/lib/errors');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
 const { decodeHivePaymentInvoice } = require('../src/payments/invoice-decoder');
 const { RECEIPT_STATES } = require('../src/payments/receipt-store');
@@ -22,6 +21,33 @@ function responseRecord(record, config, message) {
   };
 }
 
+function requireControlledPaymentMode(config) {
+  return (req, _res, next) => {
+    if (config.hive.writeMode !== 'controlled') {
+      return next(
+        new FeatureUnavailableError(
+          'Hive payments are disabled. An individually authorized controlled-payment run is required.',
+        ),
+      );
+    }
+    if (!config.hive.controlledActions.includes('payment')) {
+      return next(
+        new FeatureUnavailableError('The payment action is disabled for this controlled run.', {
+          code: 'CONTROLLED_PAYMENT_ACTION_NOT_ALLOWED',
+        }),
+      );
+    }
+    if (!config.hive.controlledAccounts.includes(req.hiveSession.account)) {
+      return next(
+        new AuthorizationError('This Hive account is not allowlisted for the controlled-payment run', {
+          code: 'CONTROLLED_PAYMENT_ACCOUNT_NOT_ALLOWED',
+        }),
+      );
+    }
+    return next();
+  };
+}
+
 function requireMerchantBinding(config) {
   return (_req, _res, next) => {
     if (!config.payments.enabled || config.payments.merchantAccounts.length === 0) {
@@ -37,15 +63,10 @@ function requireMerchantBinding(config) {
 
 function createPaymentRouter({ config, now = Date.now }) {
   const router = express.Router();
-  const protectedReceipt = [
-    requireAppOrigin(config),
-    requireSession,
-    requireCsrf,
-  ];
+  const protectedReceipt = [requireAppOrigin(config), requireSession, requireCsrf];
   const protectedPayment = [
     ...protectedReceipt,
-    requireControlledMode(config),
-    requireControlledAction(config, 'payment'),
+    requireControlledPaymentMode(config),
     requireMerchantBinding(config),
   ];
 
@@ -151,7 +172,7 @@ function createPaymentRouter({ config, now = Date.now }) {
           record,
           config,
           record.transactionId
-            ? 'Broadcast accepted by Keychain; payment is pending exact confirmation on two Hive nodes.'
+            ? 'Broadcast accepted by Keychain; payment is pending exact confirmation on two Hive nodes and irreversible settlement.'
             : 'Broadcast accepted without a transaction id. Do not retry; the receipt remains pending for manual reconciliation.',
         ),
       );
@@ -195,7 +216,7 @@ function createPaymentRouter({ config, now = Date.now }) {
 
       let message = record.diagnostic || 'Payment remains pending. Recheck the chain before paying again.';
       if (record.state === RECEIPT_STATES.CHAIN_CONFIRMED) {
-        message = `Paid — exact transfer confirmed independently in Hive block ${record.blockNumber}.`;
+        message = `Paid — exact transfer confirmed irreversibly on independent Hive nodes in block ${record.blockNumber}.`;
         req.log.info(
           {
             account: record.account,
@@ -205,7 +226,7 @@ function createPaymentRouter({ config, now = Date.now }) {
             transactionId: record.transactionId,
             blockNumber: record.blockNumber,
           },
-          'controlled Pay Tab transfer confirmed on two Hive nodes',
+          'controlled Pay Tab transfer irreversibly confirmed on two Hive nodes',
         );
       } else if (record.state === RECEIPT_STATES.CONFIRMATION_TIMEOUT) {
         message = 'Confirmation timed out. The receipt is still pending; recheck the chain and do not pay again.';
@@ -219,4 +240,9 @@ function createPaymentRouter({ config, now = Date.now }) {
   return router;
 }
 
-module.exports = { createPaymentRouter, requireMerchantBinding, responseRecord };
+module.exports = {
+  createPaymentRouter,
+  requireControlledPaymentMode,
+  requireMerchantBinding,
+  responseRecord,
+};
