@@ -33,7 +33,7 @@ function requireControlledPaymentMode(config) {
     if (!config.hive.controlledActions.includes('payment')) {
       return next(
         new FeatureUnavailableError('The payment action is disabled for this controlled run.', {
-          code: 'CONTROLLED_PAYMENT_ACTION_NOT_ALLOWED',
+          code: 'CONTROLLED_ACTION_NOT_ALLOWED',
         }),
       );
     }

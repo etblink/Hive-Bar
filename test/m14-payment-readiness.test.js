@@ -97,7 +97,7 @@ test('rejects mixed posting/payment state, unsafe storage, extra actions, and Di
     [{ HIVE_SIGNER_MODE: 'disabled' }, /HIVE_SIGNER_MODE must be keychain/],
     [{ HIVE_PAYMENT_MERCHANT_ACCOUNTS: 'fourthstreetbar,otherbar' }, /only payment merchant/],
     [{ HIVE_PAYMENT_MAX_HBD: '2.000 HBD' }, /exactly 1\.000 HBD/],
-    [{ HIVE_PAYMENT_RECEIPT_DB_PATH: ':memory:' }, /receipts\.sqlite3/],
+    [{ HIVE_PAYMENT_RECEIPT_DB_PATH: '/tmp/receipts.sqlite3' }, /receipts\.sqlite3/],
     [{ DISTRIATOR_ENABLED: 'true' }, /Distriator must remain disabled/],
     [{ HIVE_M9_PILOT_CONTROL_PATH: '/tmp/pilot' }, /M9\/M10 posting-control state/],
     [{ HIVE_M10_OPERATOR_ARMED_UNTIL: '2099-01-01T00:00:00Z' }, /M9\/M10 posting-control state/],
