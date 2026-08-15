@@ -1,29 +1,41 @@
-<section class="rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-7" aria-labelledby="wallet-heading">
-  <header>
-    <p class="eyebrow">Public blockchain snapshot</p>
-    <h2 id="wallet-heading" class="mt-2 text-2xl font-bold">@<%= userProfile.name %> wallet summary</h2>
-    <p class="mt-3 text-sm leading-6 text-gray-400">These are public read-only values. Hive-Bar cannot move funds, reveal keys, or claim rewards from this screen.</p>
+<section class="wallet-social" aria-labelledby="wallet-heading" data-m15-surface="wallet">
+  <header class="wallet-social__header">
+    <p class="app-kicker">Public wallet</p>
+    <div class="wallet-social__identity">
+      <div>
+        <h2 id="wallet-heading" class="app-section-title">@<%= userProfile.name %> wallet</h2>
+        <p class="wallet-social__lede">A read-only snapshot of public Hive balances, account resources, and claimable rewards.</p>
+      </div>
+      <span class="wallet-social__badge">Public on Hive</span>
+    </div>
   </header>
 
-  <dl class="mt-6 grid gap-3 sm:grid-cols-3">
-    <div class="wallet-value">
+  <dl class="wallet-balance-grid grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div class="wallet-balance">
       <dt>Liquid HIVE</dt>
-      <dd><%= formatNumber(wallet.liquidHive) %> HIVE</dd>
+      <dd><%= formatNumber(wallet.liquidHive) %> <span>HIVE</span></dd>
     </div>
-    <div class="wallet-value">
+    <div class="wallet-balance">
       <dt>Liquid HBD</dt>
-      <dd><%= formatNumber(wallet.liquidHbd) %> HBD</dd>
+      <dd><%= formatNumber(wallet.liquidHbd) %> <span>HBD</span></dd>
     </div>
-    <div class="wallet-value">
+    <div class="wallet-balance">
       <dt>Hive Power</dt>
-      <dd><%= formatNumber(wallet.hivePower) %> HP</dd>
+      <dd><%= formatNumber(wallet.hivePower) %> <span>HP</span></dd>
     </div>
   </dl>
 
-  <div class="mt-7 grid gap-5 md:grid-cols-2">
-    <section class="wallet-panel" aria-labelledby="voting-power-heading">
-      <h3 id="voting-power-heading" class="text-lg font-bold text-bar-gold">Voting-power pitcher</h3>
-      <div class="mt-4 flex flex-col items-center gap-4 sm:flex-row">
+  <p class="wallet-capability-note">
+    Hive-Bar cannot move funds, reveal keys, or claim rewards from this public view. Any available owner action remains separately reviewed through Hive Keychain.
+  </p>
+
+  <div class="wallet-health-grid">
+    <section class="wallet-health" aria-labelledby="voting-power-heading">
+      <div>
+        <p class="app-kicker">Account resource</p>
+        <h3 id="voting-power-heading">Voting power</h3>
+      </div>
+      <div class="wallet-health__body">
         <div class="beer-pitcher" role="img" aria-label="Voting power: <%= formatNumber(wallet.votingPowerPercent, 2) %> percent">
           <div class="beer-foam" aria-hidden="true"></div>
           <div class="beer-segments" aria-hidden="true">
@@ -32,63 +44,76 @@
             <% } %>
           </div>
         </div>
-        <div>
-          <p class="text-3xl font-black text-white"><%= formatNumber(wallet.votingPowerPercent, 2) %>%</p>
-          <p class="mt-2 text-sm text-gray-400">Regenerated to the timestamp below.</p>
+        <div class="wallet-health__value">
+          <strong><%= formatNumber(wallet.votingPowerPercent, 2) %>%</strong>
+          <span>Regenerated to the snapshot timestamp below.</span>
         </div>
       </div>
     </section>
 
-    <section class="wallet-panel" aria-labelledby="resources-heading">
-      <h3 id="resources-heading" class="text-lg font-bold text-bar-gold">Resource credits</h3>
-      <p class="mt-4 text-3xl font-black text-white"><%= formatNumber(wallet.resourceCreditsPercent, 2) %>%</p>
-      <meter class="wallet-meter mt-4" min="0" max="100" value="<%= wallet.resourceCreditsPercent %>">
-        <%= formatNumber(wallet.resourceCreditsPercent, 2) %>%
-      </meter>
-      <p class="mt-3 text-sm text-gray-400">Current RC manabar after five-day regeneration.</p>
+    <section class="wallet-health" aria-labelledby="resources-heading">
+      <div>
+        <p class="app-kicker">Account resource</p>
+        <h3 id="resources-heading">Resource credits</h3>
+      </div>
+      <div class="wallet-health__value wallet-health__value--meter">
+        <strong><%= formatNumber(wallet.resourceCreditsPercent, 2) %>%</strong>
+        <meter class="wallet-meter" min="0" max="100" value="<%= wallet.resourceCreditsPercent %>">
+          <%= formatNumber(wallet.resourceCreditsPercent, 2) %>%
+        </meter>
+        <span>Current RC manabar after five-day regeneration.</span>
+      </div>
     </section>
   </div>
 
-  <section class="wallet-panel mt-5" aria-labelledby="milestone-heading">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p class="text-3xl" aria-hidden="true"><%= wallet.milestone.icon %></p>
-        <h3 id="milestone-heading" class="mt-1 text-xl font-bold text-bar-gold"><%= wallet.milestone.name %></h3>
+  <div class="wallet-secondary-grid">
+    <section class="wallet-module" aria-labelledby="milestone-heading">
+      <div class="wallet-module__heading">
+        <div>
+          <p class="app-kicker">Hive Power milestone</p>
+          <h3 id="milestone-heading"><%= wallet.milestone.name %></h3>
+        </div>
+        <span class="wallet-module__icon" aria-hidden="true"><%= wallet.milestone.icon %></span>
       </div>
-      <p class="font-bold"><%= formatNumber(wallet.hivePower) %> HP</p>
-    </div>
-    <label for="hp-progress" class="mt-4 block text-sm text-gray-300">
-      <%= wallet.milestone.hasNextLevel ? `Progress toward ${wallet.milestone.max.toLocaleString()} HP` : 'Highest listed milestone reached' %>
-    </label>
-    <meter id="hp-progress" class="wallet-meter mt-2" min="0" max="100" value="<%= wallet.milestone.progressPercent %>">
-      <%= formatNumber(wallet.milestone.progressPercent, 1) %>%
-    </meter>
-  </section>
+      <p class="wallet-module__amount"><%= formatNumber(wallet.hivePower) %> HP</p>
+      <label for="hp-progress" class="wallet-module__label">
+        <%= wallet.milestone.hasNextLevel ? `Progress toward ${wallet.milestone.max.toLocaleString()} HP` : 'Highest listed milestone reached' %>
+      </label>
+      <meter id="hp-progress" class="wallet-meter" min="0" max="100" value="<%= wallet.milestone.progressPercent %>">
+        <%= formatNumber(wallet.milestone.progressPercent, 1) %>%
+      </meter>
+    </section>
 
-  <section class="wallet-panel mt-5" aria-labelledby="rewards-heading">
-    <h3 id="rewards-heading" class="text-lg font-bold text-bar-gold">Claimable rewards</h3>
-    <% if (wallet.hasClaimableRewards) { %>
-      <dl class="mt-4 grid gap-3 sm:grid-cols-3">
-        <div><dt class="text-sm text-gray-400">HIVE</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hive) %></dd></div>
-        <div><dt class="text-sm text-gray-400">HBD</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hbd) %></dd></div>
-        <div><dt class="text-sm text-gray-400">Hive Power</dt><dd class="font-bold"><%= formatNumber(wallet.rewards.hivePower) %></dd></div>
-      </dl>
-      <% if (canManageProfile && writesEnabled) { %>
-        <form class="mt-5" data-m4-action="claim-rewards">
-          <button type="submit" class="button-primary">Review exact reward claim</button>
-          <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-m4-status>
-            The latest non-zero balances will be fetched again before Keychain opens.
-          </p>
-        </form>
-      <% } else if (canManageProfile) { %>
-        <p class="mt-4 text-sm text-gray-400">Reward signing is disabled until an individually authorized controlled-write run.</p>
+    <section class="wallet-module" aria-labelledby="rewards-heading">
+      <div class="wallet-module__heading">
+        <div>
+          <p class="app-kicker">Owner action</p>
+          <h3 id="rewards-heading">Claimable rewards</h3>
+        </div>
+      </div>
+      <% if (wallet.hasClaimableRewards) { %>
+        <dl class="wallet-rewards">
+          <div><dt>HIVE</dt><dd><%= formatNumber(wallet.rewards.hive) %></dd></div>
+          <div><dt>HBD</dt><dd><%= formatNumber(wallet.rewards.hbd) %></dd></div>
+          <div><dt>Hive Power</dt><dd><%= formatNumber(wallet.rewards.hivePower) %></dd></div>
+        </dl>
+        <% if (canManageProfile && writesEnabled) { %>
+          <form class="wallet-reward-action" data-m4-action="claim-rewards">
+            <button type="submit" class="button-primary">Review exact reward claim</button>
+            <p aria-live="polite" data-m4-status>
+              The latest non-zero balances will be fetched again before Keychain opens.
+            </p>
+          </form>
+        <% } else if (canManageProfile) { %>
+          <p class="wallet-module__note">Reward signing is disabled until an individually authorized controlled-write run.</p>
+        <% } %>
+      <% } else { %>
+        <p class="wallet-module__note">No non-zero reward balances were reported.</p>
       <% } %>
-    <% } else { %>
-      <p class="mt-3 text-gray-300">No non-zero reward balances were reported.</p>
-    <% } %>
-  </section>
+    </section>
+  </div>
 
-  <p class="mt-6 text-xs text-gray-500">
+  <p class="wallet-snapshot-time">
     Calculated at <time datetime="<%= wallet.displayedAt %>"><%= formatHiveDate(wallet.displayedAt) %></time>. Display rounding: 0.001 assets and HP; 0.01 percentage points.
   </p>
 </section>

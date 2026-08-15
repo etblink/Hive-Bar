@@ -1,0 +1,567 @@
+/* M15.4 wallet and pay presentation layer.
+ * Loaded after the accepted M15.3 social stylesheet. Presentation only.
+ */
+
+.wallet-social,
+.pay-shell {
+  color: var(--hb-text);
+}
+
+.wallet-social {
+  padding-block: 0.25rem 1rem;
+}
+
+.wallet-social__header {
+  padding: 0.35rem 0 1rem;
+}
+
+.wallet-social__identity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.2rem;
+}
+
+.wallet-social__lede {
+  max-width: 42rem;
+  margin-top: 0.45rem;
+  color: var(--hb-text-muted);
+  line-height: 1.6;
+}
+
+.wallet-social__badge {
+  flex: none;
+  border: 1px solid var(--hb-border);
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  background: var(--hb-surface);
+  color: var(--hb-text-subtle);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.wallet-balance-grid {
+  margin-top: 0.5rem;
+}
+
+.wallet-balance {
+  min-width: 0;
+  border-top: 1px solid var(--hb-border);
+  padding: 1rem 0.1rem 0.8rem;
+}
+
+.wallet-balance dt,
+.wallet-rewards dt,
+.pay-receipt__evidence dt {
+  color: var(--hb-text-subtle);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.wallet-balance dd {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  color: var(--hb-text);
+  font-size: clamp(1.35rem, 4vw, 1.9rem);
+  font-weight: 850;
+  letter-spacing: -0.025em;
+}
+
+.wallet-balance dd span {
+  color: var(--hb-text-subtle);
+  font-size: 0.72em;
+  font-weight: 750;
+}
+
+.wallet-capability-note {
+  margin-top: 0.6rem;
+  border-left: 3px solid var(--hb-accent);
+  padding: 0.7rem 0 0.7rem 0.9rem;
+  color: var(--hb-text-muted);
+  font-size: 0.83rem;
+  line-height: 1.55;
+}
+
+.wallet-health-grid,
+.wallet-secondary-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.wallet-health,
+.wallet-module,
+.pay-invoice-panel,
+.pay-receipt,
+.pay-state-panel {
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius-panel);
+  background: var(--hb-surface);
+}
+
+.wallet-health,
+.wallet-module {
+  padding: 1rem;
+}
+
+.wallet-health h3,
+.wallet-module h3,
+.pay-step-heading h2,
+.pay-state-panel h2,
+.pay-external-claim h3 {
+  color: var(--hb-text);
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.wallet-health h3,
+.wallet-module h3 {
+  margin-top: 0.15rem;
+  font-size: 1.05rem;
+}
+
+.wallet-health__body {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.wallet-health__value {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wallet-health__value strong,
+.wallet-module__amount {
+  color: var(--hb-text);
+  font-size: 1.6rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.wallet-health__value span,
+.wallet-module__note,
+.wallet-reward-action p,
+.wallet-snapshot-time {
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.wallet-health__value--meter {
+  margin-top: 1rem;
+}
+
+.wallet-meter {
+  width: 100%;
+  accent-color: var(--hb-accent);
+}
+
+.wallet-module__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.wallet-module__icon {
+  font-size: 1.65rem;
+}
+
+.wallet-module__amount {
+  margin-top: 1rem;
+}
+
+.wallet-module__label {
+  display: block;
+  margin-top: 0.7rem;
+  color: var(--hb-text-muted);
+  font-size: 0.78rem;
+}
+
+.wallet-rewards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.wallet-rewards > div {
+  min-width: 0;
+  border-top: 1px solid var(--hb-border);
+  padding-top: 0.65rem;
+}
+
+.wallet-rewards dd {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  color: var(--hb-text);
+  font-weight: 800;
+}
+
+.wallet-reward-action {
+  margin-top: 1rem;
+}
+
+.wallet-reward-action p {
+  margin-top: 0.5rem;
+}
+
+.wallet-snapshot-time {
+  margin-top: 1.1rem;
+}
+
+.pay-shell {
+  width: 100%;
+  padding-block: 1.25rem 3rem;
+}
+
+.pay-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.4rem 0 1.3rem;
+}
+
+.pay-merchant-logo {
+  width: 5.75rem;
+  height: 5.75rem;
+  flex: none;
+  border-radius: 1rem;
+  object-fit: cover;
+}
+
+.pay-hero__copy {
+  min-width: 0;
+}
+
+.pay-hero__copy h1 {
+  margin-top: 0.2rem;
+}
+
+.pay-hero__lede {
+  max-width: 48rem;
+  margin-top: 0.65rem;
+  color: var(--hb-text-muted);
+  line-height: 1.65;
+}
+
+.pay-hero__lede strong {
+  color: var(--hb-text);
+}
+
+.pay-merchant-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.55rem;
+  margin-top: 0.7rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pay-safety {
+  display: grid;
+  gap: 0;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--hb-border);
+  border-bottom: 1px solid var(--hb-border);
+}
+
+.pay-safety__item {
+  padding: 0.95rem 0.2rem;
+}
+
+.pay-safety__item + .pay-safety__item {
+  border-top: 1px solid var(--hb-border);
+}
+
+.pay-safety__item strong {
+  display: block;
+  color: var(--hb-text);
+  font-size: 0.86rem;
+}
+
+.pay-safety__item span {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.pay-no-retry {
+  margin-top: 1rem;
+  border-left: 3px solid var(--hb-accent);
+  padding: 0.75rem 0 0.75rem 0.9rem;
+  color: var(--hb-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.pay-no-retry strong {
+  color: var(--hb-text);
+}
+
+.pay-state-panel {
+  max-width: 46rem;
+  margin-top: 1.4rem;
+  padding: 1.2rem;
+}
+
+.pay-state-panel h2 {
+  margin-top: 0.2rem;
+  font-size: 1.3rem;
+}
+
+.pay-state-panel p:last-child {
+  margin-top: 0.55rem;
+  color: var(--hb-text-muted);
+  line-height: 1.6;
+}
+
+.pay-workspace {
+  margin-top: 1.4rem;
+  align-items: start;
+}
+
+.pay-invoice-panel,
+.pay-receipt {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.pay-step-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.pay-step-heading > span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--hb-border);
+  border-radius: 999px;
+  background: var(--hb-surface-raised);
+  color: var(--hb-accent);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.pay-step-heading h2 {
+  margin-top: 0.15rem;
+  font-size: 1.15rem;
+}
+
+.pay-panel-copy {
+  margin-top: 0.8rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.pay-capture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.pay-camera {
+  margin-top: 0.9rem;
+  border: 1px solid var(--hb-border);
+  border-radius: 0.8rem;
+  background: #000;
+  object-fit: cover;
+}
+
+.pay-invoice-form {
+  margin-top: 1rem;
+}
+
+.pay-invoice-form label {
+  display: block;
+  color: var(--hb-text-muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.pay-invoice-form textarea {
+  width: 100%;
+  margin-top: 0.45rem;
+  border: 1px solid var(--hb-border);
+  border-radius: 0.75rem;
+  padding: 0.8rem;
+  background: #000;
+  color: var(--hb-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.pay-invoice-form button {
+  margin-top: 0.8rem;
+}
+
+.pay-signing-boundary,
+.pay-status,
+.pay-receipt__message,
+.pay-receipt__caution,
+.pay-receipt__merchant-note,
+.pay-external-disabled {
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.pay-signing-boundary {
+  margin-top: 0.9rem;
+}
+
+.pay-signing-boundary strong,
+.pay-receipt__caution strong {
+  color: var(--hb-text-muted);
+}
+
+.pay-status {
+  min-height: 1.4rem;
+  margin-top: 0.6rem;
+}
+
+.pay-receipt__state {
+  margin-top: 0.9rem;
+  border-radius: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--hb-surface-raised);
+  color: var(--hb-accent);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.pay-receipt__evidence {
+  margin-top: 0.9rem;
+}
+
+.pay-receipt__evidence > div {
+  min-width: 0;
+  border-top: 1px solid var(--hb-border);
+  padding-top: 0.65rem;
+}
+
+.pay-receipt__evidence dd {
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  color: var(--hb-text);
+}
+
+.pay-proof {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+}
+
+.pay-receipt__message,
+.pay-receipt__caution,
+.pay-receipt__merchant-note,
+.pay-external-disabled {
+  margin-top: 0.9rem;
+}
+
+.pay-receipt__caution {
+  border-left: 3px solid var(--hb-accent);
+  padding-left: 0.75rem;
+}
+
+.pay-recheck {
+  margin-top: 0.9rem;
+}
+
+.pay-external-claim,
+.pay-external-disabled {
+  border-top: 1px solid var(--hb-border);
+  padding-top: 0.9rem;
+}
+
+.pay-external-claim h3 {
+  margin-top: 0.2rem;
+}
+
+.pay-external-claim p:not(.app-kicker) {
+  margin-top: 0.45rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.pay-external-claim a {
+  display: inline-flex;
+  margin-top: 0.75rem;
+}
+
+.pay-receipt--standalone {
+  max-width: 46rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .wallet-health-grid,
+  .wallet-secondary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pay-safety {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pay-safety__item {
+    padding-inline: 1rem;
+  }
+
+  .pay-safety__item + .pay-safety__item {
+    border-top: 0;
+    border-left: 1px solid var(--hb-border);
+  }
+
+  .pay-invoice-panel,
+  .pay-receipt {
+    padding: 1.2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pay-receipt:not(.pay-receipt--standalone) {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .wallet-social__identity,
+  .pay-hero {
+    align-items: flex-start;
+  }
+
+  .wallet-social__identity {
+    flex-direction: column;
+  }
+
+  .wallet-health__body {
+    align-items: flex-start;
+  }
+
+  .wallet-rewards {
+    grid-template-columns: 1fr;
+  }
+
+  .pay-merchant-logo {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+}
