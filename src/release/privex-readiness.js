@@ -1,6 +1,7 @@
 'use strict';
 
 const { assertReadOnlyRelease } = require('./read-only-readiness');
+const { PAYMENT_DB_PATH, isSafePaymentDatabasePath } = require('./payment-storage');
 
 const RELEASE_PUBLIC_HOST = 'fourthstreetbar.com';
 
@@ -28,6 +29,7 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
   const missing = PRIVEX_EXPLICIT_SETTINGS.filter((name) => !hasOwn(source, name));
   const suppliedHost = String(source.HIVE_BAR_HOST || '');
   const publicHost = normalizePublicHost(suppliedHost);
+  const durableReceiptObservation = config.payments.receiptDbPath === PAYMENT_DB_PATH;
 
   if (missing.length > 0) {
     issues.push(`Privex decisions are required for ${missing.join(', ')}`);
@@ -50,8 +52,34 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
   if (config.server.trustProxy !== 'loopback') {
     issues.push('TRUST_PROXY must be exactly loopback so only the local Caddy peer is trusted');
   }
-  if (config.payments.receiptDbPath !== ':memory:') {
-    issues.push('HIVE_PAYMENT_RECEIPT_DB_PATH must be :memory: for the inert read-only profile');
+  if (
+    config.payments.receiptDbPath !== ':memory:' &&
+    !isSafePaymentDatabasePath(config.payments.receiptDbPath)
+  ) {
+    issues.push(`HIVE_PAYMENT_RECEIPT_DB_PATH must be :memory: or exactly ${PAYMENT_DB_PATH} with no symlink target`);
+  }
+  if (durableReceiptObservation) {
+    if (config.hive.signerMode !== 'disabled') {
+      issues.push('HIVE_SIGNER_MODE must be disabled for durable read-only receipt observation');
+    }
+    if (
+      config.payments.merchantAccounts.length !== 1 ||
+      config.payments.merchantAccounts[0] !== 'fourthstreetbar'
+    ) {
+      issues.push('durable read-only receipt observation must remain bound to @fourthstreetbar');
+    }
+    if (config.payments.maxHbd !== '1.000 HBD') {
+      issues.push('durable read-only receipt observation must retain the 1.000 HBD ceiling');
+    }
+    if (
+      config.hive.m9PilotControlPath ||
+      config.hive.m10OperatorArmedUntil ||
+      config.hive.m10OperatorAuditPath ||
+      config.hive.m12MerchantAuthor ||
+      config.hive.m12AuthorizedSigners.length
+    ) {
+      issues.push('durable read-only receipt observation must contain no M9/M10/M12 posting-control state');
+    }
   }
   if (/replace_with|change_me|example_secret/i.test(String(source.SESSION_SECRET || ''))) {
     issues.push('SESSION_SECRET must not contain an example placeholder');
@@ -61,9 +89,11 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
     throw new Error(`Privex release gate failed: ${issues.join('; ')}`);
   }
 
-  return Object.freeze({
+  const topology = {
     ...base,
-    profile: 'privex-public-read-only',
+    profile: durableReceiptObservation
+      ? 'privex-public-read-only-durable-receipts'
+      : 'privex-public-read-only',
     provider: 'Privex',
     package: 'V1-US-NVME',
     region: 'US West',
@@ -74,7 +104,12 @@ function assertPrivexReadOnlyRelease(config, source = {}) {
     visitorIpHeader: 'CF-Connecting-IP',
     publicHost,
     port: config.server.port,
-  });
+  };
+  if (durableReceiptObservation) {
+    topology.receiptDatabase = PAYMENT_DB_PATH;
+    topology.receiptObservation = true;
+  }
+  return Object.freeze(topology);
 }
 
 module.exports = {

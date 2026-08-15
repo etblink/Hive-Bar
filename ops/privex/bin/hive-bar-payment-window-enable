@@ -1,0 +1,241 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 027
+
+readonly app_root=/opt/hive-bar
+readonly current="$app_root/current"
+readonly active_env=/etc/hive-bar/hive-bar.env
+readonly payment_env=/etc/hive-bar/hive-bar.payment.env
+readonly authorization_root=/etc/hive-bar/payment-authorizations
+readonly consumed_root="$authorization_root/consumed"
+readonly backup_env=/etc/hive-bar/hive-bar.env.m14-payment-window-read-only
+readonly runtime_marker=/run/hive-bar/m14-payment-window
+readonly runtime=/usr/local/bin/node
+readonly service=hive-bar.service
+readonly health_timer=hive-bar-healthcheck.timer
+readonly health_url=http://127.0.0.1:3000/healthz
+readonly disable_bin=/usr/local/sbin/hive-bar-payment-window-disable
+readonly window_minutes=15
+
+fail() {
+  printf 'M14_4_PAYMENT_WINDOW_REFUSED: %s\n' "$1" >&2
+  exit 1
+}
+
+health_mode() {
+  local mode="$1"
+  curl --fail --silent --max-time 2 "$health_url" 2>/dev/null | grep -Fq "\"writeMode\":\"$mode\""
+}
+
+wait_health_mode() {
+  local mode="$1"
+  local attempt
+  for attempt in {1..40}; do
+    if health_mode "$mode"; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  return 1
+}
+
+assert_loopback_listener() {
+  local lines
+  lines="$(ss -ltnH '( sport = :3000 )' 2>/dev/null || true)"
+  [[ -n "$lines" ]] || return 1
+  [[ "$(printf '%s\n' "$lines" | wc -l)" -eq 1 ]] || return 1
+  printf '%s\n' "$lines" | grep -Eq '127\.0\.0\.1:3000([[:space:]]|$)'
+}
+
+file_identity_ok() {
+  local filename="$1"
+  local expected="$2"
+  [[ -f "$filename" && ! -L "$filename" ]] || return 1
+  [[ "$(stat -c '%U:%G:%a' "$filename")" == "$expected" ]]
+}
+
+secret_digest() {
+  local filename="$1"
+  (
+    set -Eeuo pipefail
+    set -a
+    # shellcheck disable=SC1090
+    source "$filename"
+    set +a
+    [[ -n "${SESSION_SECRET:-}" ]] || exit 7
+    printf '%s' "$SESSION_SECRET" | sha256sum | awk '{print $1}'
+  )
+}
+
+run_release_gate() {
+  local env_file="$1"
+  local release="$2"
+  local gate_script="$3"
+  runuser -u hivebar -- env -i HOME=/nonexistent PATH=/usr/local/bin:/usr/bin:/bin /bin/bash -c '
+    set -Eeuo pipefail
+    set -a
+    source "$1"
+    set +a
+    cd "$2"
+    exec /usr/local/bin/node "$3"
+  ' bash "$env_file" "$release" "$gate_script"
+}
+
+run_payment_gate() {
+  local release="$1"
+  runuser -u hivebar -- env -i HOME=/nonexistent PATH=/usr/local/bin:/usr/bin:/bin /bin/bash -c '
+    set -Eeuo pipefail
+    set -a
+    source "$1"
+    set +a
+    cd "$2"
+    exec /usr/local/bin/node -e '\''const { loadConfig } = require("./src/config"); const { assertPrivexControlledPayment } = require("./src/release/payment-readiness"); const c = loadConfig(process.env); const s = assertPrivexControlledPayment(c, process.env); if (s.payer !== "etblink" || s.merchant !== "fourthstreetbar" || s.action !== "payment" || s.authority !== "Active" || s.signer !== "keychain" || s.distriatorEnabled !== false) throw new Error("unexpected M14 payment profile summary");'\''
+  ' bash "$payment_env" "$release"
+}
+
+stop_timer() {
+  local unit="$1"
+  systemctl stop "$unit.timer" >/dev/null 2>&1 || true
+  systemctl stop "$unit.service" >/dev/null 2>&1 || true
+  systemctl reset-failed "$unit.timer" "$unit.service" >/dev/null 2>&1 || true
+}
+
+rollback_after_activation_failure() {
+  local message="$1"
+  local timer_unit="$2"
+  set +e
+  printf 'M14_4_PAYMENT_WINDOW_ROLLBACK_BEGIN\n' >&2
+  if [[ -f "$backup_env" && ! -L "$backup_env" ]]; then
+    local restore_tmp="${active_env}.restore.$$"
+    install -o root -g hivebar -m 0640 "$backup_env" "$restore_tmp"
+    mv -Tf "$restore_tmp" "$active_env"
+    systemctl restart "$service"
+    if wait_health_mode disabled; then
+      printf 'M14_4_PAYMENT_WINDOW_ROLLBACK=read-only-restored\n' >&2
+      rm -f -- "$backup_env" "$runtime_marker"
+    else
+      printf 'M14_4_PAYMENT_WINDOW_ROLLBACK=CRITICAL-read-only-health-not-restored\n' >&2
+    fi
+  else
+    printf 'M14_4_PAYMENT_WINDOW_ROLLBACK=CRITICAL-backup-missing\n' >&2
+  fi
+  stop_timer "$timer_unit"
+  systemctl start "$health_timer" >/dev/null 2>&1 || true
+  printf 'M14_4_PAYMENT_WINDOW_ROLLBACK_END\n' >&2
+  set -e
+  fail "$message"
+}
+
+[[ $EUID -eq 0 ]] || fail 'run as root'
+[[ $# -eq 2 ]] || fail 'provide exactly: <frozen-record-path> <frozen-record-sha256>'
+manifest="$1"
+manifest_digest="$2"
+[[ "$manifest_digest" =~ ^[0-9a-f]{64}$ ]] || fail 'frozen-record digest must be 64 lowercase hexadecimal characters'
+[[ -x "$runtime" && "$($runtime --version)" == 'v24.19.0' ]] || fail 'pinned Node v24.19.0 is required'
+[[ -x "$disable_bin" ]] || fail 'the accepted payment-window disable helper is not installed'
+[[ -d "$current" ]] || fail 'current release is missing'
+release="$(readlink -f "$current")"
+[[ "$release" == "$app_root"/releases/* ]] || fail 'current release does not resolve beneath the release root'
+[[ -r "$release/.hive-bar-commit" && -r "$release/.hive-bar-tree" ]] || fail 'current release identity markers are missing'
+commit="$(<"$release/.hive-bar-commit")"
+tree="$(<"$release/.hive-bar-tree")"
+[[ "$commit" =~ ^[0-9a-f]{40}$ && "$tree" =~ ^[0-9a-f]{40}$ ]] || fail 'current release identity markers are malformed'
+
+[[ -d "$authorization_root" && ! -L "$authorization_root" ]] || fail 'payment authorization directory is missing or unsafe'
+[[ "$(stat -c '%U:%G:%a' "$authorization_root")" == 'root:root:700' ]] || fail 'payment authorization directory must be root:root mode 0700'
+manifest_real="$(readlink -f "$manifest")"
+[[ "$manifest_real" == "$authorization_root"/*.json ]] || fail 'frozen record must be a direct JSON child of the protected authorization directory'
+file_identity_ok "$manifest" 'root:root:600' || fail 'frozen record must be a regular non-symlink root:root mode 0600 file'
+[[ "$(sha256sum "$manifest" | awk '{print $1}')" == "$manifest_digest" ]] || fail 'frozen-record SHA-256 does not match the operator-supplied digest'
+
+[[ -d "$consumed_root" && ! -L "$consumed_root" ]] || fail 'consumed-authorization directory is missing or unsafe'
+[[ "$(stat -c '%U:%G:%a' "$consumed_root")" == 'root:root:700' ]] || fail 'consumed-authorization directory must be root:root mode 0700'
+consumed_marker="$consumed_root/$manifest_digest.used"
+[[ ! -e "$consumed_marker" ]] || fail 'this frozen record has already opened or attempted a payment window'
+
+file_identity_ok "$active_env" 'root:hivebar:640' || fail 'active environment must be root:hivebar mode 0640'
+file_identity_ok "$payment_env" 'root:hivebar:640' || fail 'inactive payment environment must be root:hivebar mode 0640'
+[[ ! -e "$backup_env" ]] || fail 'a prior payment-window read-only backup already exists'
+systemctl is-active --quiet "$service" || fail 'hive-bar.service is not active'
+systemctl is-active --quiet "$health_timer" || fail 'standard healthcheck timer must be active before payment-window activation'
+wait_health_mode disabled || fail 'public production is not healthy in read-only mode before activation'
+assert_loopback_listener || fail 'application listener is not exactly loopback-only before activation'
+
+run_release_gate "$active_env" "$release" scripts/check-privex-release.js >/dev/null || fail 'active read-only environment no longer satisfies the Privex release gate'
+run_payment_gate "$release" || fail 'inactive payment environment no longer satisfies the exact M14 payment gate'
+[[ "$(secret_digest "$active_env")" == "$(secret_digest "$payment_env")" ]] || fail 'active and inactive profiles do not carry the same protected session secret'
+
+"$runtime" "$release/scripts/m14-freeze-genuine-purchase.js" \
+  --verify-file "$manifest" --commit "$commit" --tree "$tree" >/dev/null \
+  || fail 'frozen genuine-purchase record failed exact verification against the active release'
+fingerprint="$($runtime -e 'const fs=require("node:fs");const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(r.operationFingerprint);' "$manifest")"
+amount="$($runtime -e 'const fs=require("node:fs");const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(r.amount);' "$manifest")"
+[[ "$fingerprint" =~ ^[0-9a-f]{64}$ ]] || fail 'verified record returned an invalid fingerprint'
+
+active_hash="$(sha256sum "$active_env" | awk '{print $1}')"
+install -o root -g hivebar -m 0640 "$active_env" "$backup_env"
+[[ "$(sha256sum "$backup_env" | awk '{print $1}')" == "$active_hash" ]] || { rm -f -- "$backup_env"; fail 'read-only backup did not preserve exact active-environment bytes'; }
+
+install -d -o root -g root -m 0700 /run/hive-bar
+unit="hive-bar-payment-window-${manifest_digest:0:16}"
+if systemctl status "$unit.timer" >/dev/null 2>&1 || systemctl status "$unit.service" >/dev/null 2>&1; then
+  rm -f -- "$backup_env"
+  fail 'the transient timeout unit for this frozen record already exists'
+fi
+
+activated_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+consumed_tmp="${consumed_marker}.tmp.$$"
+printf 'manifest_sha256=%s\nfingerprint=%s\nrelease_commit=%s\nrelease_tree=%s\nwindow_attempted_at=%s\n' \
+  "$manifest_digest" "$fingerprint" "$commit" "$tree" "$activated_at" > "$consumed_tmp"
+chown root:root "$consumed_tmp"
+chmod 0600 "$consumed_tmp"
+mv -Tf "$consumed_tmp" "$consumed_marker"
+
+marker_tmp="${runtime_marker}.tmp.$$"
+printf 'MANIFEST_SHA256=%s\nFINGERPRINT=%s\nTIMER_UNIT=%s\nACTIVATED_AT=%s\n' \
+  "$manifest_digest" "$fingerprint" "$unit" "$activated_at" > "$marker_tmp"
+chown root:root "$marker_tmp"
+chmod 0600 "$marker_tmp"
+mv -Tf "$marker_tmp" "$runtime_marker"
+
+if ! systemd-run --quiet --unit="$unit" --on-active="${window_minutes}m" \
+  "$disable_bin" timeout "$manifest_digest"; then
+  rm -f -- "$backup_env" "$runtime_marker"
+  fail 'could not schedule the mandatory automatic read-only restoration'
+fi
+
+if ! systemctl stop "$health_timer"; then
+  stop_timer "$unit"
+  rm -f -- "$backup_env" "$runtime_marker"
+  fail 'could not suspend the read-only-only healthcheck timer for the bounded controlled window'
+fi
+
+activation_tmp="${active_env}.payment.$$"
+install -o root -g hivebar -m 0640 "$payment_env" "$activation_tmp"
+mv -Tf "$activation_tmp" "$active_env"
+
+if ! systemctl restart "$service"; then
+  rollback_after_activation_failure 'service restart failed after payment-profile activation' "$unit"
+fi
+if ! wait_health_mode controlled; then
+  rollback_after_activation_failure 'controlled payment profile failed health; read-only restoration was attempted' "$unit"
+fi
+if ! assert_loopback_listener; then
+  rollback_after_activation_failure 'listener escaped the approved loopback binding; read-only restoration was attempted' "$unit"
+fi
+
+printf 'M14_4_PAYMENT_WINDOW=ACTIVE\n'
+printf 'M14_4_ACCEPTED_COMMIT=%s\n' "$commit"
+printf 'M14_4_ACCEPTED_TREE=%s\n' "$tree"
+printf 'M14_4_MANIFEST_SHA256=%s\n' "$manifest_digest"
+printf 'M14_4_OPERATION_FINGERPRINT=%s\n' "$fingerprint"
+printf 'M14_4_AMOUNT=%s\n' "$amount"
+printf 'M14_4_PAYER=etblink\n'
+printf 'M14_4_MERCHANT=fourthstreetbar\n'
+printf 'M14_4_AUTHORITY=Active\n'
+printf 'M14_4_DISTRIATOR=disabled\n'
+printf 'M14_4_STANDARD_HEALTHCHECK_TIMER=suspended-until-read-only-restoration\n'
+printf 'M14_4_AUTODISABLE_MINUTES=%s\n' "$window_minutes"
+printf 'M14_4_KEYCHAIN_REQUESTS=Not-performed\n'
+printf 'M14_4_HIVE_WRITES=Not-performed\n'
+printf 'M14_4_NEXT_BOUNDARY=separate-exact-Keychain-authorization-required\n'

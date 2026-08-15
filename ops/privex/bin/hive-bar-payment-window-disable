@@ -1,0 +1,211 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 027
+
+readonly app_root=/opt/hive-bar
+readonly current="$app_root/current"
+readonly active_env=/etc/hive-bar/hive-bar.env
+readonly backup_env=/etc/hive-bar/hive-bar.env.m14-payment-window-read-only
+readonly runtime_marker=/run/hive-bar/m14-payment-window
+readonly runtime=/usr/local/bin/node
+readonly service=hive-bar.service
+readonly health_timer=hive-bar-healthcheck.timer
+readonly health_url=http://127.0.0.1:3000/healthz
+readonly payment_db=/var/lib/hive-bar/payments/receipts.sqlite3
+
+fail() {
+  printf 'M14_4_PAYMENT_WINDOW_DISABLE_REFUSED: %s\n' "$1" >&2
+  exit 1
+}
+
+critical() {
+  printf 'M14_4_PAYMENT_WINDOW_DISABLE_CRITICAL: %s\n' "$1" >&2
+  exit 2
+}
+
+health_disabled() {
+  curl --fail --silent --max-time 2 "$health_url" 2>/dev/null | grep -Fq '"writeMode":"disabled"'
+}
+
+wait_health_disabled() {
+  local attempt
+  for attempt in {1..40}; do
+    if health_disabled; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  return 1
+}
+
+assert_loopback_listener() {
+  local lines
+  lines="$(ss -ltnH '( sport = :3000 )' 2>/dev/null || true)"
+  [[ -n "$lines" ]] || return 1
+  [[ "$(printf '%s\n' "$lines" | wc -l)" -eq 1 ]] || return 1
+  printf '%s\n' "$lines" | grep -Eq '127\.0\.0\.1:3000([[:space:]]|$)'
+}
+
+file_identity_ok() {
+  local filename="$1"
+  local expected="$2"
+  [[ -f "$filename" && ! -L "$filename" ]] || return 1
+  [[ "$(stat -c '%U:%G:%a' "$filename")" == "$expected" ]]
+}
+
+env_write_mode() {
+  local filename="$1"
+  runuser -u hivebar -- env -i HOME=/nonexistent PATH=/usr/local/bin:/usr/bin:/bin /bin/bash -c '
+    set -Eeuo pipefail
+    set -a
+    source "$1"
+    set +a
+    printf "%s" "${HIVE_WRITE_MODE:-}"
+  ' bash "$filename"
+}
+
+run_read_only_gate() {
+  local release="$1"
+  local env_file="$2"
+  runuser -u hivebar -- env -i HOME=/nonexistent PATH=/usr/local/bin:/usr/bin:/bin /bin/bash -c '
+    set -Eeuo pipefail
+    set -a
+    source "$1"
+    set +a
+    cd "$2"
+    exec /usr/local/bin/node scripts/check-privex-release.js
+  ' bash "$env_file" "$release"
+}
+
+set_env_value() {
+  local filename="$1"
+  local key="$2"
+  local value="$3"
+  local staged="${filename}.set.$$"
+  awk -v key="$key" -v value="$value" '
+    BEGIN { replaced = 0 }
+    $0 ~ "^" key "=" {
+      if (!replaced) print key "=" value
+      replaced = 1
+      next
+    }
+    { print }
+    END { if (!replaced) print key "=" value }
+  ' "$filename" > "$staged"
+  chown root:hivebar "$staged"
+  chmod 0640 "$staged"
+  mv -Tf "$staged" "$filename"
+}
+
+marker_value() {
+  local key="$1"
+  awk -F= -v key="$key" '$1 == key { sub(/^[^=]*=/, ""); print; found=1 } END { if (!found) exit 1 }' "$runtime_marker"
+}
+
+stop_timer_unit() {
+  local unit="$1"
+  [[ -n "$unit" ]] || return 0
+  systemctl stop "$unit.timer" >/dev/null 2>&1 || true
+  systemctl stop "$unit.service" >/dev/null 2>&1 || true
+  systemctl reset-failed "$unit.timer" "$unit.service" >/dev/null 2>&1 || true
+}
+
+[[ $EUID -eq 0 ]] || fail 'run as root'
+[[ $# -le 2 ]] || fail 'usage: hive-bar-payment-window-disable [manual | timeout <manifest-sha256>]'
+mode="${1:-manual}"
+[[ "$mode" == 'manual' || "$mode" == 'timeout' ]] || fail 'mode must be manual or timeout'
+if [[ "$mode" == 'manual' ]]; then
+  [[ $# -le 1 ]] || fail 'manual mode takes no manifest digest'
+else
+  [[ $# -eq 2 ]] || fail 'timeout mode requires the manifest SHA-256'
+  [[ "$2" =~ ^[0-9a-f]{64}$ ]] || fail 'timeout manifest digest must be 64 lowercase hexadecimal characters'
+fi
+[[ -x "$runtime" && "$($runtime --version)" == 'v24.19.0' ]] || fail 'pinned Node v24.19.0 is required'
+[[ -d "$current" ]] || fail 'current release is missing'
+release="$(readlink -f "$current")"
+[[ "$release" == "$app_root"/releases/* ]] || fail 'current release does not resolve beneath the release root'
+file_identity_ok "$active_env" 'root:hivebar:640' || fail 'active environment must be root:hivebar mode 0640'
+
+active_mode="$(env_write_mode "$active_env")" || fail 'could not read active write mode'
+
+if [[ ! -e "$backup_env" ]]; then
+  if [[ "$active_mode" == 'disabled' ]]; then
+    if [[ -e "$runtime_marker" ]]; then
+      file_identity_ok "$runtime_marker" 'root:root:600' || fail 'runtime marker is unsafe'
+      timer_unit="$(marker_value TIMER_UNIT 2>/dev/null || true)"
+      if [[ "$mode" == 'manual' ]]; then stop_timer_unit "$timer_unit"; fi
+      rm -f -- "$runtime_marker"
+    fi
+    systemctl start "$health_timer" >/dev/null 2>&1 || true
+    wait_health_disabled || critical 'production reports read-only configuration but local health is not read-only'
+    assert_loopback_listener || critical 'production reports read-only configuration but listener is not loopback-only'
+    printf 'M14_4_PAYMENT_WINDOW=ALREADY_READ_ONLY\n'
+    printf 'M14_4_HIVE_WRITES=Not-performed\n'
+    printf 'M14_4_KEYCHAIN_REQUESTS=Not-performed\n'
+    exit 0
+  fi
+  critical 'active production is not read-only and the exact read-only backup is missing; refusing to guess'
+fi
+
+file_identity_ok "$backup_env" 'root:hivebar:640' || critical 'read-only backup is missing, symlinked, or has unsafe ownership/mode'
+[[ -e "$runtime_marker" ]] || critical 'read-only backup exists but the payment-window runtime marker is missing'
+file_identity_ok "$runtime_marker" 'root:root:600' || critical 'payment-window runtime marker is unsafe'
+
+manifest_digest="$(marker_value MANIFEST_SHA256)" || critical 'runtime marker lacks manifest digest'
+fingerprint="$(marker_value FINGERPRINT)" || critical 'runtime marker lacks operation fingerprint'
+timer_unit="$(marker_value TIMER_UNIT)" || critical 'runtime marker lacks timeout unit'
+[[ "$manifest_digest" =~ ^[0-9a-f]{64}$ ]] || critical 'runtime marker manifest digest is malformed'
+[[ "$fingerprint" =~ ^[0-9a-f]{64}$ ]] || critical 'runtime marker fingerprint is malformed'
+[[ "$timer_unit" =~ ^hive-bar-payment-window-[0-9a-f]{16}$ ]] || critical 'runtime marker timeout unit is malformed'
+if [[ "$mode" == 'timeout' && "$2" != "$manifest_digest" ]]; then
+  critical 'timeout manifest digest does not match the active payment window'
+fi
+
+run_read_only_gate "$release" "$backup_env" >/dev/null || critical 'saved inert read-only environment no longer satisfies the exact Privex release gate'
+backup_hash="$(sha256sum "$backup_env" | awk '{print $1}')"
+observation_tmp="${active_env}.observation.$$"
+install -o root -g hivebar -m 0640 "$backup_env" "$observation_tmp"
+[[ "$(sha256sum "$observation_tmp" | awk '{print $1}')" == "$backup_hash" ]] || { rm -f -- "$observation_tmp"; critical 'observation staging did not preserve the saved baseline before bounded edits'; }
+set_env_value "$observation_tmp" HIVE_WRITE_MODE disabled
+set_env_value "$observation_tmp" HIVE_CONTROLLED_ACCOUNTS ''
+set_env_value "$observation_tmp" HIVE_CONTROLLED_ACTIONS ''
+set_env_value "$observation_tmp" HIVE_SIGNER_MODE disabled
+set_env_value "$observation_tmp" HIVE_PAYMENT_MERCHANT_ACCOUNTS fourthstreetbar
+set_env_value "$observation_tmp" HIVE_PAYMENT_MAX_HBD '"1.000 HBD"'
+set_env_value "$observation_tmp" HIVE_PAYMENT_RECEIPT_DB_PATH "$payment_db"
+set_env_value "$observation_tmp" DISTRIATOR_ENABLED false
+set_env_value "$observation_tmp" HIVE_M9_PILOT_CONTROL_PATH ''
+set_env_value "$observation_tmp" HIVE_M10_OPERATOR_ARMED_UNTIL ''
+set_env_value "$observation_tmp" HIVE_M10_OPERATOR_AUDIT_PATH ''
+set_env_value "$observation_tmp" HIVE_M12_MERCHANT_AUTHOR ''
+set_env_value "$observation_tmp" HIVE_M12_AUTHORIZED_SIGNERS ''
+run_read_only_gate "$release" "$observation_tmp" >/dev/null || { rm -f -- "$observation_tmp"; critical 'derived durable receipt-observation profile failed the exact Privex read-only gate'; }
+mv -Tf "$observation_tmp" "$active_env"
+
+if ! systemctl restart "$service"; then
+  systemctl start "$health_timer" >/dev/null 2>&1 || true
+  critical 'durable read-only observation profile was installed on disk but service restart failed; production remains fail-closed and requires operator repair'
+fi
+if ! wait_health_disabled; then
+  systemctl start "$health_timer" >/dev/null 2>&1 || true
+  critical 'durable read-only observation profile was installed on disk but read-only health did not recover'
+fi
+if ! assert_loopback_listener; then
+  systemctl start "$health_timer" >/dev/null 2>&1 || true
+  critical 'durable read-only observation profile is active but listener is not exactly loopback-only'
+fi
+
+rm -f -- "$backup_env" "$runtime_marker"
+if [[ "$mode" == 'manual' ]]; then stop_timer_unit "$timer_unit"; fi
+if ! systemctl start "$health_timer"; then
+  critical 'read-only production recovered but the standard healthcheck timer could not be restarted'
+fi
+
+printf 'M14_4_PAYMENT_WINDOW=DISABLED\n'
+printf 'M14_4_RESTORED_PROFILE=durable-read-only-receipt-observation\n'
+printf 'M14_4_RECEIPT_DATABASE=%s\n' "$payment_db"
+printf 'M14_4_MANIFEST_SHA256=%s\n' "$manifest_digest"
+printf 'M14_4_OPERATION_FINGERPRINT=%s\n' "$fingerprint"
+printf 'M14_4_HEALTHCHECK_TIMER=active\n'
+printf 'M14_4_HIVE_WRITES=Not-performed\n'
+printf 'M14_4_KEYCHAIN_REQUESTS=Not-performed\n'
