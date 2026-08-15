@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const { requireControlledMode } = require('./social');
+const { requireControlledAction, requireControlledMode } = require('./social');
 const { FeatureUnavailableError } = require('../src/lib/errors');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
 const { decodeHivePaymentInvoice } = require('../src/payments/invoice-decoder');
@@ -45,6 +45,7 @@ function createPaymentRouter({ config, now = Date.now }) {
   const protectedPayment = [
     ...protectedReceipt,
     requireControlledMode(config),
+    requireControlledAction(config, 'payment'),
     requireMerchantBinding(config),
   ];
 

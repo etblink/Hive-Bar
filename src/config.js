@@ -7,6 +7,21 @@ const { parseAsset } = require('./hive/assets');
 
 const HIVE_ACCOUNT_PATTERN = /^(?=.{3,64}$)[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*$/;
 const COMMUNITY_PATTERN = /^hive-[0-9]{3,12}$/;
+const CONTROLLED_ACTIONS = Object.freeze([
+  'post',
+  'thread',
+  'comment',
+  'vote',
+  'follow',
+  'unfollow',
+  'subscribe',
+  'unsubscribe',
+  'profile',
+  'claim-rewards',
+  'wall',
+  'inbox',
+  'payment',
+]);
 const PRODUCTION_REQUIRED_SETTINGS = [
   'SITE_NAME',
   'BAR_ADDRESS',
@@ -19,9 +34,6 @@ const PRODUCTION_REQUIRED_SETTINGS = [
   'HIVE_RPC_NODES',
   'HIVE_WRITE_MODE',
   'HIVE_WALL_DEFAULT_FEE',
-  'HIVE_PAYMENT_MERCHANT_ACCOUNTS',
-  'HIVE_PAYMENT_MAX_HBD',
-  'HIVE_PAYMENT_RECEIPT_DB_PATH',
   'DISTRIATOR_ENABLED',
   'DISTRIATOR_CLAIM_URL',
   'HIVE_APP_TAG',
@@ -29,6 +41,21 @@ const PRODUCTION_REQUIRED_SETTINGS = [
   'APP_ORIGIN',
   'SESSION_SECRET',
 ];
+
+const PRODUCTION_PAYMENT_REQUIRED_SETTINGS = [
+  'HIVE_PAYMENT_MERCHANT_ACCOUNTS',
+  'HIVE_PAYMENT_MAX_HBD',
+  'HIVE_PAYMENT_RECEIPT_DB_PATH',
+];
+
+function hasControlledPaymentAction(source) {
+  return (
+    String(source.HIVE_WRITE_MODE || '').trim() === 'controlled' &&
+    String(source.HIVE_CONTROLLED_ACTIONS || '')
+      .split(',')
+      .some((action) => action.trim().toLowerCase() === 'payment')
+  );
+}
 
 function parseRpcNodes(value, context) {
   const nodes = value
@@ -86,6 +113,22 @@ function parseAccountList(value, context) {
   }
 
   return [...new Set(accounts)];
+}
+
+function parseControlledActions(value, context) {
+  const actions = String(value || '')
+    .split(',')
+    .map((action) => action.trim().toLowerCase())
+    .filter(Boolean);
+
+  for (const action of actions) {
+    if (!CONTROLLED_ACTIONS.includes(action)) {
+      context.addIssue({ code: 'custom', message: `Invalid controlled action: ${action}` });
+      return z.NEVER;
+    }
+  }
+
+  return [...new Set(actions)];
 }
 
 function parseWallFee(value, context) {
@@ -189,6 +232,11 @@ const envSchema = z
       )
       .transform(requireHttpsUrl),
     HIVE_COMMUNITY_ID: z.string().trim().regex(COMMUNITY_PATTERN).default('hive-108590'),
+    HIVE_OFFICIAL_BAR_ACCOUNT: z
+      .string()
+      .trim()
+      .regex(HIVE_ACCOUNT_PATTERN)
+      .default('fourthstreetbar'),
     THREADS_CONTAINER_ACCOUNT: z
       .string()
       .trim()
@@ -200,6 +248,16 @@ const envSchema = z
       .transform(parseRpcNodes),
     HIVE_WRITE_MODE: z.enum(['disabled', 'controlled', 'production']).default('disabled'),
     HIVE_CONTROLLED_ACCOUNTS: z.string().default('').transform(parseAccountList),
+    HIVE_CONTROLLED_ACTIONS: z
+      .string()
+      .default(CONTROLLED_ACTIONS.join(','))
+      .transform(parseControlledActions),
+    HIVE_SIGNER_MODE: z.enum(['disabled', 'keychain']).default('disabled'),
+    HIVE_M9_PILOT_CONTROL_PATH: z.string().trim().default(''),
+    HIVE_M10_OPERATOR_ARMED_UNTIL: z.string().trim().default(''),
+    HIVE_M10_OPERATOR_AUDIT_PATH: z.string().trim().default(''),
+    HIVE_M12_MERCHANT_AUTHOR: z.string().trim().default(''),
+    HIVE_M12_AUTHORIZED_SIGNERS: z.string().default('').transform(parseAccountList),
     HIVE_WALL_DEFAULT_FEE: z.string().default('1.000 HBD').transform(parseWallFee),
     HIVE_GLOBAL_WALL_EXCLUSIONS: z.string().default('').transform(parseAccountList),
     HIVE_MESSAGE_HISTORY_PAGE_SIZE: z.coerce.number().int().min(5).max(100).default(25),
@@ -274,9 +332,28 @@ const envSchema = z
         message: 'Controlled mode requires at least one explicitly allowlisted Hive account',
       });
     }
+    if (env.HIVE_WRITE_MODE === 'controlled' && env.HIVE_CONTROLLED_ACTIONS.length === 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['HIVE_CONTROLLED_ACTIONS'],
+        message: 'Controlled mode requires at least one explicitly allowlisted action',
+      });
+    }
+    const m12Configured = Boolean(env.HIVE_M12_MERCHANT_AUTHOR || env.HIVE_M12_AUTHORIZED_SIGNERS.length);
+    if (m12Configured && (!env.HIVE_M12_MERCHANT_AUTHOR || env.HIVE_M12_AUTHORIZED_SIGNERS.length === 0)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['HIVE_M12_AUTHORIZED_SIGNERS'],
+        message: 'M12 delegated posting requires both a merchant author and at least one explicit signer',
+      });
+    }
+    if (env.HIVE_M12_MERCHANT_AUTHOR && !HIVE_ACCOUNT_PATTERN.test(env.HIVE_M12_MERCHANT_AUTHOR)) {
+      context.addIssue({ code: 'custom', path: ['HIVE_M12_MERCHANT_AUTHOR'], message: 'Invalid merchant author account' });
+    }
     if (
       env.NODE_ENV !== 'test' &&
       env.HIVE_WRITE_MODE === 'controlled' &&
+      env.HIVE_CONTROLLED_ACTIONS.includes('payment') &&
       env.HIVE_PAYMENT_RECEIPT_DB_PATH === ':memory:'
     ) {
       context.addIssue({
@@ -298,7 +375,10 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
   if (loadDotenv) dotenv.config({ quiet: true });
 
   if (String(source.NODE_ENV || '').trim() === 'production') {
-    const missing = PRODUCTION_REQUIRED_SETTINGS.filter(
+    const requiredSettings = hasControlledPaymentAction(source)
+      ? [...PRODUCTION_REQUIRED_SETTINGS, ...PRODUCTION_PAYMENT_REQUIRED_SETTINGS]
+      : PRODUCTION_REQUIRED_SETTINGS;
+    const missing = requiredSettings.filter(
       (name) => source[name] === undefined || String(source[name]).trim() === '',
     );
     if (missing.length > 0) {
@@ -348,6 +428,7 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
     },
     hive: {
       communityId: result.data.HIVE_COMMUNITY_ID,
+      officialBarAccount: result.data.HIVE_OFFICIAL_BAR_ACCOUNT,
       threadsContainerAccount: result.data.THREADS_CONTAINER_ACCOUNT,
       rpcNodes: result.data.HIVE_RPC_NODES,
       rpcTimeoutMs: result.data.HIVE_RPC_TIMEOUT_MS,
@@ -355,6 +436,13 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
       rpcCooldownMs: result.data.HIVE_RPC_COOLDOWN_MS,
       writeMode: result.data.HIVE_WRITE_MODE,
       controlledAccounts: result.data.HIVE_CONTROLLED_ACCOUNTS,
+      controlledActions: result.data.HIVE_CONTROLLED_ACTIONS,
+      signerMode: result.data.HIVE_SIGNER_MODE,
+      m9PilotControlPath: result.data.HIVE_M9_PILOT_CONTROL_PATH,
+      m10OperatorArmedUntil: result.data.HIVE_M10_OPERATOR_ARMED_UNTIL,
+      m10OperatorAuditPath: result.data.HIVE_M10_OPERATOR_AUDIT_PATH,
+      m12MerchantAuthor: result.data.HIVE_M12_MERCHANT_AUTHOR,
+      m12AuthorizedSigners: result.data.HIVE_M12_AUTHORIZED_SIGNERS,
       defaultWallFee: result.data.HIVE_WALL_DEFAULT_FEE,
       globalWallExclusions: result.data.HIVE_GLOBAL_WALL_EXCLUSIONS,
       messageHistoryPageSize: result.data.HIVE_MESSAGE_HISTORY_PAGE_SIZE,
@@ -368,6 +456,7 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
       confirmationTimeoutMs: result.data.HIVE_PAYMENT_CONFIRMATION_TIMEOUT_MS,
       enabled:
         result.data.HIVE_WRITE_MODE === 'controlled' &&
+        result.data.HIVE_CONTROLLED_ACTIONS.includes('payment') &&
         result.data.HIVE_PAYMENT_MERCHANT_ACCOUNTS.length > 0,
     },
     distriator: {
@@ -397,9 +486,11 @@ function deepFreeze(value) {
 
 module.exports = {
   COMMUNITY_PATTERN,
+  CONTROLLED_ACTIONS,
   HIVE_ACCOUNT_PATTERN,
   PRODUCTION_REQUIRED_SETTINGS,
   parseAccountList,
+  parseControlledActions,
   parseBoolean,
   parseReceiptPath,
   parseWallFee,

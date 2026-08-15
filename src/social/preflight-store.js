@@ -16,7 +16,7 @@ class PreflightStore {
     this.fingerprints = new Map();
   }
 
-  create({ sessionId, envelope }) {
+  create({ sessionId, envelope, signer = envelope.account }) {
     this.prune();
     const duplicateKey = `${envelope.account}:${envelope.fingerprint}`;
     const duplicateId = this.fingerprints.get(duplicateKey);
@@ -33,6 +33,7 @@ class PreflightStore {
       id,
       sessionId,
       account: envelope.account,
+      signer,
       action: envelope.action,
       authority: envelope.authority,
       operations: envelope.operations,
@@ -115,6 +116,7 @@ class PreflightStore {
     return {
       id: record.id,
       account: record.account,
+      signer: record.signer,
       action: record.action,
       authority: record.authority,
       operations: record.operations,

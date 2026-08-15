@@ -29,6 +29,20 @@ class PostingAuthorityVerifier {
     return this.#authoritySatisfied(account, publicKey, cache, visited, 0);
   }
 
+  async isDirectAccountAuthorized(authorValue, signerValue) {
+    const author = requireHiveAccount(authorValue, 'Merchant author');
+    const signer = requireHiveAccount(signerValue, 'Delegated signer');
+    const rawAccount = await this.#getAccount(author, new Map());
+    if (!rawAccount) return false;
+    const authority = normalizedAuthority(rawAccount.posting);
+    if (!authority) return false;
+    const entry = authority.accountAuths.find((candidate) => (
+      Array.isArray(candidate) && candidate[0] === signer
+    ));
+    const weight = Number(entry?.[1]);
+    return Number.isSafeInteger(weight) && weight >= authority.threshold;
+  }
+
   async #authoritySatisfied(account, publicKey, cache, visited, depth) {
     if (depth > this.maxDepth || visited.has(account) || cache.size >= this.maxAccounts) return false;
 

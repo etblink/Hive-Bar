@@ -9,6 +9,7 @@ Normal operation remains write-disabled. The server verifies identity, reads aut
 | Item | Value |
 | --- | --- |
 | Community | `hive-108590` |
+| Official update author | `fourthstreetbar` |
 | Production threads container | `fourthst.threads` |
 | Bar address | `1114 E. 4th Street, Reno, NV 89512` |
 | Bar hours | Daily, 12:00 p.m.–2:00 a.m. |
@@ -149,6 +150,10 @@ Normal CI never depends on public Hive availability. A manual GitHub Actions dis
 - `test/fixtures/hive/` records deterministic production-shaped RPC data.
 
 See [docs/M6_READ_ONLY_RELEASE_READINESS.md](docs/M6_READ_ONLY_RELEASE_READINESS.md) for the current non-payment release boundary and [docs/M6_PRIVEX_READ_ONLY_RUNBOOK.md](docs/M6_PRIVEX_READ_ONLY_RUNBOOK.md) for the unexecuted target procedure. The dormant M5 boundary remains recorded in [docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md](docs/M5_READINESS_AND_IMPLEMENTATION_PLAN.md), [docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md](docs/M5_CONTROLLED_PAYMENT_RUNBOOK.md), and [docs/M5_VERIFICATION_EVIDENCE.md](docs/M5_VERIFICATION_EVIDENCE.md). Accepted M4 remains recorded in [docs/M4_VERIFICATION_EVIDENCE.md](docs/M4_VERIFICATION_EVIDENCE.md).
+
+The current operational next step is [docs/M11_USABLE_BAR_PILOT_SPECIFICATION.md](docs/M11_USABLE_BAR_PILOT_SPECIFICATION.md): a bounded 30-day marketing and official-posting pilot that deliberately defers a CMS, broader social writes, and payments. M11.1 adds a bounded read-only home-page feed of official bar updates; it changes neither the writing boundary nor server-side key handling.
+
+[docs/M12_STAFF_POSTING_AUTHORITY_SPECIFICATION.md](docs/M12_STAFF_POSTING_AUTHORITY_SPECIFICATION.md) records the separate staff-delegation decision boundary. Delegated Posting authority is broad on-chain authority, not an operation-scoped Hive-Bar permission; it is never a substitute for sharing or storing a merchant private key.
 
 ## Roadmap boundary
 

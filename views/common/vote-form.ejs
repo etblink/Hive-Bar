@@ -1,4 +1,4 @@
-<% if (hiveSession && writesEnabled) { %>
+<% if (hiveSession && canWriteAction('vote')) { %>
   <form class="mt-4 flex flex-wrap items-end gap-3" data-social-action="vote">
     <input type="hidden" name="author" value="<%= item.author %>">
     <input type="hidden" name="permlink" value="<%= item.permlink %>">

@@ -4,8 +4,28 @@ const express = require('express');
 
 const router = express.Router();
 
-router.get('/', (_req, res) => {
-  res.render('pages/home/index', { pageTitle: res.app.locals.siteName });
+router.get('/', async (req, res, next) => {
+  try {
+    const { config, services } = req.app.locals;
+    let officialUpdates = { items: [], status: 'empty' };
+    try {
+      const items = await services.hiveReads.getOfficialCommunityPosts({
+        account: config.hive.officialBarAccount,
+        community: config.hive.communityId,
+        limit: 3,
+      });
+      officialUpdates = { items, status: items.length > 0 ? 'ready' : 'empty' };
+    } catch (error) {
+      req.log?.warn({ err: error }, 'Official home-page updates are unavailable');
+      officialUpdates = { items: [], status: 'unavailable' };
+    }
+    res.render('pages/home/index', {
+      pageTitle: res.app.locals.siteName,
+      officialUpdates,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.get('/pay', (req, res) => {

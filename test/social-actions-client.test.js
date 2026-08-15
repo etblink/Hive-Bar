@@ -31,7 +31,7 @@ function response(body, status = 200) {
 
 function testBrowser() {
   const dom = new JSDOM(
-    `<!doctype html><form data-social-action="vote">
+    `<!doctype html><form data-social-action="vote" data-signer-mode="keychain">
       <input name="author" value="barfriend">
       <input name="permlink" value="hello-reno">
       <input name="percent" value="37">
@@ -174,6 +174,39 @@ test('review cancellation releases the preflight without invoking Keychain', asy
       '/api/social/preflight/preflight-1/cancel',
     ]);
     assert.match(form.querySelector('[data-social-status]').textContent, /Nothing was broadcast/);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test('a disabled signer cancels the prepared operation without invoking Keychain', async () => {
+  const dom = testBrowser();
+  const form = dom.window.document.querySelector('form');
+  form.dataset.signerMode = 'disabled';
+  const urls = [];
+  let broadcasts = 0;
+  const controller = new dom.window.HiveBarSocial.SocialActionController({
+    fetchImpl: async (url) => {
+      urls.push(url);
+      if (url === '/auth/session') return response({ authenticated: true, csrfToken: 'csrf-1' });
+      if (url === '/api/social/preflight/vote') return response(preflight, 201);
+      if (url.endsWith('/cancel')) return response(null, 204);
+      throw new Error(`Unexpected URL ${url}`);
+    },
+    review: async () => true,
+    keychainFactory: () => ({ async broadcast() { broadcasts += 1; } }),
+  });
+
+  try {
+    await controller.run(form);
+    assert.equal(broadcasts, 0);
+    assert.deepEqual(urls, [
+      '/auth/session',
+      '/api/social/preflight/vote',
+      '/api/social/preflight/preflight-1/cancel',
+    ]);
+    assert.match(form.querySelector('[data-social-status]').textContent, /Signer handoff is disabled/);
+    assert.match(form.querySelector('[data-social-status]').textContent, /nothing was broadcast/i);
   } finally {
     dom.window.close();
   }

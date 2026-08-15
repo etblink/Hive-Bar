@@ -5,7 +5,7 @@ const { requireHiveAccount } = require('../src/http/validation');
 const { buildM4Operation, M4_ACTIONS } = require('../src/hive/m4-operations');
 const { ValidationError } = require('../src/lib/errors');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
-const { TRANSACTION_ID_PATTERN, requireControlledMode } = require('./social');
+const { TRANSACTION_ID_PATTERN, assertControlledAction, requireControlledMode } = require('./social');
 
 function requireM4Record(store, id, sessionId) {
   const record = store.get(id, sessionId);
@@ -44,6 +44,7 @@ function createM4Router({ config }) {
   router.post('/preflight/:action', ...protectedWrite, async (req, res, next) => {
     try {
       const action = String(req.params.action || '').toLowerCase();
+      assertControlledAction(config, action);
       let envelope;
       if (action === 'profile') {
         const accountRecord = await req.app.locals.services.hiveReads.getAccountRecord(

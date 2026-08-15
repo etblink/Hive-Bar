@@ -18,6 +18,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errors');
 const { requestContext } = require('./middleware/request-context');
 const { sessionContext } = require('./middleware/session');
 const { PreflightStore } = require('./social/preflight-store');
+const { isM10OperatorArmActive } = require('./social/operator-posting-mode');
 const { createHealthRouter } = require('./routes/health');
 const { createAuthRouter } = require('../routes/auth');
 const { createM4Router } = require('../routes/m4');
@@ -119,6 +120,12 @@ function createApp(options = {}) {
   app.locals.communityId = config.hive.communityId;
   app.locals.threadsContainerAccount = config.hive.threadsContainerAccount;
   app.locals.writesEnabled = config.hive.writesEnabled;
+  app.locals.signerMode = config.hive.signerMode;
+  app.locals.canWriteAction = (action) => (
+    config.hive.writesEnabled &&
+    config.hive.controlledActions.includes(action) &&
+    isM10OperatorArmActive(config)
+  );
   app.locals.paymentsEnabled = config.payments.enabled;
   app.locals.currentYear = new Date().getUTCFullYear();
   app.locals.formatPayout = (item) => {

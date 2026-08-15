@@ -18,7 +18,7 @@
   <p class="mt-5 rounded-lg bg-black/40 p-3 text-sm text-gray-400">
     Public data from Hive community <strong class="text-gray-200"><%= communityInfo.name %></strong>.
   </p>
-  <% if (hiveSession && writesEnabled && membership !== null) { %>
+  <% if (hiveSession && canWriteAction(membership ? 'unsubscribe' : 'subscribe') && membership !== null) { %>
     <form class="mt-5" data-social-action="<%= membership ? 'unsubscribe' : 'subscribe' %>">
       <button type="submit" class="button-primary w-full">
         <%= membership ? 'Unsubscribe' : 'Subscribe' %>

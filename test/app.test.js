@@ -53,6 +53,49 @@ test('renders a truthful, complete home document with hardened response headers'
   assert.match(response.headers['x-request-id'], /^[0-9a-f-]{36}$/);
 });
 
+test('renders only bounded official community-root updates on the home page', async () => {
+  const calls = [];
+  const app = appWithRpc(async (api, method, params) => {
+    calls.push({ api, method, params });
+    assert.equal(api, 'bridge');
+    assert.equal(method, 'get_ranked_posts');
+    return [
+      {
+        author: 'fourthstreetbar', permlink: 'official-update', parent_author: '',
+        parent_permlink: 'hive-108590', title: 'Official <update>', body: 'Fresh news', active_votes: [],
+      },
+      {
+        author: 'someoneelse', permlink: 'not-official', parent_author: '',
+        parent_permlink: 'hive-108590', title: 'Do not show', body: 'Nope', active_votes: [],
+      },
+      {
+        author: 'fourthstreetbar', permlink: 'reply', parent_author: 'someoneelse',
+        parent_permlink: 'not-official', title: 'Do not show reply', body: 'Nope', active_votes: [],
+      },
+    ];
+  });
+
+  const response = await request(app).get('/').expect(200);
+  assert.match(response.text, /Latest from 4th Street Bar/);
+  assert.match(response.text, /Official &lt;update&gt;/);
+  assert.match(response.text, /Fresh news/);
+  assert.doesNotMatch(response.text, /Do not show/);
+  assert.match(response.text, /\/post\/fourthstreetbar\/official-update/);
+  assert.deepEqual(calls, [{
+    api: 'bridge', method: 'get_ranked_posts',
+    params: { tag: 'hive-108590', sort: 'created', limit: 25 },
+  }]);
+});
+
+test('keeps the home page available when official updates cannot be read', async () => {
+  const app = appWithRpc(async () => {
+    throw new Error('sensitive RPC outage detail');
+  });
+  const response = await request(app).get('/').expect(200);
+  assert.match(response.text, /Official updates are temporarily unavailable/);
+  assert.doesNotMatch(response.text, /sensitive RPC outage detail/);
+});
+
 test('serves local HTMX rather than a third-party runtime script', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/htmx/htmx.min.js').expect(200);

@@ -1,7 +1,7 @@
-<% if (hiveSession && writesEnabled) { %>
+<% if (hiveSession && canWriteAction('post')) { %>
   <details class="mb-5 rounded-xl border border-gray-700 bg-gray-900 p-4">
     <summary class="cursor-pointer font-bold text-bar-gold">Create a community post</summary>
-    <form class="mt-4 space-y-4" data-social-action="post">
+    <form class="mt-4 space-y-4" data-social-action="post" data-signer-mode="<%= signerMode %>">
       <div>
         <label class="block text-sm font-bold text-gray-200" for="new-post-title">Title</label>
         <input id="new-post-title" name="title" type="text" required data-max-bytes="256" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white">

@@ -147,6 +147,25 @@ class HiveReadService {
     return this.#contentPage(Array.isArray(raw) ? raw : [], cursor, activeSort);
   }
 
+  async getOfficialCommunityPosts({ account, community, limit = 3 }) {
+    const author = requireHiveAccount(account, 'Official bar account');
+    const tag = String(community || '').trim();
+    if (!/^hive-[0-9]{3,12}$/.test(tag)) {
+      throw new TypeError('Official bar community is invalid');
+    }
+    const boundedLimit = Math.min(6, Math.max(1, Number(limit) || 3));
+    const raw = await this.rpcPool.call('bridge', 'get_ranked_posts', {
+      tag,
+      sort: 'created',
+      limit: 25,
+    });
+
+    return (Array.isArray(raw) ? raw : [])
+      .filter((item) => item?.author === author && item?.parent_author === '')
+      .slice(0, boundedLimit)
+      .map(normalizeContent);
+  }
+
   async getAccountPosts({ account, cursor: cursorValue = null }) {
     const username = requireHiveAccount(account);
     const cursor = requirePageCursor(cursorValue);

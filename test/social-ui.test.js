@@ -47,6 +47,19 @@ function authenticatedApp(writeMode = 'controlled') {
   return { app, cookie: `hive_bar_session=${token}` };
 }
 
+function postOnlyAuthenticatedApp() {
+  const baseRpc = createFixtureRpc();
+  const config = configFrom({
+    HIVE_WRITE_MODE: 'controlled',
+    HIVE_CONTROLLED_ACCOUNTS: 'fourthstreetbar',
+    HIVE_CONTROLLED_ACTIONS: 'post',
+    SESSION_SECRET,
+  });
+  const sessionStore = new SessionStore({ secret: config.auth.sessionSecret, ttlMs: config.auth.sessionTtlMs });
+  const { token } = sessionStore.create('fourthstreetbar');
+  return { app: createApp({ config, logger, rpcPool: baseRpc, sessionStore }), cookie: `hive_bar_session=${token}` };
+}
+
 test('controlled authenticated pages expose all eight actions behind exact preflight review', async () => {
   const fixtureApp = authenticatedApp();
   const community = await request(fixtureApp.app)
@@ -93,4 +106,14 @@ test('the same signed-in UI stays gated while write mode is disabled', async () 
     .expect(200);
   assert.doesNotMatch(community.text, /data-social-action=/);
   assert.match(community.text, /disabled until an individually authorized controlled-write run/);
+});
+
+test('the M9 post-only pilot exposes the post form with a disabled signer handoff', async () => {
+  const fixtureApp = postOnlyAuthenticatedApp();
+  const community = await request(fixtureApp.app)
+    .get('/community')
+    .set('cookie', fixtureApp.cookie)
+    .expect(200);
+  assert.match(community.text, /data-social-action="post" data-signer-mode="disabled"/);
+  assert.doesNotMatch(community.text, /data-social-action="subscribe"/);
 });

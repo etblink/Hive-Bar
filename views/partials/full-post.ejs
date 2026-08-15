@@ -28,7 +28,7 @@
 
 <section class="mt-8" aria-labelledby="comments-heading">
   <h2 id="comments-heading" class="text-2xl font-bold text-white">Comments <span class="text-gray-400">(<%= comments.length %>)</span></h2>
-  <% if (hiveSession && writesEnabled) { %>
+  <% if (hiveSession && canWriteAction('comment')) { %>
     <form class="mt-5 space-y-4 rounded-xl border border-gray-700 bg-gray-900 p-5" data-social-action="comment">
       <input type="hidden" name="parentAuthor" value="<%= post.author %>">
       <input type="hidden" name="parentPermlink" value="<%= post.permlink %>">

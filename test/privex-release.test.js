@@ -271,6 +271,7 @@ test('hardens one loopback service and one exact-commit manual release path', ()
   assert.match(service, /^NoNewPrivileges=true$/m);
   assert.match(service, /^ProtectProc=invisible$/m);
   assert.match(service, /^ProtectSystem=strict$/m);
+  assert.match(service, /^ReadWritePaths=\/var\/lib\/hive-bar\/audit$/m);
   assert.match(service, /^ProcSubset=pid$/m);
   assert.match(service, /^CapabilityBoundingSet=$/m);
   assert.match(service, /^RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX$/m);

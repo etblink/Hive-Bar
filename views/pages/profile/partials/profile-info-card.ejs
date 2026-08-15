@@ -23,7 +23,7 @@
       <dd><%= userProfile.reputation %></dd>
     </div>
   </dl>
-  <% if (hiveSession && hiveSession.account !== userProfile.name && writesEnabled && followState !== null) { %>
+  <% if (hiveSession && hiveSession.account !== userProfile.name && canWriteAction(followState ? 'unfollow' : 'follow') && followState !== null) { %>
     <form class="mt-5" data-social-action="<%= followState ? 'unfollow' : 'follow' %>">
       <input type="hidden" name="following" value="<%= userProfile.name %>">
       <button type="submit" class="button-primary w-full"><%= followState ? 'Unfollow' : 'Follow' %> @<%= userProfile.name %></button>

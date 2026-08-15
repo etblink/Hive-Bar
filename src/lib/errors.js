@@ -29,8 +29,11 @@ class ConflictError extends AppError {
 }
 
 class FeatureUnavailableError extends AppError {
-  constructor(message = 'This feature is not available yet') {
-    super(message, { statusCode: 503, code: 'FEATURE_UNAVAILABLE', expose: true });
+  constructor(
+    message = 'This feature is not available yet',
+    { code = 'FEATURE_UNAVAILABLE', cause } = {},
+  ) {
+    super(message, { statusCode: 503, code, expose: true, cause });
   }
 }
 

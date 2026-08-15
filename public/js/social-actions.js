@@ -101,7 +101,8 @@
           csrfToken: session.csrfToken,
           body: formPayload(form),
         });
-        setFormStatus(form, `Prepared exact ${preflight.action} operation for @${preflight.account}.`);
+        const signerAccount = preflight.signer || preflight.account;
+        setFormStatus(form, `Prepared exact ${preflight.action} operation as @${preflight.account}, signed by @${signerAccount}.`);
 
         const confirmed = await this.review(preflight);
         if (!confirmed) {
@@ -111,9 +112,16 @@
           return;
         }
 
-        setFormStatus(form, `Confirm the exact Posting operation in Hive Keychain for @${preflight.account}.`);
+        if (form.dataset.signerMode !== 'keychain') {
+          await this.cancel(preflight.id, session.csrfToken);
+          preflight = null;
+          setFormStatus(form, 'Signer handoff is disabled. The prepared operation was cancelled; nothing was broadcast.');
+          return;
+        }
+
+        setFormStatus(form, `Confirm the exact Posting operation in Hive Keychain as @${preflight.account}, using @${signerAccount}.`);
         const result = await this.keychainFactory().broadcast({
-          account: preflight.account,
+          account: signerAccount,
           operations: preflight.operations,
           authority: preflight.authority,
         });
@@ -162,7 +170,7 @@
       if (!dialog || typeof dialog.showModal !== 'function') {
         return Promise.resolve(
           global.confirm(
-            `Confirm ${preflight.action} as @${preflight.account} with Posting authority?\n\nFingerprint: ${preflight.fingerprint}\n\n${JSON.stringify(preflight.operations, null, 2)}`,
+            `Confirm ${preflight.action} as @${preflight.account}, signed by @${preflight.signer || preflight.account}, with Posting authority?\n\nFingerprint: ${preflight.fingerprint}\n\n${JSON.stringify(preflight.operations, null, 2)}`,
           ),
         );
       }
@@ -176,6 +184,8 @@
         2,
       );
       dialog.querySelector('[data-social-account]').textContent = `@${preflight.account}`;
+      const signer = dialog.querySelector('[data-social-signer]');
+      if (signer) signer.textContent = `@${preflight.signer || preflight.account}`;
       const authority = dialog.querySelector('[data-social-authority]');
       if (authority) authority.textContent = preflight.authority;
       dialog.querySelector('[data-social-fingerprint]').textContent = preflight.fingerprint;

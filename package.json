@@ -23,6 +23,7 @@
     "start:privex": "node scripts/start-privex.js",
     "lint": "eslint src routes public/js test scripts index.js eslint.config.js --max-warnings=0",
     "test": "node --test --test-concurrency=1 test/*.test.js",
+    "rehearse:m9": "node --test --test-concurrency=1 test/m9-bounded-bar-publishing.test.js",
     "test:coverage": "node --test --experimental-test-coverage --test-concurrency=1 test/*.test.js",
     "check:secrets": "node scripts/check-secrets.js",
     "audit:prod": "npm audit --omit=dev --audit-level=high",

@@ -28,6 +28,7 @@ ProtectKernelModules=true
 ProtectKernelTunables=true
 ProtectProc=invisible
 ProtectSystem=strict
+ReadWritePaths=/var/lib/hive-bar/audit
 ProcSubset=pid
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 RestrictNamespaces=true

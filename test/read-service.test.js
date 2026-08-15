@@ -52,6 +52,32 @@ test('paginates Bridge posts, removes an inclusive anchor, and batches profiles'
   assert.deepEqual(calls[1].params.accounts, ['alice']);
 });
 
+test('reads a bounded official community feed without profile lookups', async () => {
+  const calls = [];
+  const rpcPool = {
+    async call(api, method, params) {
+      calls.push({ api, method, params });
+      if (method !== 'get_ranked_posts') throw new Error('unexpected test RPC call');
+      return [
+        { ...rawPost(1), author: 'fourthstreetbar', title: 'Official post' },
+        { ...rawPost(2), author: 'someoneelse', title: 'Not official' },
+        { ...rawPost(3), author: 'fourthstreetbar', parent_author: 'someoneelse', title: 'Reply' },
+        { ...rawPost(4), author: 'fourthstreetbar', title: 'Second official post' },
+      ];
+    },
+  };
+  const service = new HiveReadService(rpcPool);
+  const items = await service.getOfficialCommunityPosts({
+    account: 'fourthstreetbar', community: 'hive-108590', limit: 1,
+  });
+
+  assert.deepEqual(items.map((item) => item.title), ['Official post']);
+  assert.deepEqual(calls, [{
+    api: 'bridge', method: 'get_ranked_posts',
+    params: { tag: 'hive-108590', sort: 'created', limit: 25 },
+  }]);
+});
+
 test('paginates followers, removes the inclusive anchor, and tolerates missing profiles', async () => {
   const calls = [];
   const anchor = 'friend02';

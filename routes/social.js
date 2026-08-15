@@ -3,13 +3,17 @@
 const express = require('express');
 const { FeatureUnavailableError, AuthorizationError, ValidationError } = require('../src/lib/errors');
 const { buildSocialOperation, createPermlink } = require('../src/hive/social-operations');
+const { recordPilotTerminal } = require('../src/social/pilot-terminal-marker');
+const { appendOperatorAudit } = require('../src/social/operator-audit');
+const { assertM10OperatorArmActive } = require('../src/social/operator-posting-mode');
+const { resolvePostingIdentity } = require('../src/social/delegated-posting-mode');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
 
 const TRANSACTION_ID_PATTERN = /^[0-9a-f]{40}$/i;
 const CONTENT_ACTIONS = new Set(['post', 'thread', 'comment']);
 
 function requireControlledMode(config) {
-  return (req, _res, next) => {
+  return async (req, _res, next) => {
     if (config.hive.writeMode !== 'controlled') {
       return next(
         new FeatureUnavailableError(
@@ -17,14 +21,45 @@ function requireControlledMode(config) {
         ),
       );
     }
-    if (!config.hive.controlledAccounts.includes(req.hiveSession.account)) {
-      return next(
-        new AuthorizationError('This Hive account is not allowlisted for the controlled-write run', {
+    try {
+      assertM10OperatorArmActive(config);
+      req.hivePostingIdentity = await resolvePostingIdentity({
+        config,
+        signer: req.hiveSession.account,
+        authorityVerifier: req.app.locals.services.authorityVerifier,
+      });
+      if (
+        req.hivePostingIdentity.author === req.hivePostingIdentity.signer &&
+        !config.hive.controlledAccounts.includes(req.hiveSession.account)
+      ) {
+        throw new AuthorizationError('This Hive account is not allowlisted for the controlled-write run', {
           code: 'CONTROLLED_ACCOUNT_NOT_ALLOWED',
-        }),
-      );
+        });
+      }
+    } catch (error) {
+      return next(error);
     }
     return next();
+  };
+}
+
+function assertControlledAction(config, action) {
+  if (!config.hive.controlledActions.includes(action)) {
+    throw new FeatureUnavailableError(
+      `The ${action} action is disabled for this controlled-write run.`,
+      { code: 'CONTROLLED_ACTION_NOT_ALLOWED' },
+    );
+  }
+}
+
+function requireControlledAction(config, action) {
+  return (_req, _res, next) => {
+    try {
+      assertControlledAction(config, action);
+      next();
+    } catch (error) {
+      next(error);
+    }
   };
 }
 
@@ -53,6 +88,7 @@ function createSocialRouter({ config }) {
   router.post('/preflight/:action', ...protectedWrite, async (req, res, next) => {
     try {
       const action = String(req.params.action || '').toLowerCase();
+      assertControlledAction(config, action);
       const payload = withGeneratedPermlink(action, req.body);
       let threadContainer;
       if (action === 'thread') {
@@ -65,7 +101,7 @@ function createSocialRouter({ config }) {
         threadContainer = threads.container;
       }
       const envelope = buildSocialOperation(action, {
-        account: req.hiveSession.account,
+        account: req.hivePostingIdentity.author,
         payload,
         config,
         threadContainer,
@@ -73,7 +109,9 @@ function createSocialRouter({ config }) {
       const preflight = req.app.locals.services.preflightStore.create({
         sessionId: req.hiveSession.id,
         envelope,
+        signer: req.hivePostingIdentity.signer,
       });
+      appendOperatorAudit(config, 'prepared', preflight);
       res.status(201).json({ ...preflight, broadcastMode: 'controlled' });
     } catch (error) {
       next(error);
@@ -82,7 +120,10 @@ function createSocialRouter({ config }) {
 
   router.post('/preflight/:id/cancel', ...protectedWrite, (req, res, next) => {
     try {
+      const preflight = req.app.locals.services.preflightStore.get(req.params.id, req.hiveSession.id);
       req.app.locals.services.preflightStore.cancel(req.params.id, req.hiveSession.id);
+      recordPilotTerminal(config, preflight, 'cancelled');
+      appendOperatorAudit(config, 'cancelled', preflight);
       res.status(204).end();
     } catch (error) {
       next(error);
@@ -101,9 +142,11 @@ function createSocialRouter({ config }) {
         req.hiveSession.id,
         transactionId?.toLowerCase() || null,
       );
+      appendOperatorAudit(config, 'keychain_accepted', preflight);
       req.log.info(
         {
           account: preflight.account,
+          signer: preflight.signer,
           action: preflight.action,
           fingerprint: preflight.fingerprint,
           transactionId: preflight.transactionId,
@@ -134,9 +177,12 @@ function createSocialRouter({ config }) {
         observed,
       );
       if (preflight.state === 'observed') {
+        recordPilotTerminal(config, preflight, 'observed');
+        appendOperatorAudit(config, 'observed', preflight);
         req.log.info(
           {
-            account: preflight.account,
+          account: preflight.account,
+          signer: preflight.signer,
             action: preflight.action,
             fingerprint: preflight.fingerprint,
             transactionId: preflight.transactionId,
@@ -159,4 +205,10 @@ function createSocialRouter({ config }) {
   return router;
 }
 
-module.exports = { TRANSACTION_ID_PATTERN, createSocialRouter, requireControlledMode };
+module.exports = {
+  TRANSACTION_ID_PATTERN,
+  assertControlledAction,
+  createSocialRouter,
+  requireControlledAction,
+  requireControlledMode,
+};
