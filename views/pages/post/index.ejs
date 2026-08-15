@@ -5,10 +5,10 @@
 </head>
 <body class="flex min-h-screen flex-col bg-black text-white">
   <%- include('../../common/header') %>
-  <main id="main-content" class="flex-1 bg-gray-950 py-8 sm:py-12">
-    <div class="container mx-auto max-w-4xl px-4 sm:px-6">
-      <nav class="mb-6" aria-label="Breadcrumb">
-        <a href="/community" class="text-sm text-bar-gold underline">Back to community</a>
+  <main id="main-content" class="conversation-shell" data-m15-surface="conversation">
+    <div class="conversation-column">
+      <nav aria-label="Breadcrumb">
+        <a href="/community" class="conversation-back"><span aria-hidden="true">←</span> Community</a>
       </nav>
       <%- include('../../partials/full-post') %>
     </div>

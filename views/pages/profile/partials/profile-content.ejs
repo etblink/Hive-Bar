@@ -1,88 +1,84 @@
-<section class="flex flex-1 flex-col bg-gray-950 py-8 sm:py-12" aria-labelledby="profile-heading">
-  <div class="container mx-auto flex flex-1 flex-col px-4 sm:px-6">
-    <p class="eyebrow text-center">Public Hive profile</p>
-    <h1 id="profile-heading" class="mb-8 mt-2 text-center text-3xl font-bold text-white sm:text-4xl">@<%= userProfile.name %></h1>
-    <div class="grid flex-1 grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-      <aside>
-        <%- include('profile-info-card') %>
-      </aside>
-      <div class="min-w-0">
-        <nav class="mb-5 flex flex-wrap gap-2" aria-label="Profile content">
+<div class="profile-shell" data-m15-surface="profile">
+  <div class="app-content-frame">
+    <div class="app-social-column">
+      <%- include('profile-info-card') %>
+
+      <nav class="profile-tabs social-tabs" aria-label="Profile content">
+        <a
+          href="/profile/<%= userProfile.name %>"
+          hx-get="/profile/<%= userProfile.name %>/blogs"
+          hx-target="#profile-content"
+          class="content-tab <%= activeView === 'posts' ? 'content-tab--active' : '' %>"
+          <% if (activeView === 'posts') { %>aria-current="page"<% } %>>
+          Blog posts
+        </a>
+        <a
+          href="/profile/<%= userProfile.name %>/wallet"
+          hx-get="/profile/<%= userProfile.name %>/wallet"
+          hx-target="#profile-content"
+          class="content-tab <%= activeView === 'wallet' ? 'content-tab--active' : '' %>"
+          <% if (activeView === 'wallet') { %>aria-current="page"<% } %>>
+          Public wallet
+        </a>
+        <a
+          href="/profile/<%= userProfile.name %>/wall-posts"
+          hx-get="/profile/<%= userProfile.name %>/wall-posts"
+          hx-target="#profile-content"
+          class="content-tab <%= activeView === 'wall' ? 'content-tab--active' : '' %>"
+          <% if (activeView === 'wall') { %>aria-current="page"<% } %>>
+          Wall
+        </a>
+        <a
+          href="/profile/<%= userProfile.name %>/followers"
+          hx-get="/profile/<%= userProfile.name %>/followers"
+          hx-target="#profile-content"
+          class="content-tab <%= activeView === 'followers' ? 'content-tab--active' : '' %>"
+          <% if (activeView === 'followers') { %>aria-current="page"<% } %>>
+          Followers
+        </a>
+        <a
+          href="/profile/<%= userProfile.name %>/following"
+          hx-get="/profile/<%= userProfile.name %>/following"
+          hx-target="#profile-content"
+          class="content-tab <%= activeView === 'following' ? 'content-tab--active' : '' %>"
+          <% if (activeView === 'following') { %>aria-current="page"<% } %>>
+          Following
+        </a>
+        <% if (canManageProfile) { %>
           <a
-            href="/profile/<%= userProfile.name %>"
-            hx-get="/profile/<%= userProfile.name %>/blogs"
+            href="/profile/<%= userProfile.name %>/inbox"
+            hx-get="/profile/<%= userProfile.name %>/inbox"
             hx-target="#profile-content"
-            class="content-tab flex-1 <%= activeView === 'posts' ? 'content-tab--active' : '' %>"
-            <% if (activeView === 'posts') { %>aria-current="page"<% } %>>
-            Blog posts
+            class="content-tab <%= activeView === 'inbox' ? 'content-tab--active' : '' %>"
+            <% if (activeView === 'inbox') { %>aria-current="page"<% } %>>
+            Inbox
           </a>
           <a
-            href="/profile/<%= userProfile.name %>/wallet"
-            hx-get="/profile/<%= userProfile.name %>/wallet"
+            href="/profile/<%= userProfile.name %>/settings"
+            hx-get="/profile/<%= userProfile.name %>/settings"
             hx-target="#profile-content"
-            class="content-tab flex-1 <%= activeView === 'wallet' ? 'content-tab--active' : '' %>"
-            <% if (activeView === 'wallet') { %>aria-current="page"<% } %>>
-            Public wallet
+            class="content-tab <%= activeView === 'settings' ? 'content-tab--active' : '' %>"
+            <% if (activeView === 'settings') { %>aria-current="page"<% } %>>
+            Settings
           </a>
-          <a
-            href="/profile/<%= userProfile.name %>/wall-posts"
-            hx-get="/profile/<%= userProfile.name %>/wall-posts"
-            hx-target="#profile-content"
-            class="content-tab flex-1 <%= activeView === 'wall' ? 'content-tab--active' : '' %>"
-            <% if (activeView === 'wall') { %>aria-current="page"<% } %>>
-            Wall
-          </a>
-          <a
-            href="/profile/<%= userProfile.name %>/followers"
-            hx-get="/profile/<%= userProfile.name %>/followers"
-            hx-target="#profile-content"
-            class="content-tab flex-1 <%= activeView === 'followers' ? 'content-tab--active' : '' %>"
-            <% if (activeView === 'followers') { %>aria-current="page"<% } %>>
-            Followers
-          </a>
-          <a
-            href="/profile/<%= userProfile.name %>/following"
-            hx-get="/profile/<%= userProfile.name %>/following"
-            hx-target="#profile-content"
-            class="content-tab flex-1 <%= activeView === 'following' ? 'content-tab--active' : '' %>"
-            <% if (activeView === 'following') { %>aria-current="page"<% } %>>
-            Following
-          </a>
-          <% if (canManageProfile) { %>
-            <a
-              href="/profile/<%= userProfile.name %>/inbox"
-              hx-get="/profile/<%= userProfile.name %>/inbox"
-              hx-target="#profile-content"
-              class="content-tab flex-1 <%= activeView === 'inbox' ? 'content-tab--active' : '' %>"
-              <% if (activeView === 'inbox') { %>aria-current="page"<% } %>>
-              Inbox
-            </a>
-            <a
-              href="/profile/<%= userProfile.name %>/settings"
-              hx-get="/profile/<%= userProfile.name %>/settings"
-              hx-target="#profile-content"
-              class="content-tab flex-1 <%= activeView === 'settings' ? 'content-tab--active' : '' %>"
-              <% if (activeView === 'settings') { %>aria-current="page"<% } %>>
-              Settings
-            </a>
-          <% } %>
-        </nav>
-        <div id="profile-content" class="min-w-0" aria-live="polite">
-          <% if (activeView === 'wallet') { %>
-            <%- include('user-wallet', { userProfile, wallet, canManageProfile }) %>
-          <% } else if (activeView === 'wall') { %>
-            <%- include('wall-posts', { userProfile, wallPage, profileSettings, canManageProfile }) %>
-          <% } else if (activeView === 'followers' || activeView === 'following') { %>
-            <%- include('connections', { userProfile, connectionPage, connectionKind, connectionEmptyMessage }) %>
-          <% } else if (activeView === 'inbox') { %>
-            <%- include('inbox', { userProfile, inboxPage, profileSettings }) %>
-          <% } else if (activeView === 'settings') { %>
-            <%- include('settings', { userProfile, profileSettings }) %>
-          <% } else { %>
-            <%- include('user-blog-posts', { userProfile, postsPage }) %>
-          <% } %>
-        </div>
+        <% } %>
+      </nav>
+
+      <div id="profile-content" class="profile-content-panel" aria-live="polite">
+        <% if (activeView === 'wallet') { %>
+          <%- include('user-wallet', { userProfile, wallet, canManageProfile }) %>
+        <% } else if (activeView === 'wall') { %>
+          <%- include('wall-posts', { userProfile, wallPage, profileSettings, canManageProfile }) %>
+        <% } else if (activeView === 'followers' || activeView === 'following') { %>
+          <%- include('connections', { userProfile, connectionPage, connectionKind, connectionEmptyMessage }) %>
+        <% } else if (activeView === 'inbox') { %>
+          <%- include('inbox', { userProfile, inboxPage, profileSettings }) %>
+        <% } else if (activeView === 'settings') { %>
+          <%- include('settings', { userProfile, profileSettings }) %>
+        <% } else { %>
+          <%- include('user-blog-posts', { userProfile, postsPage }) %>
+        <% } %>
       </div>
     </div>
   </div>
-</section>
+</div>

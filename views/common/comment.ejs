@@ -1,5 +1,5 @@
-<article class="comment-card comment-depth-<%= Math.min(4, comment.depth || 0) %>">
-  <header class="flex min-w-0 items-center gap-3">
+<article class="comment-card social-comment comment-depth-<%= Math.min(4, comment.depth || 0) %>">
+  <header class="social-author">
     <img
       src="<%= userProfile?.profileImage || `https://images.hive.blog/u/${comment.author}/avatar` %>"
       alt=""
@@ -7,17 +7,21 @@
       width="40"
       height="40"
       loading="lazy">
-    <div class="min-w-0">
-      <a href="/profile/<%= comment.author %>" class="block truncate font-bold text-white hover:text-bar-gold">
+    <div class="social-author__text">
+      <a href="/profile/<%= comment.author %>" class="social-author__name">
         <%= userProfile?.displayName || `@${comment.author}` %>
       </a>
-      <time datetime="<%= comment.created %>" class="block text-xs text-gray-400"><%= formatHiveDate(comment.created) %></time>
+      <div class="social-author__meta">
+        <span>@<%= comment.author %></span>
+        <span aria-hidden="true">·</span>
+        <time datetime="<%= comment.created %>"><%= formatHiveDate(comment.created) %></time>
+      </div>
     </div>
   </header>
-  <div class="prose mt-4 max-w-none break-words text-gray-200">
+  <div class="prose max-w-none break-words text-gray-200">
     <%- comment.bodyHtml %>
   </div>
-  <footer class="mt-4 flex flex-wrap gap-4 text-sm text-gray-400">
+  <footer class="social-comment__stats" aria-label="Comment activity">
     <span><%= comment.positiveVotes.toLocaleString() %> positive votes</span>
     <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
     <span class="text-bar-gold">$<%= formatPayout(comment) %></span>

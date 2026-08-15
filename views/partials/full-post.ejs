@@ -1,24 +1,32 @@
-<article class="rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-8">
+<article class="conversation-post">
   <header>
-    <p class="eyebrow">Hive post</p>
-    <h1 class="mt-2 break-words text-3xl font-bold text-white sm:text-4xl"><%= post.title %></h1>
-    <div class="mt-5 flex min-w-0 items-center gap-3">
+    <div class="social-author">
       <img
         src="<%= profiles[post.author]?.profileImage || `https://images.hive.blog/u/${post.author}/avatar` %>"
         alt=""
         class="h-12 w-12 shrink-0 rounded-full bg-gray-800"
         width="48"
         height="48">
-      <div class="min-w-0">
-        <a href="/profile/<%= post.author %>" class="block truncate font-bold text-bar-gold">@<%= post.author %></a>
-        <time datetime="<%= post.created %>" class="block text-sm text-gray-400"><%= formatHiveDate(post.created) %></time>
+      <div class="social-author__text">
+        <a href="/profile/<%= post.author %>" class="social-author__name">
+          <%= profiles[post.author]?.displayName || `@${post.author}` %>
+        </a>
+        <div class="social-author__meta">
+          <span>@<%= post.author %></span>
+          <span aria-hidden="true">·</span>
+          <time datetime="<%= post.created %>"><%= formatHiveDate(post.created) %></time>
+        </div>
       </div>
     </div>
+    <p class="app-kicker mt-5">Hive post</p>
+    <h1 class="conversation-post__title break-words"><%= post.title %></h1>
   </header>
-  <div class="prose mt-8 max-w-none break-words text-gray-200">
+
+  <div class="conversation-post__body prose max-w-none break-words text-gray-200">
     <%- post.bodyHtml %>
   </div>
-  <footer class="mt-8 flex flex-wrap gap-4 border-t border-gray-700 pt-5 text-sm text-gray-400">
+
+  <footer class="conversation-post__stats" aria-label="Post activity">
     <span><%= post.positiveVotes.toLocaleString() %> positive votes</span>
     <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
     <span class="text-bar-gold">$<%= formatPayout(post) %></span>
@@ -26,10 +34,13 @@
   <%- include('../common/vote-form', { item: post }) %>
 </article>
 
-<section class="mt-8" aria-labelledby="comments-heading">
-  <h2 id="comments-heading" class="text-2xl font-bold text-white">Comments <span class="text-gray-400">(<%= comments.length %>)</span></h2>
+<section class="conversation-comments" aria-labelledby="comments-heading">
+  <h2 id="comments-heading" class="conversation-comments__heading">
+    Comments <span class="text-gray-400">(<%= comments.length %>)</span>
+  </h2>
+
   <% if (hiveSession && canWriteAction('comment')) { %>
-    <form class="mt-5 space-y-4 rounded-xl border border-gray-700 bg-gray-900 p-5" data-social-action="comment">
+    <form class="social-composer mt-4 space-y-4" data-social-action="comment">
       <input type="hidden" name="parentAuthor" value="<%= post.author %>">
       <input type="hidden" name="parentPermlink" value="<%= post.permlink %>">
       <div>
@@ -41,13 +52,18 @@
       <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
     </form>
   <% } %>
+
   <% if (comments.length > 0) { %>
-    <div class="mt-5 space-y-4">
+    <div class="mt-4" data-comment-thread>
       <% comments.forEach((comment) => { %>
         <%- include('../common/comment', { comment, userProfile: profiles[comment.author] }) %>
       <% }); %>
     </div>
   <% } else { %>
-    <p class="mt-4 rounded-xl border border-gray-700 bg-gray-900 p-6 text-gray-300">No comments have been posted yet.</p>
+    <section class="state-card mt-4">
+      <p class="eyebrow">Conversation</p>
+      <h2>No comments yet</h2>
+      <p>No comments have been posted yet.</p>
+    </section>
   <% } %>
 </section>

@@ -1,6 +1,6 @@
 <% if (hiveSession && canWriteAction('post')) { %>
-  <details class="mb-5 rounded-xl border border-gray-700 bg-gray-900 p-4">
-    <summary class="cursor-pointer font-bold text-bar-gold">Create a community post</summary>
+  <details class="social-composer mt-4">
+    <summary>Create a community post</summary>
     <form class="mt-4 space-y-4" data-social-action="post" data-signer-mode="<%= signerMode %>">
       <div>
         <label class="block text-sm font-bold text-gray-200" for="new-post-title">Title</label>
@@ -22,12 +22,13 @@
     </form>
   </details>
 <% } %>
+
 <form
   action="/community"
   method="get"
   hx-get="/community/<%= communityName %>/community-posts"
   hx-target="#community-feed"
-  class="mb-5 flex flex-col gap-3 rounded-xl border border-gray-700 bg-gray-900 p-4 sm:flex-row sm:items-end">
+  class="community-sort mt-4">
   <div class="flex-1">
     <label for="community-sort" class="block text-sm font-semibold text-gray-200">Sort posts</label>
     <select id="community-sort" name="sort" data-community-sort class="mt-2 w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white">
@@ -40,9 +41,9 @@
 </form>
 
 <% if (postsPage.items.length > 0) { %>
-  <ul class="space-y-4" aria-label="Community posts">
+  <ul class="social-feed" aria-label="Community posts">
     <% postsPage.items.forEach((post) => { %>
-      <li class="rounded-2xl border border-gray-700 bg-gray-900 p-4 sm:p-6">
+      <li class="social-feed-item">
         <%- include('../../../common/post', { post, userProfile: postsPage.profiles[post.author] }) %>
       </li>
     <% }); %>
@@ -59,7 +60,7 @@
     </nav>
   <% } %>
 <% } else { %>
-  <section class="state-card">
+  <section class="state-card mt-4">
     <p class="eyebrow">A fresh tap</p>
     <h2>The conversation is just getting started</h2>
     <p>There are no posts in this view yet. This is the live 4th Street Bar community—not substitute content from another community.</p>

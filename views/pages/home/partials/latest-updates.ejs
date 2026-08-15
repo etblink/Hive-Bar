@@ -1,28 +1,54 @@
-<section class="bg-gray-950 py-14 sm:py-20" aria-labelledby="latest-updates-heading">
-  <div class="container mx-auto px-4 sm:px-6">
-    <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-      <div>
-        <p class="eyebrow">Official Hive updates</p>
-        <h2 id="latest-updates-heading" class="mt-2 text-3xl font-bold sm:text-4xl">Latest from 4th Street Bar</h2>
+<section class="social-home-feed" aria-labelledby="latest-updates-heading">
+  <div class="app-content-frame">
+    <div class="app-social-column">
+      <div class="social-section-heading">
+        <div>
+          <p class="app-kicker">Official Hive updates</p>
+          <h2 id="latest-updates-heading" class="app-section-title">Latest from 4th Street Bar</h2>
+        </div>
+        <a href="/community" class="button-secondary">Browse the community</a>
       </div>
-      <a href="/community" class="button-secondary">Browse the community</a>
-    </div>
 
-    <% if (officialUpdates.status === 'ready') { %>
-      <div class="mt-8 grid gap-5 lg:grid-cols-3">
-        <% officialUpdates.items.forEach((post) => { %>
-          <article class="flex flex-col rounded-2xl border border-gray-700 bg-gray-900 p-6">
-            <p class="text-sm font-semibold text-bar-gold">Official update</p>
-            <h3 class="mt-3 text-xl font-bold"><a class="hover:text-bar-gold" href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a></h3>
-            <p class="mt-3 flex-1 leading-7 text-gray-300"><%= post.excerpt || 'Read the full update in the community.' %></p>
-            <a class="mt-5 font-semibold text-bar-gold hover:text-white" href="/post/<%= post.author %>/<%= post.permlink %>">Read update<span class="sr-only">: <%= post.title %></span></a>
-          </article>
-        <% }) %>
-      </div>
-    <% } else if (officialUpdates.status === 'unavailable') { %>
-      <p class="mt-8 rounded-2xl border border-gray-700 bg-gray-900 p-6 text-gray-300">Official updates are temporarily unavailable. Browse the public community for the latest posts.</p>
-    <% } else { %>
-      <p class="mt-8 rounded-2xl border border-gray-700 bg-gray-900 p-6 text-gray-300">No official updates have been published yet. Browse the public community as new posts arrive.</p>
-    <% } %>
+      <% if (officialUpdates.status === 'ready') { %>
+        <ul class="social-feed" aria-label="Latest official updates">
+          <% officialUpdates.items.forEach((post) => { %>
+            <li class="social-feed-item">
+              <article class="social-update">
+                <div class="social-update__identity">
+                  <span class="social-update__mark" aria-hidden="true">
+                    <img
+                      src="/images/fourth-street-bar-logo.jpg"
+                      alt=""
+                      width="720"
+                      height="720"
+                      class="max-w-full">
+                  </span>
+                  <span>4th Street Bar · Official update</span>
+                </div>
+                <h3>
+                  <a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a>
+                </h3>
+                <p class="social-update__excerpt"><%= post.excerpt || 'Read the full update in the community.' %></p>
+                <footer class="social-update__footer">
+                  <a href="/post/<%= post.author %>/<%= post.permlink %>">Read update<span class="sr-only">: <%= post.title %></span></a>
+                </footer>
+              </article>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else if (officialUpdates.status === 'unavailable') { %>
+        <section class="state-card" role="status">
+          <p class="eyebrow">Official updates</p>
+          <h2>Updates are temporarily unavailable</h2>
+          <p>Official updates are temporarily unavailable. Browse the public community for the latest posts.</p>
+        </section>
+      <% } else { %>
+        <section class="state-card">
+          <p class="eyebrow">Official updates</p>
+          <h2>The bar feed is ready</h2>
+          <p>No official updates have been published yet. Browse the public community as new posts arrive.</p>
+        </section>
+      <% } %>
+    </div>
   </div>
 </section>

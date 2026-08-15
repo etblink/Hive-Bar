@@ -1,5 +1,5 @@
-<article>
-  <header class="flex min-w-0 items-center gap-3">
+<article class="social-post">
+  <header class="social-author">
     <img
       src="<%= userProfile?.profileImage || `https://images.hive.blog/u/${post.author}/avatar` %>"
       alt=""
@@ -7,21 +7,26 @@
       width="44"
       height="44"
       loading="lazy">
-    <div class="min-w-0">
-      <a href="/profile/<%= post.author %>" class="block truncate font-bold text-white hover:text-bar-gold">
+    <div class="social-author__text">
+      <a href="/profile/<%= post.author %>" class="social-author__name">
         <%= userProfile?.displayName || `@${post.author}` %>
       </a>
-      <p class="truncate text-sm text-gray-400">@<%= post.author %></p>
+      <div class="social-author__meta">
+        <span>@<%= post.author %></span>
+        <span aria-hidden="true">·</span>
+        <time datetime="<%= post.created %>"><%= formatHiveDate(post.created) %></time>
+      </div>
     </div>
   </header>
-  <h2 class="mt-4 break-words text-xl font-bold text-bar-gold sm:text-2xl">
-    <a href="/post/<%= post.author %>/<%= post.permlink %>" class="hover:underline"><%= post.title %></a>
+
+  <h2 class="social-post__title break-words">
+    <a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a>
   </h2>
   <% if (post.excerpt) { %>
-    <p class="mt-3 break-words leading-7 text-gray-300"><%= post.excerpt %></p>
+    <p class="social-post__excerpt break-words"><%= post.excerpt %></p>
   <% } %>
-  <footer class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-400">
-    <time datetime="<%= post.created %>"><%= formatHiveDate(post.created) %></time>
+
+  <footer class="social-post__stats" aria-label="Post activity">
     <span><%= post.positiveVotes.toLocaleString() %> positive votes</span>
     <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
     <span><%= post.replyCount.toLocaleString() %> replies</span>

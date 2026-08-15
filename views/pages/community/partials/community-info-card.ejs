@@ -1,11 +1,12 @@
-<section class="rounded-2xl border border-gray-700 bg-gray-900 p-6" aria-labelledby="community-about-heading">
-  <h2 id="community-about-heading" class="text-xl font-bold text-bar-gold">About this community</h2>
+<section class="community-about-panel" aria-labelledby="community-about-heading">
+  <h2 id="community-about-heading">About this community</h2>
   <% if (communityInfo.aboutHtml) { %>
-    <div class="prose mt-4 text-gray-300"><%- communityInfo.aboutHtml %></div>
+    <div class="community-about-panel__about prose"><%- communityInfo.aboutHtml %></div>
   <% } else { %>
-    <p class="mt-4 text-gray-300">The 4th Street Bar community is getting started on Hive.</p>
+    <p class="community-about-panel__about">The 4th Street Bar community is getting started on Hive.</p>
   <% } %>
-  <dl class="mt-6 grid grid-cols-2 gap-3">
+
+  <dl class="community-about-panel__stats">
     <div class="stat-tile">
       <dt>Subscribers</dt>
       <dd><%= communityInfo.subscriberCount.toLocaleString() %></dd>
@@ -15,11 +16,13 @@
       <dd>$<%= formatNumber(communityInfo.pendingRewards, 2) %></dd>
     </div>
   </dl>
-  <p class="mt-5 rounded-lg bg-black/40 p-3 text-sm text-gray-400">
+
+  <p class="community-about-panel__source">
     Public data from Hive community <strong class="text-gray-200"><%= communityInfo.name %></strong>.
   </p>
+
   <% if (hiveSession && canWriteAction(membership ? 'unsubscribe' : 'subscribe') && membership !== null) { %>
-    <form class="mt-5" data-social-action="<%= membership ? 'unsubscribe' : 'subscribe' %>">
+    <form class="mt-4" data-social-action="<%= membership ? 'unsubscribe' : 'subscribe' %>">
       <button type="submit" class="button-primary w-full">
         <%= membership ? 'Unsubscribe' : 'Subscribe' %>
       </button>
@@ -28,10 +31,10 @@
       </p>
     </form>
   <% } else if (hiveSession && !writesEnabled) { %>
-    <p class="mt-5 rounded-lg border border-gray-700 p-3 text-sm text-gray-400">
+    <p class="mt-4 rounded-lg border border-gray-700 p-3 text-sm text-gray-400">
       Social signing is disabled until an individually authorized controlled-write run.
     </p>
   <% } else if (!hiveSession) { %>
-    <p class="mt-5 text-sm text-gray-400">Sign in with Hive Keychain to subscribe.</p>
+    <p class="mt-4 text-sm text-gray-400">Sign in with Hive Keychain to subscribe.</p>
   <% } %>
 </section>

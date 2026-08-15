@@ -1,13 +1,23 @@
-<section class="flex flex-1 flex-col bg-gray-950 py-8 sm:py-12" aria-labelledby="community-heading">
-  <div class="container mx-auto flex flex-1 flex-col px-4 sm:px-6">
-    <p class="eyebrow text-center"><%= communityInfo.name %></p>
-    <h1 id="community-heading" class="mb-8 mt-2 text-center text-3xl font-bold text-white sm:text-4xl"><%= communityInfo.title %></h1>
-    <div class="grid flex-1 grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-      <aside>
-        <%- include('community-info-card') %>
-      </aside>
-      <div class="min-w-0">
-        <nav class="mb-5 grid grid-cols-2 gap-2" aria-label="Community content">
+<section class="community-shell" aria-labelledby="community-heading" data-m15-surface="community">
+  <div class="app-content-frame">
+    <header class="community-identity">
+      <img
+        src="/images/fourth-street-bar-logo.jpg"
+        alt=""
+        width="720"
+        height="720"
+        decoding="async"
+        class="community-identity__logo max-w-full">
+      <div class="community-identity__meta">
+        <p class="app-kicker">Community</p>
+        <h1 id="community-heading" class="app-page-title"><%= communityInfo.title %></h1>
+        <p class="community-identity__handle"><%= communityInfo.name %> · 4th Street Bar on Hive</p>
+      </div>
+    </header>
+
+    <div class="community-layout grid grid-cols-1 lg:grid-cols-2">
+      <div class="community-main">
+        <nav class="social-tabs" aria-label="Community content">
           <a
             href="/community"
             hx-get="/community/<%= communityName %>/community-posts?sort=created"
@@ -25,6 +35,7 @@
             Threads
           </a>
         </nav>
+
         <div id="community-feed" class="min-w-0" aria-live="polite">
           <% if (activeView === 'threads') { %>
             <%- include('community-thread-list', {
@@ -34,7 +45,7 @@
               threadsContainerAccount
             }) %>
           <% } else if (feedError) { %>
-            <section class="state-card" role="status">
+            <section class="state-card mt-4" role="status">
               <h2>Posts are temporarily unavailable</h2>
               <p>The community itself is online, but its post feed could not be loaded. Nothing else on this page is affected.</p>
               <a href="/community" class="button-secondary mt-5">Try the feed again</a>
@@ -44,6 +55,10 @@
           <% } %>
         </div>
       </div>
+
+      <aside class="community-aside" aria-label="Community information">
+        <%- include('community-info-card') %>
+      </aside>
     </div>
   </div>
 </section>

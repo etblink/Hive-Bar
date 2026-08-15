@@ -1,7 +1,7 @@
 <% if (postsPage.items.length > 0) { %>
-  <ul class="space-y-4" aria-label="Blog posts by <%= userProfile.name %>">
+  <ul class="social-feed" aria-label="Blog posts by <%= userProfile.name %>">
     <% postsPage.items.forEach((post) => { %>
-      <li class="rounded-2xl border border-gray-700 bg-gray-900 p-4 sm:p-6">
+      <li class="social-feed-item">
         <%- include('../../../common/post', { post, userProfile: postsPage.profiles[post.author] || userProfile }) %>
       </li>
     <% }); %>

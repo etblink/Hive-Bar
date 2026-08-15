@@ -5,10 +5,10 @@
 </head>
 <body class="flex min-h-screen flex-col bg-black text-white">
   <%- include('../../common/header') %>
-  <main id="main-content">
+  <main id="main-content" class="social-home" data-m15-surface="home">
     <%- include('partials/hero') %>
-    <%- include('partials/visit') %>
     <%- include('partials/latest-updates', { officialUpdates }) %>
+    <%- include('partials/visit') %>
     <%- include('partials/community') %>
     <%- include('partials/photos') %>
   </main>

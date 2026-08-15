@@ -1,43 +1,46 @@
-<section class="rounded-2xl border border-gray-700 bg-gray-900 p-6 text-center" aria-labelledby="profile-name-heading">
-  <img src="<%= userProfile.profileImage %>" alt="" class="mx-auto mb-4 h-24 w-24 rounded-full bg-gray-800" width="96" height="96">
-  <h2 id="profile-name-heading" class="text-2xl font-bold"><%= userProfile.displayName %></h2>
-  <p class="mt-1 text-gray-400">@<%= userProfile.name %></p>
+<section class="profile-hero" aria-labelledby="profile-heading">
+  <div class="profile-hero__top">
+    <img
+      src="<%= userProfile.profileImage %>"
+      alt=""
+      class="profile-hero__avatar"
+      width="96"
+      height="96">
+    <div class="profile-hero__identity">
+      <p class="app-kicker">Public Hive profile</p>
+      <h1 id="profile-heading"><%= userProfile.displayName %></h1>
+      <p class="profile-hero__handle">@<%= userProfile.name %></p>
+    </div>
+  </div>
+
   <% if (userProfile.about) { %>
-    <p class="mt-5 break-words text-sm leading-6 text-gray-200"><%= userProfile.about %></p>
+    <p class="profile-hero__about break-words"><%= userProfile.about %></p>
   <% } %>
-  <dl class="mt-6 grid grid-cols-2 gap-3">
-    <div class="stat-tile">
-      <dt>Followers</dt>
-      <dd><a class="underline hover:text-bar-gold" href="/profile/<%= userProfile.name %>/followers"><%= userProfile.followerCount.toLocaleString() %></a></dd>
-    </div>
-    <div class="stat-tile">
-      <dt>Following</dt>
-      <dd><a class="underline hover:text-bar-gold" href="/profile/<%= userProfile.name %>/following"><%= userProfile.followingCount.toLocaleString() %></a></dd>
-    </div>
-    <div class="stat-tile">
-      <dt>Posts</dt>
-      <dd><%= userProfile.postCount.toLocaleString() %></dd>
-    </div>
-    <div class="stat-tile">
-      <dt>Reputation</dt>
-      <dd><%= userProfile.reputation %></dd>
-    </div>
-  </dl>
-  <% if (hiveSession && hiveSession.account !== userProfile.name && canWriteAction(followState ? 'unfollow' : 'follow') && followState !== null) { %>
-    <form class="mt-5" data-social-action="<%= followState ? 'unfollow' : 'follow' %>">
-      <input type="hidden" name="following" value="<%= userProfile.name %>">
-      <button type="submit" class="button-primary w-full"><%= followState ? 'Unfollow' : 'Follow' %> @<%= userProfile.name %></button>
-      <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-social-status>
-        Current on-chain state: <%= followState ? 'following' : 'not following' %>.
+
+  <div class="profile-hero__stats">
+    <a href="/profile/<%= userProfile.name %>/followers"><strong><%= userProfile.followerCount.toLocaleString() %></strong> followers</a>
+    <a href="/profile/<%= userProfile.name %>/following"><strong><%= userProfile.followingCount.toLocaleString() %></strong> following</a>
+    <span><strong><%= userProfile.postCount.toLocaleString() %></strong> posts</span>
+    <span>Reputation <strong><%= userProfile.reputation %></strong></span>
+  </div>
+
+  <div class="profile-hero__action">
+    <% if (hiveSession && hiveSession.account !== userProfile.name && canWriteAction(followState ? 'unfollow' : 'follow') && followState !== null) { %>
+      <form data-social-action="<%= followState ? 'unfollow' : 'follow' %>">
+        <input type="hidden" name="following" value="<%= userProfile.name %>">
+        <button type="submit" class="button-primary"><%= followState ? 'Unfollow' : 'Follow' %> @<%= userProfile.name %></button>
+        <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-social-status>
+          Current on-chain state: <%= followState ? 'following' : 'not following' %>.
+        </p>
+      </form>
+    <% } else if (hiveSession && !writesEnabled) { %>
+      <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
+        Follow signing is disabled until an individually authorized controlled-write run.
       </p>
-    </form>
-  <% } else if (hiveSession && !writesEnabled) { %>
-    <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
-      Follow signing is disabled until an individually authorized controlled-write run.
-    </p>
-  <% } else if (!hiveSession) { %>
-    <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
-      Sign in with Hive Keychain to follow this account.
-    </p>
-  <% } %>
+    <% } else if (!hiveSession) { %>
+      <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
+        Sign in with Hive Keychain to follow this account.
+      </p>
+    <% } %>
+  </div>
 </section>
