@@ -1,56 +1,128 @@
+<%
+  const shellTitle = typeof pageTitle === 'string' ? pageTitle : '';
+  const shellHomeActive = shellTitle === siteName;
+  const shellCommunityActive =
+    shellTitle.startsWith('Community —') || shellTitle.startsWith('Threads —');
+  const shellPayActive = shellTitle.startsWith('Pay Tab —');
+  const shellYouActive =
+    Boolean(hiveSession) && shellTitle.startsWith(`@${hiveSession.account} `);
+%>
 <a href="#main-content" class="skip-link">Skip to main content</a>
-<header class="w-full border-b border-gray-800 bg-black">
-  <div class="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:px-6">
-    <a href="/" class="flex min-w-0 items-center gap-3" aria-label="<%= siteName %> home">
-      <span class="bar-mark" aria-hidden="true">4</span>
-      <span class="truncate text-xl font-bold text-white sm:text-2xl"><%= siteName %></span>
-    </a>
-    <nav aria-label="Primary navigation">
-      <ul class="flex flex-wrap items-center justify-center gap-1 sm:gap-3">
-        <li><a href="/" class="nav-link">Home</a></li>
-        <li><a href="/community" class="nav-link">Community</a></li>
-        <li><a href="/pay" class="nav-link">Pay Tab</a></li>
-        <li>
-          <% if (hiveSession) { %>
-            <div class="flex items-center gap-2">
-              <a href="/profile/<%= hiveSession.account %>" class="nav-link">@<%= hiveSession.account %></a>
-              <button type="button" class="rounded border border-gray-600 px-3 py-2 text-xs text-gray-200 hover:text-bar-gold" data-keychain-logout>
-                Sign out
-              </button>
-            </div>
-          <% } else { %>
-            <details class="rounded border border-gray-700 bg-gray-950 p-2">
-              <summary class="cursor-pointer px-2 py-1 text-sm font-bold text-bar-gold">Sign in</summary>
-              <form class="mt-3 w-64 space-y-3 p-2" data-keychain-login>
-                <label for="hive-login-account" class="block text-xs font-bold text-gray-200">Hive account</label>
-                <input
-                  id="hive-login-account"
-                  name="account"
-                  type="text"
-                  required
-                  minlength="3"
-                  maxlength="64"
-                  autocomplete="username"
-                  autocapitalize="none"
-                  spellcheck="false"
-                  placeholder="your-account"
-                  class="mt-1 w-full rounded border border-gray-600 bg-black px-3 py-2 text-sm text-white"
-                >
-                <button type="submit" class="button-primary w-full text-sm">Continue with Keychain</button>
-                <p class="text-xs leading-6 text-gray-400">
-                  Requires the
-                  <a class="underline hover:text-bar-gold" href="https://hive-keychain.com" rel="noopener noreferrer">Hive Keychain extension</a>.
-                  Never enter a private key here.
-                </p>
-                <p class="text-xs leading-6 text-gray-300" aria-live="polite" data-keychain-status></p>
-              </form>
-            </details>
-          <% } %>
-        </li>
-      </ul>
-    </nav>
+<header class="app-shell-header">
+  <a href="/" class="app-brand" aria-label="<%= siteName %> home">
+    <img
+      src="/images/fourth-street-bar-logo.jpg"
+      alt=""
+      width="720"
+      height="720"
+      decoding="async"
+      class="block h-10 w-10 max-w-full flex-none rounded-lg object-cover lg:h-24 lg:w-24"
+      data-bar-logo>
+    <span class="app-brand__wordmark">
+      <strong>4th Street Bar</strong>
+      <span>Hive-Bar</span>
+    </span>
+  </a>
+
+  <nav class="app-primary-nav" aria-label="Primary navigation">
+    <ul class="app-nav-list flex-wrap">
+      <li class="app-nav-item">
+        <a href="/" class="app-nav-link <%= shellHomeActive ? 'app-nav-link--active' : '' %>" <% if (shellHomeActive) { %>aria-current="page"<% } %>>
+          <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">⌂</span>
+          <span class="app-nav-label">Home</span>
+        </a>
+      </li>
+      <li class="app-nav-item">
+        <span
+          class="app-nav-link app-nav-link--disabled"
+          aria-disabled="true"
+          title="Explore will be wired in a later accepted M15 capability milestone">
+          <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">◉</span>
+          <span class="app-nav-label">Explore</span>
+        </span>
+      </li>
+      <li class="app-nav-item">
+        <span
+          class="app-nav-link app-nav-link--disabled"
+          aria-disabled="true"
+          title="Create remains unavailable until an accepted write surface is explicitly wired">
+          <span class="app-nav-icon inline-grid place-items-center text-xl font-light" aria-hidden="true">＋</span>
+          <span class="app-nav-label">Create</span>
+        </span>
+      </li>
+      <li class="app-nav-item app-nav-item--community">
+        <a href="/community" class="app-nav-link <%= shellCommunityActive ? 'app-nav-link--active' : '' %>" <% if (shellCommunityActive) { %>aria-current="page"<% } %>>
+          <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">◎</span>
+          <span class="app-nav-label">Community</span>
+        </a>
+      </li>
+      <li class="app-nav-item">
+        <a href="/pay" class="app-nav-link <%= shellPayActive ? 'app-nav-link--active' : '' %>" <% if (shellPayActive) { %>aria-current="page"<% } %>>
+          <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">▭</span>
+          <span class="app-nav-label">Pay</span>
+        </a>
+      </li>
+      <li class="app-nav-item">
+        <% if (hiveSession) { %>
+          <a href="/profile/<%= hiveSession.account %>" class="app-nav-link <%= shellYouActive ? 'app-nav-link--active' : '' %>" <% if (shellYouActive) { %>aria-current="page"<% } %>>
+            <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">○</span>
+            <span class="app-nav-label">You</span>
+          </a>
+        <% } else { %>
+          <details class="app-nav-signin">
+            <summary class="app-nav-link">
+              <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">○</span>
+              <span class="app-nav-label">You</span>
+            </summary>
+            <form class="app-signin__panel" data-keychain-login>
+              <label for="hive-login-account" class="block text-xs font-bold text-gray-200">Hive account</label>
+              <input
+                id="hive-login-account"
+                name="account"
+                type="text"
+                required
+                minlength="3"
+                maxlength="64"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                placeholder="your-account"
+                class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-sm text-white">
+              <button type="submit" class="button-primary mt-3 w-full text-sm">Continue with Keychain</button>
+              <p class="mt-3 text-xs leading-5 text-gray-400">
+                Uses the
+                <a class="underline hover:text-bar-gold" href="https://hive-keychain.com" rel="noopener noreferrer">Hive Keychain extension</a>.
+                Never enter a private key here.
+              </p>
+              <p class="mt-2 min-h-5 text-xs leading-5 text-gray-300" aria-live="polite" data-keychain-status></p>
+            </form>
+          </details>
+        <% } %>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="app-account">
     <% if (hiveSession) { %>
-      <p class="w-full text-right text-xs text-gray-400" aria-live="polite" data-keychain-status></p>
+      <div class="app-account__signed-in">
+        <a href="/profile/<%= hiveSession.account %>" class="app-account__identity">
+          <span class="app-account__avatar" aria-hidden="true"><%= hiveSession.account.slice(0, 1).toUpperCase() %></span>
+          <span class="min-w-0">
+            <strong class="block truncate">@<%= hiveSession.account %></strong>
+            <span class="block text-xs text-gray-400">Verified Hive session</span>
+          </span>
+        </a>
+        <button type="button" class="app-signout" data-keychain-logout>Sign out</button>
+      </div>
+      <p class="app-account__status" aria-live="polite" data-keychain-status></p>
+    <% } else { %>
+      <p class="app-account__signed-out">Sign in from <strong>You</strong> with Hive Keychain.</p>
     <% } %>
   </div>
+
+  <p class="app-technology-attribution">
+    <span>Hive-Bar</span>
+    <span aria-hidden="true">·</span>
+    <span>Powered by Hive</span>
+  </p>
 </header>
