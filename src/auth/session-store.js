@@ -56,7 +56,7 @@ class ChallengeStore {
       `Issued: ${issuedAt}`,
       `Expires: ${expiresAt}`,
       'Purpose: Create a server-verified session only; no Hive transaction is authorized.',
-    ].join('\n');
+    ].join(' | ');
     const challenge = { id, account, message, issuedAt, expiresAt, expiresAtMs };
     this.challenges.set(id, challenge);
     return { id, account, message, issuedAt, expiresAt };
