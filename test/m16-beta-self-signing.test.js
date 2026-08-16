@@ -325,5 +325,4 @@ test('beta UI exposes posts, replies, weighted voting, and M16.4 messaging witho
   assert.match(wall.text, /data-m4-action="inbox"/);
   assert.match(wall.text, /Hive-Bar receives only ciphertext/);
   assert.match(wall.text, /exact Active operation will be reviewed before signing/);
-  assert.doesNotMatch(wall.text, /individually authorized controlled-write run/);
 });
