@@ -87,7 +87,7 @@ test('preflights an exact session-owned operation, blocks duplicates, and releas
     .expect(201);
 });
 
-test('records Keychain acceptance and remains pending until Hive RPC observation', async () => {
+test('records Keychain acceptance and remains pending until Hive confirmation', async () => {
   const fixture = controlledApp();
   const preflight = await authorized(
     request(fixture.app).post('/api/social/preflight/post'),
@@ -111,7 +111,7 @@ test('records Keychain acceptance and remains pending until Hive RPC observation
     .send({ transactionId: 'a'.repeat(40) })
     .expect(200);
   assert.equal(accepted.body.state, 'broadcast_accepted');
-  assert.match(accepted.body.message, /awaiting observation/);
+  assert.match(accepted.body.message, /Waiting for Hive to confirm it/);
 
   const observed = await authorized(
     request(fixture.app).post(`/api/social/preflight/${preflight.body.id}/observe`),
@@ -119,7 +119,7 @@ test('records Keychain acceptance and remains pending until Hive RPC observation
   ).expect(200);
   assert.equal(observed.body.state, 'observed');
   assert.equal(observed.body.transactionId, 'a'.repeat(40));
-  assert.match(observed.body.message, /observed through Hive RPC/);
+  assert.equal(observed.body.message, 'Confirmed on Hive.');
   assert.deepEqual(fixture.calls, [
     {
       api: 'bridge',
@@ -138,7 +138,7 @@ test('fails closed outside explicit controlled mode and for accounts outside its
     .send(POST_PAYLOAD)
     .expect(503);
   assert.equal(unavailable.body.error.code, 'FEATURE_UNAVAILABLE');
-  assert.match(unavailable.body.error.message, /individually authorized controlled-write run/);
+  assert.equal(unavailable.body.error.message, 'This action isn’t available right now.');
   assert.equal(disabled.calls.length, 0);
 
   const notAllowed = controlledApp({ account: 'barfriend', allowlist: 'etblink' });
