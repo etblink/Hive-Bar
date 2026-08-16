@@ -1,21 +1,21 @@
 <footer class="mt-auto border-t border-gray-800 bg-black py-5">
   <div class="container mx-auto px-6 text-center text-sm text-gray-400">
-    <p>&copy; <%= currentYear %> <%= siteName %>. Hive community and wallet summaries come from public blockchain data.</p>
+    <p>&copy; <%= currentYear %> <%= siteName %>. Community posts and wallet information come from public Hive data.</p>
     <p class="mt-2">Hive-Bar never asks for or stores private keys.</p>
   </div>
 </footer>
 <dialog class="w-full max-w-2xl rounded-2xl border border-gray-600 bg-gray-950 p-6 text-white" data-social-confirm aria-labelledby="social-confirm-heading">
-  <h2 id="social-confirm-heading" class="text-2xl font-bold text-bar-gold">Review exact Hive operation</h2>
+  <h2 id="social-confirm-heading" class="text-2xl font-bold text-bar-gold">Review before signing</h2>
   <p class="mt-3 text-sm text-gray-300">
-    Merchant author: <strong class="text-white" data-social-account></strong>. Signing account: <strong class="text-white" data-social-signer></strong>. Authority: <strong class="text-white" data-social-authority>Posting</strong>.
-    This is the final review before Hive Keychain opens.
-  </p>
-  <p class="mt-3 break-all rounded-lg border border-gray-700 bg-black p-3 text-xs text-gray-300">
-    Operation fingerprint: <code class="text-white" data-social-fingerprint></code>
+    Posting as <strong class="text-white" data-social-account></strong>. Signing with <strong class="text-white" data-social-signer></strong>. Keychain permission: <strong class="text-white" data-social-authority>Posting</strong>.
+    Hive Keychain will ask you to approve this action next.
   </p>
   <pre class="mt-4 max-h-48 overflow-x-auto rounded-lg bg-black p-4 text-xs text-gray-200" data-social-summary></pre>
   <details class="mt-4">
-    <summary class="cursor-pointer font-bold text-gray-200">Exact operation JSON</summary>
+    <summary class="cursor-pointer font-bold text-gray-200">Technical details</summary>
+    <p class="mt-3 break-all rounded-lg border border-gray-700 bg-black p-3 text-xs text-gray-300">
+      Operation fingerprint: <code class="text-white" data-social-fingerprint></code>
+    </p>
     <pre class="mt-3 max-h-64 overflow-x-auto rounded-lg bg-black p-4 text-xs text-gray-200" data-social-operations></pre>
   </details>
   <div class="mt-6 flex flex-col gap-3 sm:flex-row">
