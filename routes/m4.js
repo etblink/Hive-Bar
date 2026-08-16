@@ -17,7 +17,7 @@ function assertM4Action(config, action) {
   if (config.hive.writeMode === 'beta') {
     if (!BETA_M16_4_ACTIONS.has(action)) {
       throw new FeatureUnavailableError(
-        `The ${action} action is not enabled for beta self-signing.`,
+        'This action isn’t available in beta yet.',
         { code: 'BETA_ACTION_NOT_ALLOWED' },
       );
     }
@@ -29,7 +29,7 @@ function assertM4Action(config, action) {
 function requireM4Record(store, id, sessionId) {
   const record = store.get(id, sessionId);
   if (!M4_ACTIONS.has(record.action)) {
-    throw new ValidationError('The preflight is not an M4 operation');
+    throw new ValidationError('The prepared action is invalid');
   }
   return record;
 }
@@ -163,8 +163,8 @@ function createM4Router({ config }) {
       res.json({
         ...preflight,
         message: transactionId
-          ? 'Broadcast accepted by Keychain; awaiting exact transaction observation through Hive RPC.'
-          : 'Broadcast accepted without a transaction id; automatic retry is blocked and observation cannot be completed.',
+          ? 'Keychain approved this action. Waiting for Hive to confirm it.'
+          : 'Keychain approved this action, but Hive-Bar couldn’t get a transaction ID. Don’t try again yet; confirmation is still pending.',
       });
     } catch (error) {
       next(error);
@@ -202,8 +202,8 @@ function createM4Router({ config }) {
         ...preflight,
         message:
           preflight.state === 'observed'
-            ? `Exact operation observed in Hive block ${preflight.blockNumber || 'unknown'}.`
-            : 'Broadcast accepted; the exact operation is not observable through Hive RPC yet.',
+            ? 'Confirmed on Hive.'
+            : 'Keychain approved this action; Hive confirmation is still pending.',
       });
     } catch (error) {
       next(error);
