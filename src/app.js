@@ -7,6 +7,7 @@ const { rateLimit } = require('express-rate-limit');
 const helmet = require('helmet');
 const { ChallengeStore, SessionStore } = require('./auth/session-store');
 const { KeychainAuthService } = require('./auth/keychain-auth');
+const { isBetaAction } = require('./beta/actions');
 const { loadConfig } = require('./config');
 const { PostingAuthorityVerifier } = require('./hive/posting-authority');
 const { HiveReadService } = require('./hive/read-service');
@@ -123,7 +124,7 @@ function createApp(options = {}) {
   app.locals.signerMode = config.hive.signerMode;
   app.locals.canWriteAction = (action) => {
     if (config.hive.betaSelfSigningEnabled) {
-      return config.hive.betaSelfActions.includes(action);
+      return isBetaAction(action);
     }
     return (
       config.hive.writesEnabled &&

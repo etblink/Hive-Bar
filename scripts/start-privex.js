@@ -2,6 +2,7 @@
 
 const { loadConfig } = require('../src/config');
 const { assertPrivexReadOnlyRelease } = require('../src/release/privex-readiness');
+const { assertPrivexBetaRelease } = require('../src/release/beta-readiness');
 const { assertPrivexControlledPostingPilot } = require('../src/release/controlled-pilot-readiness');
 const { assertPrivexBarOperatorPosting } = require('../src/release/bar-operator-readiness');
 const { assertPrivexControlledPayment } = require('../src/release/payment-readiness');
@@ -10,7 +11,9 @@ const { startServer } = require('../src/server');
 try {
   const config = loadConfig();
   let summary;
-  if (config.hive.writeMode !== 'controlled') {
+  if (config.hive.writeMode === 'beta') {
+    summary = assertPrivexBetaRelease(config, process.env);
+  } else if (config.hive.writeMode !== 'controlled') {
     summary = assertPrivexReadOnlyRelease(config, process.env);
   } else if (
     config.hive.controlledActions.length === 1 &&

@@ -18,6 +18,7 @@
     "smoke:live": "node scripts/live-read-smoke.js",
     "release:check:read-only": "node scripts/check-read-only-release.js",
     "release:check:privex": "node scripts/check-privex-release.js",
+    "release:check:beta": "node scripts/check-beta-release.js",
     "release:check:runtime": "node scripts/check-pinned-runtime.js",
     "start:read-only": "npm run release:check:read-only && node src/server.js",
     "start:privex": "node scripts/start-privex.js",
