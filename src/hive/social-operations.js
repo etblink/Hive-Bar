@@ -187,21 +187,31 @@ function buildComment({ account: accountValue, payload, config }) {
   });
 }
 
+function requireVoteDirection(value) {
+  const direction = String(value ?? 'upvote').trim().toLowerCase();
+  if (direction !== 'upvote' && direction !== 'downvote') {
+    throw new ValidationError('Vote direction must be upvote or downvote');
+  }
+  return direction;
+}
+
 function buildVote({ account: accountValue, payload }) {
   const account = requireHiveAccount(accountValue);
   const author = requireHiveAccount(payload?.author, 'Vote target author');
   const permlink = requireOperationPermlink(payload?.permlink);
+  const direction = requireVoteDirection(payload?.direction);
   const percent = Number(payload?.percent);
   if (!Number.isInteger(percent) || percent < 1 || percent > 100) {
     throw new ValidationError('Vote percentage must be a whole number from 1 to 100');
   }
-  const weight = percent * 100;
+  const weight = percent * 100 * (direction === 'downvote' ? -1 : 1);
   const operation = ['vote', { voter: account, author, permlink, weight }];
   return operationEnvelope('vote', account, [operation], {
-    kind: 'Vote',
+    kind: direction === 'downvote' ? 'Downvote' : 'Upvote',
     voter: account,
     author,
     permlink,
+    direction,
     percent,
     weight,
   });
