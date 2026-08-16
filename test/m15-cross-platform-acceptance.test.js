@@ -78,7 +78,7 @@ test('M15.5 public surfaces remain complete local-first application documents', 
 test('M15.5 signed-out, read-only, controlled, owner-only, and payment-enabled states stay truthful', async () => {
   const { app: publicApp } = createFixtureApp();
   const signedOutPay = await request(publicApp).get('/pay').expect(200);
-  assert.match(signedOutPay.text, /Verified sign-in required/);
+  assert.match(signedOutPay.text, /Sign in to pay/);
   assert.doesNotMatch(signedOutPay.text, /data-pay-form/);
 
   const signedOutDocument = documentFor(signedOutPay.text);
@@ -94,7 +94,7 @@ test('M15.5 signed-out, read-only, controlled, owner-only, and payment-enabled s
     .get('/profile/etblink')
     .set('cookie', disabled.cookie)
     .expect(200);
-  assert.match(disabledProfile.text, /Verified Hive session/);
+  assert.match(disabledProfile.text, /Signed in with Hive Keychain/);
   assert.match(disabledProfile.text, /href="\/profile\/etblink"[^>]*class="app-nav-link app-nav-link--active"/);
   assert.match(disabledProfile.text, /href="\/pay"[^>]*data-pay-nav/);
   assert.doesNotMatch(disabledProfile.text, /data-social-action="post"/);
@@ -130,15 +130,15 @@ test('M15.5 signed-out, read-only, controlled, owner-only, and payment-enabled s
     .set('cookie', payment.cookie)
     .expect(200);
   assert.match(pay.text, /data-pay-form/);
-  assert.match(pay.text, /Active authority/);
-  assert.match(pay.text, /Do not pay again after ambiguity/);
+  assert.match(pay.text, /Approve in Keychain/);
+  assert.match(pay.text, /If confirmation is unclear, don’t pay again/);
 });
 
 test('M15.5 sparse, unavailable, malformed-pagination, and future-capability states fail honestly', async () => {
   const { app } = createFixtureApp();
   const threads = await request(app).get('/community/threads').expect(200);
   assert.match(threads.text, /No threads yet/);
-  assert.match(threads.text, /@fourthst\.threads/);
+  assert.match(threads.text, /Short posts and replies will appear here|Threads aren’t available yet/);
 
   const unavailableRpc = {
     getStatus: () => [],
@@ -209,7 +209,7 @@ test('M15.5 cumulative regression suite retains the required accessibility, owne
 
   assert.match(sources.accessibility, /serious or critical violations on key public documents/);
   assert.match(sources.accessibility, /automated 360 CSS-pixel responsive contract/);
-  assert.match(sources.app, /approved empty production thread container as an intentional sparse state/);
+  assert.match(sources.app, /approved empty production thread state honestly/);
   assert.match(sources.m4, /enforces verified ownership for inbox and settings routes/);
   assert.match(sources.m4, /continuation cursor without duplicating the inclusive anchor/);
   assert.match(sources.payment, /preflights, reviews, records acceptance, and confirms one exact merchant payment/);
