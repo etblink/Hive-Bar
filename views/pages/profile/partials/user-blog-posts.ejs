@@ -1,5 +1,5 @@
 <% if (postsPage.items.length > 0) { %>
-  <ul class="social-feed" aria-label="Blog posts by <%= userProfile.name %>">
+  <ul class="social-feed" aria-label="Posts by <%= userProfile.name %>">
     <% postsPage.items.forEach((post) => { %>
       <li class="social-feed-item">
         <%- include('../../../common/post', { post, userProfile: postsPage.profiles[post.author] || userProfile }) %>
@@ -19,8 +19,8 @@
   <% } %>
 <% } else { %>
   <section class="state-card">
-    <p class="eyebrow">Public blog</p>
-    <h2>No blog posts yet</h2>
-    <p>@<%= userProfile.name %> has not published a top-level Hive post in this view.</p>
+    <p class="eyebrow">Posts</p>
+    <h2>No posts yet</h2>
+    <p>@<%= userProfile.name %> hasn’t published any posts yet.</p>
   </section>
 <% } %>
