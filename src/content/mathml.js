@@ -23,7 +23,7 @@ const COMMAND_SYMBOLS = Object.freeze({
 });
 
 const NAMED_OPERATORS = new Set(['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 'sinh', 'cosh', 'tanh', 'log', 'ln', 'exp', 'lim', 'limsup', 'liminf', 'max', 'min', 'sup', 'inf', 'det', 'dim', 'ker', 'gcd', 'Pr']);
-const STYLE_COMMANDS = Object.freeze({ mathrm: 'normal', mathbf: 'bold', mathit: 'italic', mathsf: 'sans-serif', mathtt: 'monospace', mathbb: 'double-struck', mathcal: 'script' });
+const STYLE_COMMANDS = Object.freeze({ mathrm: 'normal', mathbf: 'bold', mathit: 'italic', mathsf: 'sans-serif', mathtt: 'monospace', mathbb: 'double-struck', mathcal: 'script', mathfrak: 'fraktur' });
 const DANGEROUS_COMMANDS = new Set(['href', 'url', 'includegraphics', 'htmlClass', 'htmlId', 'htmlStyle', 'htmlData']);
 
 function escapeHtml(value) {
