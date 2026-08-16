@@ -64,7 +64,8 @@ test('M15.5.4 renders the observed bare TeX conventions without requiring dollar
   assert.match(rendered, /class="hb-math hb-math--display"/);
   assert.match(rendered, /mathvariant="script"/);
   assert.match(rendered, /→/);
-  assert.match(rendered, /𝔈/);
+  assert.match(rendered, /mathvariant="fraktur"/);
+  assert.doesNotMatch(rendered, /\uFFFD/);
   assert.match(rendered, /∈/);
   assert.match(rendered, /∘/);
   assert.match(rendered, /An admissible extension is a map/);
