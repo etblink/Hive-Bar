@@ -204,6 +204,7 @@ function extractMath(source) {
         const trimmed = line.trim();
         if (
           trimmed &&
+          trimmed[0] !== '`' &&
           !/^[#>*+\-]/.test(trimmed) &&
           !/[<>]/.test(trimmed) &&
           looksLikeBareMathFragment(trimmed)
