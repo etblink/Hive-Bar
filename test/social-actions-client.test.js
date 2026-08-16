@@ -40,6 +40,8 @@ function testBrowser() {
     </form>
     <dialog data-social-confirm>
       <span data-social-account></span>
+      <span data-social-signer></span>
+      <span data-social-authority></span>
       <code data-social-fingerprint></code>
       <pre data-social-summary></pre>
       <pre data-social-operations></pre>
@@ -86,14 +88,14 @@ test('mocked browser journey reviews, broadcasts, records acceptance, and waits 
     }
     if (url === '/api/social/preflight/vote') return response(preflight, 201);
     if (url.endsWith('/accepted')) {
-      return response({ ...preflight, state: 'broadcast_accepted', message: 'Broadcast accepted; awaiting observation.' });
+      return response({ ...preflight, state: 'broadcast_accepted', message: 'Keychain approved this action. Waiting for Hive to confirm it.' });
     }
     if (url.endsWith('/observe')) {
       observationCount += 1;
       return response({
         ...preflight,
         state: observationCount === 2 ? 'observed' : 'broadcast_accepted',
-        message: observationCount === 2 ? 'Operation observed through Hive RPC.' : 'Broadcast accepted; not observed yet.',
+        message: observationCount === 2 ? 'Confirmed on Hive.' : 'Keychain approved this action; Hive confirmation is still pending.',
       });
     }
     throw new Error(`Unexpected URL ${url}`);
@@ -127,7 +129,7 @@ test('mocked browser journey reviews, broadcasts, records acceptance, and waits 
     });
     assert.equal(reloads, 1);
     assert.equal(observationCount, 2);
-    assert.match(form.querySelector('[data-social-status]').textContent, /observed through Hive RPC/);
+    assert.match(form.querySelector('[data-social-status]').textContent, /Confirmed on Hive/);
     assert.equal(form.querySelector('button').disabled, false);
 
     const preflightRequest = calls.find((call) => call.url.endsWith('/preflight/vote'));
@@ -173,7 +175,7 @@ test('review cancellation releases the preflight without invoking Keychain', asy
       '/api/social/preflight/vote',
       '/api/social/preflight/preflight-1/cancel',
     ]);
-    assert.match(form.querySelector('[data-social-status]').textContent, /Nothing was broadcast/);
+    assert.match(form.querySelector('[data-social-status]').textContent, /Nothing was sent to Hive/);
   } finally {
     dom.window.close();
   }
@@ -205,8 +207,8 @@ test('a disabled signer cancels the prepared operation without invoking Keychain
       '/api/social/preflight/vote',
       '/api/social/preflight/preflight-1/cancel',
     ]);
-    assert.match(form.querySelector('[data-social-status]').textContent, /Signer handoff is disabled/);
-    assert.match(form.querySelector('[data-social-status]').textContent, /nothing was broadcast/i);
+    assert.match(form.querySelector('[data-social-status]').textContent, /Signing isn’t available for this action/);
+    assert.match(form.querySelector('[data-social-status]').textContent, /nothing was sent to Hive/i);
   } finally {
     dom.window.close();
   }
@@ -258,11 +260,11 @@ test('broadcast acceptance remains pending when the chain has not observed the o
       if (url === '/auth/session') return response({ authenticated: true, csrfToken: 'csrf-1' });
       if (url === '/api/social/preflight/vote') return response(preflight, 201);
       if (url.endsWith('/accepted')) {
-        return response({ ...preflight, state: 'broadcast_accepted', message: 'Broadcast accepted.' });
+        return response({ ...preflight, state: 'broadcast_accepted', message: 'Keychain approved this action. Waiting for Hive to confirm it.' });
       }
       if (url.endsWith('/observe')) {
         observations += 1;
-        return response({ ...preflight, state: 'broadcast_accepted', message: 'Broadcast accepted; not observed yet.' });
+        return response({ ...preflight, state: 'broadcast_accepted', message: 'Keychain approved this action; Hive confirmation is still pending.' });
       }
       throw new Error(`Unexpected URL ${url}`);
     },
@@ -283,7 +285,7 @@ test('broadcast acceptance remains pending when the chain has not observed the o
     await controller.run(form);
     assert.equal(observations, 5);
     assert.equal(reloads, 0);
-    assert.match(form.querySelector('[data-social-status]').textContent, /not observed yet/);
+    assert.match(form.querySelector('[data-social-status]').textContent, /confirmation is still pending/);
   } finally {
     dom.window.close();
   }
