@@ -4,11 +4,13 @@ This is the only living document that defines the current and next project miles
 
 ## Current state
 
-- Production: accepted M16.8 beta on `fourthstreetbar.com`.
+- Production source/operational wiring: accepted M17.3.
+- Persistent production runtime: accepted beta self-signing profile.
 - Accepted beta writes: post, comment, weighted vote, Wall, encrypted Inbox.
+- V1 release gate: operationally rehearsed and accepted without persistent V1 activation.
 - Payments/Distriator: disabled.
 - Controlled/operator/delegated lanes: inert.
-- Current source-of-truth work: M17.3 runtime V1 wiring and operational acceptance.
+- Current source-of-truth work: M17.4 functional V1 baseline.
 
 ## M17 — Beta closeout and functional V1 readiness
 
@@ -22,11 +24,11 @@ This is the only living document that defines the current and next project miles
 
 ### M17.3 — Runtime V1 wiring and operational acceptance
 
-**Current.** Wire the frozen V1 action manifest into explicit production self-signing runtime dispatch, retain fail-closed direct-start behavior, reconcile profile-aware liveness monitoring, qualify without unintended Hive writes, and perform bounded browser/device acceptance while production remains beta until separately authorized.
+**Accepted.** Wired the frozen V1 action manifest into explicit production self-signing runtime dispatch, retained fail-closed direct-start behavior, installed profile-neutral liveness monitoring, deployed the accepted source through the read-only gate, rehearsed the real V1 gate only in a temporary process environment, and restored production to the accepted beta profile without a Hive or Keychain write.
 
 ### M17.4 — Functional V1 baseline
 
-Create one exact candidate, pass Ubuntu/Windows CI and all release checks, then reconcile the accepted lineage to `main` by exact fast-forward. Retire stale development governance artifacts only after acceptance.
+**Current.** Freeze one exact pre-final functional V1 baseline from accepted M17.3, keep package/app identity at `0.1.0`, repair future exact-deployment `last-good` bookkeeping in source, pass Ubuntu/Windows CI and all deterministic release checks, and preserve production in beta. After acceptance, canonical `main` reconciliation and stale PR #1 retirement require a separate exact-fast-forward authorization.
 
 ## M18 — Cosmetic and user-experience elevation
 

@@ -1,6 +1,6 @@
 # Hive-Bar Production Operations
 
-This is the living production operations document. Historical M6/M14/M16 runbooks remain evidence for their milestones but do not supersede this current model.
+This is the living production operations document. Historical M6/M14/M16/M17 runbooks remain evidence for their milestones but do not supersede this current model.
 
 ## Current production state
 
@@ -11,9 +11,10 @@ This is the living production operations document. Historical M6/M14/M16 runbook
 - service: `hive-bar.service`
 - health: `/healthz`
 - readiness: `/readyz`
-- exact source currently accepted in production before M17 work: M16.8
+- deployed source and operational wiring: accepted M17.3
 - current accepted write mode: beta self-signing through local Hive Keychain
 - accepted beta action set: post, comment, vote, wall, inbox
+- V1 gate: accepted in a temporary non-persistent M17.3 rehearsal; V1 service activation was not performed
 - payments and Distriator: disabled
 - controlled/operator/delegated state: inert
 
@@ -42,9 +43,9 @@ Current accepted production profile. Users sign only their own accepted beta ope
 
 ### `privex-v1-self-signing`
 
-M17.3 wires this profile into the reviewed Privex startup path. The exact V1 action manifest remains defined in `src/v1/actions.js`. Direct/unqualified production-mode loading remains refused; only an explicitly V1-enabled loader may parse `HIVE_WRITE_MODE=production`, and `scripts/start-privex.js` must pass `assertPrivexV1Release()` before starting the server.
+M17.3 wired this profile into the reviewed Privex startup path and operationally qualified the real gate without persistent activation. The exact V1 action manifest remains defined in `src/v1/actions.js`. Direct/unqualified production-mode loading remains refused; only an explicitly V1-enabled loader may parse `HIVE_WRITE_MODE=production`, and `scripts/start-privex.js` must pass `assertPrivexV1Release()` before starting the server.
 
-Runtime wiring does not itself authorize production activation. Production remains beta until a separately authorized transition changes the active environment.
+Runtime wiring and a successful temporary gate rehearsal do not authorize production activation. Production remains beta until a separately authorized transition changes the persistent environment.
 
 Controlled operator posting and controlled payment profiles remain separate procedures and are not implicit V1 capabilities.
 
@@ -53,6 +54,12 @@ Controlled operator posting and controlled payment profiles remain separate proc
 `/healthz` is process identity/liveness. The local health timer verifies `status=ok`, `service=hive-bar`, `environment=production`, and one recognized runtime write mode (`disabled`, `beta`, `production`, or `controlled`). It does not decide whether that profile is authorized.
 
 Authorization correctness is fail-closed at service startup through the exact release gate selected by `scripts/start-privex.js`. `/readyz` separately verifies a bounded Hive read call. The monitoring timer must never issue Hive writes or mutate external infrastructure.
+
+## Exact release and rollback bookkeeping
+
+Every installed release lives under `/opt/hive-bar/releases/<full-commit-sha>` and carries `.hive-bar-commit` and `.hive-bar-tree` identity records. Exact rollback remains an explicit operator action requiring a full installed commit SHA while the read-only deployment environment is active; no implicit rollback target is selected from user-controlled input.
+
+The M17.3 post-rehearsal host audit found `/opt/hive-bar/last-good` unresolved, so current operations must not rely on that pointer. This does not block explicit exact-SHA rollback. The M17.4 candidate changes the reviewed deployment helper so a future exact deployment atomically repairs `/opt/hive-bar/last-good` to the validated release that was current immediately before a distinct source switch. That source change is not a production mutation by itself and does not retroactively repair the host; any host-side reconciliation remains separately authorized.
 
 ## Secrets and keys
 
@@ -71,8 +78,10 @@ For every accepted production transition retain:
 - public edge result;
 - rollback identity or preserved prior environment as applicable.
 
+M17.3 operational acceptance established the V1 gate only in a temporary process environment, restored the accepted beta environment byte-for-byte, retained Pay/Distriator disabled, and made no Hive or Keychain write during the rehearsal.
+
 ## Monitoring and recovery
 
-The local health timer is observational and must never issue Hive writes or restart external infrastructure. Exact deployment rollback is explicit and operator-authorized. Retain at least the current and last known-good release. For ambiguous state, observe first and obtain fresh authorization before any new mutation.
+The local health timer is observational and must never issue Hive writes or restart external infrastructure. Exact deployment rollback is explicit and operator-authorized. Retain at least the current and one independently identified prior release. For ambiguous state, observe first and obtain fresh authorization before any new mutation.
 
-M17.3 operational acceptance should rehearse the real V1 release gate without changing the persistent production environment, invoking Keychain, or broadcasting to Hive. Only a later separately authorized activation may place the service in V1 production mode.
+M17.4 is a pre-final source qualification milestone. It may freeze the functional baseline and improve future release bookkeeping, but it does not authorize V1 production activation, a package/version promotion to `1.0.0`, a `main` fast-forward, or deletion/retirement of unrelated repository state without a separate authorization.

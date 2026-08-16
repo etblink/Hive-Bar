@@ -6,6 +6,7 @@ readonly app_root=/opt/hive-bar
 readonly repository="$app_root/repository.git"
 readonly releases="$app_root/releases"
 readonly current="$app_root/current"
+readonly last_good="$app_root/last-good"
 readonly environment_file=/etc/hive-bar/hive-bar.env
 readonly runtime=/usr/local/bin/node
 readonly npm_runtime=/usr/local/bin/npm
@@ -13,6 +14,7 @@ readonly service=hive-bar.service
 readonly health_url=http://127.0.0.1:3000/healthz
 
 staging=
+last_good_staging=
 
 fail() {
   printf 'Hive-Bar deploy refused: %s\n' "$1" >&2
@@ -22,6 +24,9 @@ fail() {
 cleanup() {
   if [[ -n "$staging" && -d "$staging" && "$staging" == "$releases"/.staging.* ]]; then
     rm -rf -- "$staging"
+  fi
+  if [[ -n "$last_good_staging" && -L "$last_good_staging" && "$last_good_staging" == "$app_root"/.last-good.* ]]; then
+    rm -f -- "$last_good_staging"
   fi
 }
 trap cleanup EXIT
@@ -92,7 +97,34 @@ runuser -u hivebar -- /usr/bin/test -r "$release/scripts/start-privex.js" || fai
 [[ -r "$release/.hive-bar-tree" ]] || fail 'stored release tree identity is missing'
 [[ "$(<"$release/.hive-bar-commit")" == "$commit" ]] || fail 'stored release commit does not match'
 [[ "$(<"$release/.hive-bar-tree")" == "$tree" ]] || fail 'stored release tree does not match'
-previous="$(readlink -f "$current" 2>/dev/null || true)"
+
+previous=
+if [[ -e "$current" || -L "$current" ]]; then
+  previous="$(readlink -f "$current" 2>/dev/null || true)"
+  [[ -n "$previous" ]] || fail 'the current release link cannot be resolved'
+  [[ -d "$previous" ]] || fail 'the current release target is not a directory'
+  [[ "$previous" == "$releases/"* ]] || fail 'the current release target is outside the reviewed release root'
+  [[ -r "$previous/.hive-bar-commit" ]] || fail 'the current release commit identity is missing'
+  [[ -r "$previous/.hive-bar-tree" ]] || fail 'the current release tree identity is missing'
+
+  previous_commit="$(<"$previous/.hive-bar-commit")"
+  previous_tree="$(<"$previous/.hive-bar-tree")"
+  [[ "$previous_commit" =~ ^[0-9a-f]{40}$ ]] || fail 'the current release commit identity is malformed'
+  [[ "$previous_tree" =~ ^[0-9a-f]{40}$ ]] || fail 'the current release tree identity is malformed'
+  [[ "$previous" == "$releases/$previous_commit" ]] || fail 'the current release path does not match its commit identity'
+  git --git-dir="$repository" cat-file -e "${previous_commit}^{commit}" 2>/dev/null || fail 'the current release commit is absent from the reviewed repository'
+  expected_previous_tree="$(git --git-dir="$repository" rev-parse "${previous_commit}^{tree}")"
+  [[ "$previous_tree" == "$expected_previous_tree" ]] || fail 'the current release tree identity does not match the reviewed repository'
+
+  if [[ "$previous" != "$release" ]]; then
+    [[ ! -e "$last_good" || -L "$last_good" ]] || fail 'last-good exists but is not a replaceable symbolic link'
+    last_good_staging="$app_root/.last-good.${previous_commit}.$$"
+    ln -s "$previous" "$last_good_staging"
+    mv -Tf "$last_good_staging" "$last_good"
+    last_good_staging=
+  fi
+fi
+
 next_link="$app_root/.current.${commit}.$$"
 ln -s "$release" "$next_link"
 mv -Tf "$next_link" "$current"

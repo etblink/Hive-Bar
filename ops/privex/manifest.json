@@ -41,7 +41,9 @@
     "healthPath": "/healthz",
     "readinessPath": "/readyz",
     "automaticDeploys": false,
-    "exactCommitRequired": true
+    "exactCommitRequired": true,
+    "lastGoodPath": "/opt/hive-bar/last-good",
+    "lastGoodPolicy": "previous-validated-current-before-switch"
   },
   "retention": {
     "journalDays": 7,

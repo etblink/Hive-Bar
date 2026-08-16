@@ -20,6 +20,7 @@
     "release:check:privex": "node scripts/check-privex-release.js",
     "release:check:beta": "node scripts/check-beta-release.js",
     "release:check:v1": "node scripts/check-v1-release.js",
+    "release:check:functional-v1": "node scripts/check-functional-v1-baseline.js",
     "release:check:runtime": "node scripts/check-pinned-runtime.js",
     "start:read-only": "npm run release:check:read-only && node src/server.js",
     "start:privex": "node scripts/start-privex.js",
@@ -30,7 +31,7 @@
     "check:secrets": "node scripts/check-secrets.js",
     "check:release-coherence": "node scripts/check-release-coherence.js",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
-    "check": "npm run check:secrets && npm run check:release-coherence && npm run lint && npm run build && npm test && npm run audit:prod"
+    "check": "npm run check:secrets && npm run check:release-coherence && npm run release:check:functional-v1 && npm run lint && npm run build && npm test && npm run audit:prod"
   },
   "dependencies": {
     "@zxing/browser": "0.2.1",

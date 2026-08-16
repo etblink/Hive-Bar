@@ -23,6 +23,8 @@ function assertReleaseCoherence() {
   const privexEnv = read('ops/privex/hive-bar.env.example');
   const workflow = read('.github/workflows/ci.yml');
   const readme = read('README.md');
+  const roadmap = read('docs/ROADMAP.md');
+  const operations = read('docs/PRODUCTION_OPERATIONS.md');
 
   if (pkg.version !== PACKAGE_VERSION) throw new Error('package version source is inconsistent');
   if (lock.packages?.['']?.version !== PACKAGE_VERSION) {
@@ -42,7 +44,10 @@ function assertReleaseCoherence() {
   requireMatch(workflow, /uses:\s+actions\/checkout@[0-9a-f]{40}(?:\s+#.*)?$/m, 'checkout must be pinned by full commit SHA');
   requireMatch(workflow, /uses:\s+actions\/setup-node@[0-9a-f]{40}(?:\s+#.*)?$/m, 'setup-node must be pinned by full commit SHA');
   requireMatch(readme, /Node\.js `24\.19\.0`/, 'README must state the pinned Node runtime');
-  requireMatch(readme, /M17\.3/, 'README must identify the current M17.3 source milestone');
+  requireMatch(readme, /M17\.4/, 'README must identify the current M17.4 source milestone');
+  requireMatch(roadmap, /### M17\.4 — Functional V1 baseline/, 'roadmap must contain the M17.4 functional baseline');
+  requireMatch(roadmap, /\*\*Current\.\*\*/, 'roadmap must identify one current milestone');
+  requireMatch(operations, /deployed source and operational wiring: accepted M17\.3/, 'operations must identify the deployed M17.3 source boundary');
   if (/\bMIT License\b/i.test(readme)) {
     throw new Error('README must not claim an open-source license that the repository does not provide');
   }
@@ -56,8 +61,17 @@ function assertReleaseCoherence() {
   if (manifest.runtimeProfiles?.wiredV1 !== 'privex-v1-self-signing') {
     throw new Error('Privex manifest must identify the wired V1 runtime profile');
   }
+  if (manifest.runtimeProfiles?.acceptedBeta !== 'privex-beta-self-signing') {
+    throw new Error('Privex manifest must retain the accepted beta runtime profile');
+  }
   if (manifest.v1?.status !== 'runtime-wired-not-production-activated') {
     throw new Error('Privex manifest must distinguish V1 runtime wiring from production activation');
+  }
+  if (manifest.release?.lastGoodPath !== '/opt/hive-bar/last-good') {
+    throw new Error('Privex manifest must publish the canonical last-good path');
+  }
+  if (manifest.release?.lastGoodPolicy !== 'previous-validated-current-before-switch') {
+    throw new Error('Privex manifest must publish the reviewed last-good update policy');
   }
 
   for (const requiredPath of [
@@ -67,6 +81,7 @@ function assertReleaseCoherence() {
     'docs/M17_1_V1_PRODUCT_BOUNDARY.md',
     'docs/M17_2_SOURCE_OF_TRUTH_AND_V1_GATE.md',
     'docs/M17_3_RUNTIME_V1_WIRING_AND_OPERATIONAL_ACCEPTANCE.md',
+    'docs/M17_4_FUNCTIONAL_V1_BASELINE.md',
   ]) {
     if (!fs.existsSync(path.join(root, requiredPath))) {
       throw new Error(`required living/release document is missing: ${requiredPath}`);
