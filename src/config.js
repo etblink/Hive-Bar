@@ -22,6 +22,7 @@ const CONTROLLED_ACTIONS = Object.freeze([
   'inbox',
   'payment',
 ]);
+const BETA_SELF_ACTIONS = Object.freeze(['post', 'comment']);
 const PRODUCTION_REQUIRED_SETTINGS = [
   'SITE_NAME',
   'BAR_ADDRESS',
@@ -246,7 +247,7 @@ const envSchema = z
       .string()
       .default('https://api.hive.blog,https://api.deathwing.me,https://api.openhive.network')
       .transform(parseRpcNodes),
-    HIVE_WRITE_MODE: z.enum(['disabled', 'controlled', 'production']).default('disabled'),
+    HIVE_WRITE_MODE: z.enum(['disabled', 'controlled', 'beta', 'production']).default('disabled'),
     HIVE_CONTROLLED_ACCOUNTS: z.string().default('').transform(parseAccountList),
     HIVE_CONTROLLED_ACTIONS: z
       .string()
@@ -337,6 +338,13 @@ const envSchema = z
         code: 'custom',
         path: ['HIVE_CONTROLLED_ACTIONS'],
         message: 'Controlled mode requires at least one explicitly allowlisted action',
+      });
+    }
+    if (env.HIVE_WRITE_MODE === 'beta' && env.HIVE_SIGNER_MODE !== 'keychain') {
+      context.addIssue({
+        code: 'custom',
+        path: ['HIVE_SIGNER_MODE'],
+        message: 'Beta self-signing mode requires Hive Keychain',
       });
     }
     const m12Configured = Boolean(env.HIVE_M12_MERCHANT_AUTHOR || env.HIVE_M12_AUTHORIZED_SIGNERS.length);
@@ -437,6 +445,9 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
       writeMode: result.data.HIVE_WRITE_MODE,
       controlledAccounts: result.data.HIVE_CONTROLLED_ACCOUNTS,
       controlledActions: result.data.HIVE_CONTROLLED_ACTIONS,
+      betaSelfActions: BETA_SELF_ACTIONS,
+      betaSelfSigningEnabled:
+        result.data.HIVE_WRITE_MODE === 'beta' && result.data.HIVE_SIGNER_MODE === 'keychain',
       signerMode: result.data.HIVE_SIGNER_MODE,
       m9PilotControlPath: result.data.HIVE_M9_PILOT_CONTROL_PATH,
       m10OperatorArmedUntil: result.data.HIVE_M10_OPERATOR_ARMED_UNTIL,
@@ -485,6 +496,7 @@ function deepFreeze(value) {
 }
 
 module.exports = {
+  BETA_SELF_ACTIONS,
   COMMUNITY_PATTERN,
   CONTROLLED_ACTIONS,
   HIVE_ACCOUNT_PATTERN,
