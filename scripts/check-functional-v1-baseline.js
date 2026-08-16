@@ -62,14 +62,20 @@ function assertFunctionalV1Baseline() {
   if (manifest.release?.lastGoodPolicy !== 'previous-validated-current-before-switch') {
     throw new Error('M17.4 must publish the reviewed last-good update policy');
   }
-  if (!/### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Current\.\*\*/.test(roadmap)) {
-    throw new Error('living roadmap must identify M17.4 as current');
+  if (!/### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/.test(roadmap)) {
+    throw new Error('living roadmap must identify M17.4 as accepted');
+  }
+  if (!/## M18 — Cosmetic and user-experience elevation[\s\S]*?\*\*Next\.\*\*/.test(roadmap)) {
+    throw new Error('living roadmap must identify M18 as next');
   }
   if (!/deployed source and operational wiring: accepted M17\.3/.test(operations)) {
     throw new Error('production operations must identify accepted M17.3 source as deployed');
   }
   if (!/Production remains beta until a separately authorized transition/.test(operations)) {
     throw new Error('production operations must keep V1 activation outside M17.4');
+  }
+  if (!/last-good.*reconciled/.test(operations)) {
+    throw new Error('production operations must record the reconciled last-good host state');
   }
   for (const pattern of [
     /readonly last_good="\$app_root\/last-good"/,
