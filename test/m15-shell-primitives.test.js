@@ -32,12 +32,18 @@ test('M15.2 shell presents the approved navigation model without inventing futur
 
   assert.equal(document.querySelector('a.app-nav-link[href="/"]')?.getAttribute('aria-current'), 'page');
   assert.equal(document.querySelector('a.app-nav-link[href="/community"] .app-nav-label')?.textContent.trim(), 'Community');
-  assert.equal(document.querySelector('a.app-nav-link[href="/pay"] .app-nav-label')?.textContent.trim(), 'Pay');
+  assert.equal(document.querySelector('a.app-nav-link[href="/pay"]'), null);
+
+  const signedOutPay = document.querySelector('.app-nav-link[data-pay-nav][aria-disabled="true"]');
+  assert.ok(signedOutPay);
+  assert.equal(signedOutPay.tagName, 'SPAN');
+  assert.equal(signedOutPay.querySelector('.app-nav-label')?.textContent.trim(), 'Pay');
+  assert.equal(signedOutPay.getAttribute('title'), 'Sign in from You to access Pay');
 
   const disabledLabels = Array.from(document.querySelectorAll('.app-nav-link[aria-disabled="true"]'))
     .map((item) => item.querySelector('.app-nav-label')?.textContent.trim() || '')
     .filter(Boolean);
-  assert.deepEqual(disabledLabels, ['Explore', 'Create']);
+  assert.deepEqual(disabledLabels, ['Explore', 'Create', 'Pay']);
 
   assert.equal(document.querySelector('a[href="/explore"]'), null);
   assert.equal(document.querySelector('a[href="/create"]'), null);
@@ -77,10 +83,14 @@ test('M15.2 signed-in You destination reuses the verified Hive session and keeps
   const dom = new JSDOM(response.text);
   const { document } = dom.window;
   const you = document.querySelector('a.app-nav-link[href="/profile/etblink"]');
+  const pay = document.querySelector('a.app-nav-link[data-pay-nav][href="/pay"]');
 
   assert.ok(you);
   assert.equal(you.getAttribute('aria-current'), 'page');
   assert.equal(you.querySelector('.app-nav-label')?.textContent.trim(), 'You');
+  assert.ok(pay);
+  assert.equal(pay.getAttribute('aria-disabled'), null);
+  assert.equal(pay.querySelector('.app-nav-label')?.textContent.trim(), 'Pay');
   assert.ok(document.querySelector('button[data-keychain-logout]'));
   assert.equal(document.querySelector('form[data-keychain-login]'), null);
   assert.match(document.querySelector('.app-account__identity')?.textContent || '', /@etblink/);

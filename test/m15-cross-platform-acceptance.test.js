@@ -81,6 +81,14 @@ test('M15.5 signed-out, read-only, controlled, owner-only, and payment-enabled s
   assert.match(signedOutPay.text, /Verified sign-in required/);
   assert.doesNotMatch(signedOutPay.text, /data-pay-form/);
 
+  const signedOutDocument = documentFor(signedOutPay.text);
+  const signedOutPayNav = signedOutDocument.querySelector('.app-nav-link[data-pay-nav]');
+  assert.ok(signedOutPayNav);
+  assert.equal(signedOutPayNav.tagName, 'SPAN');
+  assert.equal(signedOutPayNav.getAttribute('aria-disabled'), 'true');
+  assert.equal(signedOutDocument.querySelector('a.app-nav-link[href="/pay"]'), null);
+  signedOutDocument.defaultView?.close();
+
   const disabled = verifiedApp({ HIVE_WRITE_MODE: 'disabled' });
   const disabledProfile = await request(disabled.app)
     .get('/profile/etblink')
@@ -88,6 +96,7 @@ test('M15.5 signed-out, read-only, controlled, owner-only, and payment-enabled s
     .expect(200);
   assert.match(disabledProfile.text, /Verified Hive session/);
   assert.match(disabledProfile.text, /href="\/profile\/etblink"[^>]*class="app-nav-link app-nav-link--active"/);
+  assert.match(disabledProfile.text, /href="\/pay"[^>]*data-pay-nav/);
   assert.doesNotMatch(disabledProfile.text, /data-social-action="post"/);
 
   const controlled = verifiedApp({
@@ -160,7 +169,7 @@ test('M15.5 sparse, unavailable, malformed-pagination, and future-capability sta
   const disabledLabels = Array.from(document.querySelectorAll('.app-nav-link[aria-disabled="true"]'))
     .map((item) => item.querySelector('.app-nav-label')?.textContent.trim())
     .filter(Boolean);
-  assert.deepEqual(disabledLabels, ['Explore', 'Create']);
+  assert.deepEqual(disabledLabels, ['Explore', 'Create', 'Pay']);
   assert.doesNotMatch(document.querySelector('.app-primary-nav')?.textContent || '', /\bLive\b|\bEvents?\b/);
   document.defaultView?.close();
 });
