@@ -7,7 +7,7 @@
   async function parseResponse(response) {
     const payload = response.status === 204 ? null : await response.json().catch(() => null);
     if (!response.ok) {
-      const error = new Error(payload?.error?.message || 'The social action could not be completed.');
+      const error = new Error(payload?.error?.message || 'This action could not be completed.');
       error.code = payload?.error?.code || 'REQUEST_FAILED';
       throw error;
     }
@@ -47,11 +47,11 @@
     const bytes = new TextEncoder().encode(input.value).byteLength;
     const counter = input.parentElement?.querySelector('[data-byte-counter]');
     if (counter) {
-      counter.textContent = `${bytes.toLocaleString()} / ${maximum.toLocaleString()} UTF-8 bytes`;
+      counter.textContent = `${bytes.toLocaleString()} / ${maximum.toLocaleString()} byte limit`;
       counter.classList.toggle('text-red-300', bytes > maximum);
       counter.classList.toggle('text-gray-400', bytes <= maximum);
     }
-    input.setCustomValidity(bytes > maximum ? `Use ${maximum.toLocaleString()} UTF-8 bytes or fewer.` : '');
+    input.setCustomValidity(bytes > maximum ? 'This text is too long. Shorten it and try again.' : '');
   }
 
   function wait(ms) {
@@ -102,24 +102,24 @@
           body: formPayload(form),
         });
         const signerAccount = preflight.signer || preflight.account;
-        setFormStatus(form, `Prepared exact ${preflight.action} operation as @${preflight.account}, signed by @${signerAccount}.`);
+        setFormStatus(form, `Ready to review this ${preflight.action} as @${preflight.account}.`);
 
         const confirmed = await this.review(preflight);
         if (!confirmed) {
           await this.cancel(preflight.id, session.csrfToken);
           preflight = null;
-          setFormStatus(form, 'Cancelled before Keychain. Nothing was broadcast.');
+          setFormStatus(form, 'Cancelled. Nothing was sent to Hive.');
           return;
         }
 
         if (form.dataset.signerMode !== 'keychain') {
           await this.cancel(preflight.id, session.csrfToken);
           preflight = null;
-          setFormStatus(form, 'Signer handoff is disabled. The prepared operation was cancelled; nothing was broadcast.');
+          setFormStatus(form, 'Signing isn’t available for this action. Nothing was sent to Hive.');
           return;
         }
 
-        setFormStatus(form, `Confirm the exact Posting operation in Hive Keychain as @${preflight.account}, using @${signerAccount}.`);
+        setFormStatus(form, `Approve this action in Hive Keychain as @${signerAccount}.`);
         const result = await this.keychainFactory().broadcast({
           account: signerAccount,
           operations: preflight.operations,
@@ -150,9 +150,9 @@
           await this.cancel(preflight.id, session.csrfToken).catch(() => {});
         }
         const prefix = broadcastAccepted
-          ? 'Keychain accepted the broadcast, but confirmation is incomplete. Do not retry automatically. '
+          ? 'Keychain approved this action, but Hive confirmation is still pending. Don’t try it again yet. '
           : '';
-        setFormStatus(form, `${prefix}${error.message || 'The social action failed.'}`, true);
+        setFormStatus(form, `${prefix}${error.message || 'This action failed.'}`, true);
       } finally {
         if (button) button.disabled = false;
       }
@@ -170,7 +170,7 @@
       if (!dialog || typeof dialog.showModal !== 'function') {
         return Promise.resolve(
           global.confirm(
-            `Confirm ${preflight.action} as @${preflight.account}, signed by @${preflight.signer || preflight.account}, with Posting authority?\n\nFingerprint: ${preflight.fingerprint}\n\n${JSON.stringify(preflight.operations, null, 2)}`,
+            `Review ${preflight.action} as @${preflight.account} before opening Keychain?\n\nTechnical fingerprint: ${preflight.fingerprint}\n\n${JSON.stringify(preflight.operations, null, 2)}`,
           ),
         );
       }
