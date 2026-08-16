@@ -40,7 +40,7 @@
   </h2>
 
   <% if (hiveSession && canWriteAction('comment')) { %>
-    <form class="social-composer mt-4 space-y-4" data-social-action="comment">
+    <form class="social-composer mt-4 space-y-4" data-social-action="comment" data-signer-mode="<%= signerMode %>">
       <input type="hidden" name="parentAuthor" value="<%= post.author %>">
       <input type="hidden" name="parentPermlink" value="<%= post.permlink %>">
       <div>
