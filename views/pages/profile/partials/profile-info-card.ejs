@@ -7,7 +7,7 @@
       width="96"
       height="96">
     <div class="profile-hero__identity">
-      <p class="app-kicker">Public Hive profile</p>
+      <p class="app-kicker">Hive profile</p>
       <h1 id="profile-heading"><%= userProfile.displayName %></h1>
       <p class="profile-hero__handle">@<%= userProfile.name %></p>
     </div>
@@ -30,16 +30,14 @@
         <input type="hidden" name="following" value="<%= userProfile.name %>">
         <button type="submit" class="button-primary"><%= followState ? 'Unfollow' : 'Follow' %> @<%= userProfile.name %></button>
         <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-social-status>
-          Current on-chain state: <%= followState ? 'following' : 'not following' %>.
+          <%= followState ? 'You’re following this account.' : 'You’re not following this account.' %>
         </p>
       </form>
-    <% } else if (hiveSession && !writesEnabled) { %>
+    <% } else if (hiveSession && hiveSession.account === userProfile.name) { %>
+      <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">This is your profile.</p>
+    <% } else { %>
       <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
-        Follow signing is disabled until an individually authorized controlled-write run.
-      </p>
-    <% } else if (!hiveSession) { %>
-      <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
-        Sign in with Hive Keychain to follow this account.
+        Following isn’t available here yet.
       </p>
     <% } %>
   </div>
