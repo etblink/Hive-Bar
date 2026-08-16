@@ -22,7 +22,7 @@
     <%- comment.bodyHtml %>
   </div>
   <footer class="social-comment__stats" aria-label="Comment activity">
-    <span><%= comment.positiveVotes.toLocaleString() %> positive votes</span>
+    <span><%= comment.positiveVotes.toLocaleString() %> upvotes</span>
     <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
     <span class="text-bar-gold">$<%= formatPayout(comment) %></span>
   </footer>
@@ -43,7 +43,7 @@
             rows="4"
             data-max-bytes="8192"
             class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-          <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 UTF-8 bytes</p>
+          <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 byte limit</p>
         </div>
         <button type="submit" class="button-secondary">Review reply</button>
         <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
