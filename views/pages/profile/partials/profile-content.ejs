@@ -10,7 +10,7 @@
           hx-target="#profile-content"
           class="content-tab <%= activeView === 'posts' ? 'content-tab--active' : '' %>"
           <% if (activeView === 'posts') { %>aria-current="page"<% } %>>
-          Blog posts
+          Posts
         </a>
         <a
           href="/profile/<%= userProfile.name %>/wallet"
@@ -18,7 +18,7 @@
           hx-target="#profile-content"
           class="content-tab <%= activeView === 'wallet' ? 'content-tab--active' : '' %>"
           <% if (activeView === 'wallet') { %>aria-current="page"<% } %>>
-          Public wallet
+          Wallet
         </a>
         <a
           href="/profile/<%= userProfile.name %>/wall-posts"
