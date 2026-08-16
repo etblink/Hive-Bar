@@ -69,8 +69,8 @@ test('controlled authenticated pages expose all eight actions behind exact prefl
   assert.match(community.text, /data-social-action="post"/);
   assert.match(community.text, /data-social-action="vote"/);
   assert.match(community.text, /data-social-action="subscribe"/);
-  assert.match(community.text, /0 \/ 32,768 UTF-8 bytes/);
-  assert.match(community.text, /Review exact Hive operation/);
+  assert.match(community.text, /0 \/ 32,768 byte limit/);
+  assert.match(community.text, /Review before signing/);
   assert.match(community.text, /data-social-fingerprint/);
   assert.match(community.text, /@etblink/);
   assert.doesNotMatch(community.text, /name="(?:voter|follower)" value="etblink"/);
@@ -80,7 +80,7 @@ test('controlled authenticated pages expose all eight actions behind exact prefl
     .set('cookie', fixtureApp.cookie)
     .expect(200);
   assert.match(threads.text, /data-social-action="thread"/);
-  assert.match(threads.text, /0 \/ 500 UTF-8 bytes/);
+  assert.match(threads.text, /0 \/ 500 byte limit/);
 
   const post = await request(fixtureApp.app)
     .get('/post/etblink/welcome-fourth-street-bar')
@@ -88,14 +88,14 @@ test('controlled authenticated pages expose all eight actions behind exact prefl
     .expect(200);
   assert.match(post.text, /data-social-action="comment"/);
   assert.match(post.text, /data-social-action="vote"/);
-  assert.match(post.text, /0 \/ 8,192 UTF-8 bytes/);
+  assert.match(post.text, /0 \/ 8,192 byte limit/);
 
   const profile = await request(fixtureApp.app)
     .get('/profile/barfriend')
     .set('cookie', fixtureApp.cookie)
     .expect(200);
   assert.match(profile.text, /data-social-action="unfollow"/);
-  assert.match(profile.text, /Current on-chain state: following/);
+  assert.match(profile.text, /You’re following this account/);
 });
 
 test('the same signed-in UI stays gated while write mode is disabled', async () => {
@@ -105,7 +105,7 @@ test('the same signed-in UI stays gated while write mode is disabled', async () 
     .set('cookie', fixtureApp.cookie)
     .expect(200);
   assert.doesNotMatch(community.text, /data-social-action=/);
-  assert.match(community.text, /disabled until an individually authorized controlled-write run/);
+  assert.match(community.text, /Community subscriptions aren’t available here yet/);
 });
 
 test('the M9 post-only pilot exposes the post form with a disabled signer handoff', async () => {
