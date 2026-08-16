@@ -1,10 +1,12 @@
 'use strict';
 
+const path = require('node:path');
 const { createApp } = require('./app');
 const { loadConfig } = require('./config');
 const { applyReadConsistencyHardening } = require('./hive/read-consistency');
 const { HiveRpcPool } = require('./hive/rpc-pool');
 const { createLogger } = require('./lib/logger');
+const { createStaticAssetUrl } = require('./release/static-assets');
 
 function startServer(options = {}) {
   const config = options.config || loadConfig();
@@ -31,6 +33,7 @@ function startServer(options = {}) {
   if (app.locals?.services?.hiveReads) {
     applyReadConsistencyHardening(app.locals.services.hiveReads);
   }
+  app.locals.assetUrl = createStaticAssetUrl(path.join(__dirname, '..', 'public'));
   const server = app.listen(config.server.port, config.server.bindHost, () => {
     logger.info(
       {

@@ -10,39 +10,30 @@ const {
   socialOperationEquivalent,
 } = require('../src/hive/read-consistency');
 const { assertReadOnlyRpcMethod } = require('../src/hive/read-methods');
-
-function gitBlobSha(filename) {
-  const normalized = fs.readFileSync(filename, 'utf8').replace(/\r\n/g, '\n');
-  const bytes = Buffer.from(normalized, 'utf8');
-  return createHash('sha1')
-    .update(`blob ${bytes.length}\0`)
-    .update(bytes)
-    .digest('hex');
-}
+const { FIRST_PARTY_ASSETS, createStaticAssetUrl } = require('../src/release/static-assets');
 
 function source(relativePath) {
   return fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
 }
 
-function assertVersioned(template, publicPath, relativePath) {
-  const revision = gitBlobSha(path.join(__dirname, '..', relativePath));
-  assert.ok(
-    template.includes(`${publicPath}?v=${revision}`),
-    `${publicPath} must be bound to its exact Git blob revision`,
-  );
-}
+test('M16.7 binds first-party CSS and JavaScript URLs to exact runtime bytes', () => {
+  const publicRoot = path.join(__dirname, '..', 'public');
+  const assetUrl = createStaticAssetUrl(publicRoot);
+  for (const publicPath of FIRST_PARTY_ASSETS) {
+    const filename = path.join(publicRoot, publicPath.slice(1));
+    const digest = createHash('sha256').update(fs.readFileSync(filename)).digest('hex');
+    assert.equal(assetUrl(publicPath), `${publicPath}?v=${digest}`);
+  }
 
-test('M16.7 binds first-party CSS and JavaScript URLs to exact content revisions', () => {
   const head = source('views/common/head.ejs');
   const footer = source('views/common/footer.ejs');
-
-  assertVersioned(head, '/css/style.css', 'public/css/style.css');
-  assertVersioned(head, '/css/m15-social.css', 'public/css/m15-social.css');
-  assertVersioned(footer, '/js/keychain-adapter.js', 'public/js/keychain-adapter.js');
-  assertVersioned(footer, '/js/auth.js', 'public/js/auth.js');
-  assertVersioned(footer, '/js/social-actions.js', 'public/js/social-actions.js');
-  assertVersioned(footer, '/js/m4-actions.js', 'public/js/m4-actions.js');
-  assertVersioned(footer, '/js/main.js', 'public/js/main.js');
+  for (const publicPath of FIRST_PARTY_ASSETS.filter((item) => item.startsWith('/css/'))) {
+    assert.ok(head.includes(`assetUrl('${publicPath}')`));
+  }
+  for (const publicPath of FIRST_PARTY_ASSETS.filter((item) => item.startsWith('/js/'))) {
+    assert.ok(footer.includes(`assetUrl('${publicPath}')`));
+  }
+  assert.throws(() => assetUrl('/js/not-registered.js'), /not registered for versioning/);
 });
 
 test('M16.7 keeps new direct observation methods inside the read-only RPC allowlist', () => {
@@ -200,7 +191,8 @@ test('M16.7 refreshes post vote counts from direct active votes while preserving
   assert.equal(fallback.post.negativeVotes, 0);
 });
 
-test('M16.7 production startup wires read consistency hardening into the live read service', () => {
+test('M16.7 production startup wires both hardening layers into the live server', () => {
   const server = source('src/server.js');
   assert.match(server, /applyReadConsistencyHardening\(app\.locals\.services\.hiveReads\)/);
+  assert.match(server, /app\.locals\.assetUrl = createStaticAssetUrl/);
 });

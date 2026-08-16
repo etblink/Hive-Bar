@@ -19,9 +19,11 @@ The read-observation defect was independently demonstrated after successful self
 
 ## Static-asset coherence
 
-All first-party CSS and JavaScript references in the shared shell now carry the exact Git blob identity of the referenced asset as a query revision. The M16.7 regression gate recomputes each Git blob identity from normalized source bytes and refuses a template whose revision does not match its asset.
+At live-server startup, M16.7 reads the exact deployed bytes of every first-party CSS and JavaScript shell asset and computes a SHA-256 revision. The shared shell receives an `assetUrl` helper and emits URLs in the form `/<asset>?v=<sha256>`.
 
-This makes a changed asset receive a changed public URL. An unchanged asset retains the same URL because its bytes are identical. The mechanism requires no production environment setting and does not rely on a manual cache purge for future first-party asset changes.
+A changed deployed asset therefore receives a changed public URL automatically, including generated `style.css`; unchanged bytes retain the same URL. The startup helper is fail-closed for missing registered assets and does not depend on a release environment variable, source commit lookup, or manual Cloudflare purge.
+
+Direct `createApp()` test fixtures retain their historical unversioned URLs so pre-M16.7 presentation contracts remain stable; the production `startServer()` path installs the exact-byte versioner before listening for requests.
 
 ## Social-write observation
 
@@ -61,7 +63,7 @@ Controlled/operator/delegated lanes remain inert in beta. Pay and Distriator rem
 M16.7 is acceptable only if:
 
 - the candidate descends exactly from accepted M16.6;
-- every first-party CSS/JavaScript shell reference is bound to the exact referenced asset bytes;
+- production shell asset URLs are derived from SHA-256 of the exact deployed first-party CSS/JavaScript bytes;
 - transaction-id social observation verifies exact transaction and operations;
 - no-transaction-id comment/vote fallback remains read-only and uses direct condenser reads;
 - root post vote counts include zero-rshares signed-percent votes from direct active-vote data;
