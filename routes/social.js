@@ -11,6 +11,7 @@ const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middle
 
 const TRANSACTION_ID_PATTERN = /^[0-9a-f]{40}$/i;
 const CONTENT_ACTIONS = new Set(['post', 'thread', 'comment']);
+const BETA_M16_3_ACTIONS = new Set(['vote']);
 
 function requireControlledMode(config) {
   return async (req, _res, next) => {
@@ -76,7 +77,7 @@ function assertControlledAction(config, action) {
 
 function assertSocialAction(config, action) {
   if (config.hive.writeMode === 'beta') {
-    if (!config.hive.betaSelfActions.includes(action)) {
+    if (!config.hive.betaSelfActions.includes(action) && !BETA_M16_3_ACTIONS.has(action)) {
       throw new FeatureUnavailableError(
         `The ${action} action is not enabled for beta self-signing.`,
         { code: 'BETA_ACTION_NOT_ALLOWED' },
@@ -251,6 +252,7 @@ function createSocialRouter({ config }) {
 }
 
 module.exports = {
+  BETA_M16_3_ACTIONS,
   TRANSACTION_ID_PATTERN,
   assertControlledAction,
   assertSocialAction,
