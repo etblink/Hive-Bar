@@ -84,8 +84,9 @@ function readBalancedGroupEnd(source, start) {
 
 function normalizeLatexCompatibility(value) {
   return String(value || '').replace(/\\mathfrak\{([A-Za-z]+)\}/g, (match, letters) => {
-    const converted = [...letters].map((letter) => FRAKTUR[letter] || '').join('');
-    return converted.length === letters.length ? converted : match;
+    const characters = [...letters];
+    if (!characters.every((letter) => FRAKTUR[letter])) return match;
+    return characters.map((letter) => FRAKTUR[letter]).join('');
   });
 }
 
