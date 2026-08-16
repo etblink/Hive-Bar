@@ -24,7 +24,7 @@
             hx-target="#community-feed"
             class="content-tab <%= activeView === 'posts' ? 'content-tab--active' : '' %>"
             <% if (activeView === 'posts') { %>aria-current="page"<% } %>>
-            Community posts
+            Posts
           </a>
           <a
             href="/community/threads"
@@ -47,8 +47,8 @@
           <% } else if (feedError) { %>
             <section class="state-card mt-4" role="status">
               <h2>Posts are temporarily unavailable</h2>
-              <p>The community itself is online, but its post feed could not be loaded. Nothing else on this page is affected.</p>
-              <a href="/community" class="button-secondary mt-5">Try the feed again</a>
+              <p>The community is still available, but the posts couldn’t be loaded. Try again in a moment.</p>
+              <a href="/community" class="button-secondary mt-5">Try again</a>
             </section>
           <% } else { %>
             <%- include('community-post-list', { postsPage, communityName }) %>
