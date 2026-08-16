@@ -27,7 +27,7 @@
   <% } %>
 
   <footer class="social-post__stats" aria-label="Post activity">
-    <span><%= post.positiveVotes.toLocaleString() %> positive votes</span>
+    <span><%= post.positiveVotes.toLocaleString() %> upvotes</span>
     <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
     <span><%= post.replyCount.toLocaleString() %> replies</span>
     <span class="text-bar-gold">$<%= formatPayout(post) %></span>
