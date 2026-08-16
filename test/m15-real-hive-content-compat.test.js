@@ -3,15 +3,14 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execSync } = require('node:child_process');
 const test = require('node:test');
 const { renderMarkdown } = require('../src/content/markdown');
 
 const root = path.join(__dirname, '..');
 
 function runCssBuild() {
-  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  execFileSync(npm, ['run', 'build:css', '--silent'], {
+  execSync('npm run build:css --silent', {
     cwd: root,
     stdio: 'pipe',
   });
