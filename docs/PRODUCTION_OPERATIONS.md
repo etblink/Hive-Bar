@@ -12,11 +12,13 @@ This is the living production operations document. Historical M6/M14/M16/M17 run
 - health: `/healthz`
 - readiness: `/readyz`
 - deployed source and operational wiring: accepted M17.3
+- canonical repository baseline: accepted M17.4 functional V1 baseline
 - current accepted write mode: beta self-signing through local Hive Keychain
 - accepted beta action set: post, comment, vote, wall, inbox
 - V1 gate: accepted in a temporary non-persistent M17.3 rehearsal; V1 service activation was not performed
 - payments and Distriator: disabled
 - controlled/operator/delegated state: inert
+- `/opt/hive-bar/last-good`: reconciled to the exact currently deployed accepted M17.3 release
 
 ## Deployment invariant
 
@@ -59,7 +61,9 @@ Authorization correctness is fail-closed at service startup through the exact re
 
 Every installed release lives under `/opt/hive-bar/releases/<full-commit-sha>` and carries `.hive-bar-commit` and `.hive-bar-tree` identity records. Exact rollback remains an explicit operator action requiring a full installed commit SHA while the read-only deployment environment is active; no implicit rollback target is selected from user-controlled input.
 
-The M17.3 post-rehearsal host audit found `/opt/hive-bar/last-good` unresolved, so current operations must not rely on that pointer. This does not block explicit exact-SHA rollback. The M17.4 candidate changes the reviewed deployment helper so a future exact deployment atomically repairs `/opt/hive-bar/last-good` to the validated release that was current immediately before a distinct source switch. That source change is not a production mutation by itself and does not retroactively repair the host; any host-side reconciliation remains separately authorized.
+The M17.3 post-rehearsal audit found `/opt/hive-bar/last-good` unresolved. During M17 closeout, a separately authorized bounded host reconciliation established `last-good` as a symbolic link to the exact currently deployed accepted M17.3 release after verifying the current release commit/tree, accepted beta environment identity, health/readiness, and installed M17.3 operational assets. That reconciliation performed no service restart, source deployment, V1 activation, Hive/Keychain write, or external-infrastructure mutation.
+
+The accepted M17.4 deployment helper now preserves this invariant automatically for future distinct exact deployments: immediately before a source switch, it validates the current release's commit/tree against the reviewed bare repository and atomically points `/opt/hive-bar/last-good` to that validated prior release. A same-release deployment does not rewrite `last-good`. Explicit rollback remains full-SHA and read-only gated rather than implicitly selecting `last-good`.
 
 ## Secrets and keys
 
@@ -78,10 +82,10 @@ For every accepted production transition retain:
 - public edge result;
 - rollback identity or preserved prior environment as applicable.
 
-M17.3 operational acceptance established the V1 gate only in a temporary process environment, restored the accepted beta environment byte-for-byte, retained Pay/Distriator disabled, and made no Hive or Keychain write during the rehearsal.
+M17.3 operational acceptance established the V1 gate only in a temporary process environment, restored the accepted beta environment byte-for-byte, retained Pay/Distriator disabled, and made no Hive or Keychain write during the rehearsal. M17.4 subsequently established the accepted pre-final functional V1 baseline on canonical `main` without deploying it or activating V1 in production.
 
 ## Monitoring and recovery
 
 The local health timer is observational and must never issue Hive writes or restart external infrastructure. Exact deployment rollback is explicit and operator-authorized. Retain at least the current and one independently identified prior release. For ambiguous state, observe first and obtain fresh authorization before any new mutation.
 
-M17.4 is a pre-final source qualification milestone. It may freeze the functional baseline and improve future release bookkeeping, but it does not authorize V1 production activation, a package/version promotion to `1.0.0`, a `main` fast-forward, or deletion/retirement of unrelated repository state without a separate authorization.
+M17 is complete. Production remains on the accepted M17.3 source with the beta self-signing runtime; the accepted M17.4 functional baseline is canonical in the repository but has not been deployed. M18 is the next source milestone and is limited to cosmetic/user-experience elevation unless a separate authorization changes the functional or production boundary.
