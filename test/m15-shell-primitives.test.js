@@ -38,7 +38,7 @@ test('M15.2 shell presents the approved navigation model without inventing futur
   assert.ok(signedOutPay);
   assert.equal(signedOutPay.tagName, 'SPAN');
   assert.equal(signedOutPay.querySelector('.app-nav-label')?.textContent.trim(), 'Pay');
-  assert.equal(signedOutPay.getAttribute('title'), 'Sign in from You to access Pay');
+  assert.equal(signedOutPay.getAttribute('title'), 'Sign in with Hive Keychain to use Pay.');
 
   const disabledLabels = Array.from(document.querySelectorAll('.app-nav-link[aria-disabled="true"]'))
     .map((item) => item.querySelector('.app-nav-label')?.textContent.trim() || '')
@@ -94,6 +94,7 @@ test('M15.2 signed-in You destination reuses the verified Hive session and keeps
   assert.ok(document.querySelector('button[data-keychain-logout]'));
   assert.equal(document.querySelector('form[data-keychain-login]'), null);
   assert.match(document.querySelector('.app-account__identity')?.textContent || '', /@etblink/);
+  assert.match(response.text, /Signed in with Hive Keychain/);
 
   dom.window.close();
 });
