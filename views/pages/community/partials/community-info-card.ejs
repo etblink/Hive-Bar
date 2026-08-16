@@ -18,7 +18,7 @@
   </dl>
 
   <p class="community-about-panel__source">
-    Public data from Hive community <strong class="text-gray-200"><%= communityInfo.name %></strong>.
+    Community information comes from Hive.
   </p>
 
   <% if (hiveSession && canWriteAction(membership ? 'unsubscribe' : 'subscribe') && membership !== null) { %>
@@ -27,14 +27,12 @@
         <%= membership ? 'Unsubscribe' : 'Subscribe' %>
       </button>
       <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-social-status>
-        Current on-chain state: <%= membership ? 'subscribed' : 'not subscribed' %>.
+        <%= membership ? 'You’re currently subscribed.' : 'You’re not subscribed yet.' %>
       </p>
     </form>
-  <% } else if (hiveSession && !writesEnabled) { %>
+  <% } else { %>
     <p class="mt-4 rounded-lg border border-gray-700 p-3 text-sm text-gray-400">
-      Social signing is disabled until an individually authorized controlled-write run.
+      Community subscriptions aren’t available here yet.
     </p>
-  <% } else if (!hiveSession) { %>
-    <p class="mt-4 text-sm text-gray-400">Sign in with Hive Keychain to subscribe.</p>
   <% } %>
 </section>
