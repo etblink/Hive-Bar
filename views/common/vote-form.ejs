@@ -7,7 +7,7 @@
     <input type="hidden" name="author" value="<%= item.author %>">
     <input type="hidden" name="permlink" value="<%= item.permlink %>">
     <div>
-      <label class="block text-xs font-bold text-gray-300" for="vote-direction-<%= item.author %>-<%= item.permlink %>">Vote direction</label>
+      <label class="block text-xs font-bold text-gray-300" for="vote-direction-<%= item.author %>-<%= item.permlink %>">Vote</label>
       <select
         id="vote-direction-<%= item.author %>-<%= item.permlink %>"
         name="direction"
@@ -18,7 +18,7 @@
       </select>
     </div>
     <div>
-      <label class="block text-xs font-bold text-gray-300" for="vote-<%= item.author %>-<%= item.permlink %>">Vote weight</label>
+      <label class="block text-xs font-bold text-gray-300" for="vote-<%= item.author %>-<%= item.permlink %>">Strength</label>
       <div class="mt-1 flex items-center gap-2">
         <input
           id="vote-<%= item.author %>-<%= item.permlink %>"
@@ -34,7 +34,7 @@
       </div>
     </div>
     <button type="submit" class="button-secondary">Review vote</button>
-    <p class="w-full text-xs text-gray-400">Choose Upvote or Downvote and a whole-number weight from 1% to 100%. The exact signed Hive vote is shown before Keychain opens.</p>
+    <p class="w-full text-xs text-gray-400">Choose an upvote or downvote and how strongly you want to vote. You’ll review it before Keychain asks for approval.</p>
     <p class="w-full text-xs text-gray-300" aria-live="polite" data-social-status></p>
   </form>
 <% } %>
