@@ -42,6 +42,17 @@ const BARE_STYLE_COMMANDS = new Set([
   'mathcal', 'mathfrak', 'mathbb', 'mathrm', 'mathbf', 'mathit', 'mathsf', 'mathtt',
 ]);
 
+const HIVE_DOUBLE_ESCAPED_COMMANDS = new Set([
+  ...BARE_MATH_COMMANDS,
+  'zeta', 'eta', 'vartheta', 'iota', 'kappa', 'omicron', 'varpi', 'varrho', 'varsigma',
+  'upsilon', 'Upsilon', 'Re', 'Im', 'ast', 'star', 'bullet',
+  'sin', 'cos', 'tan', 'cot', 'sec', 'csc', 'sinh', 'cosh', 'tanh', 'log', 'ln', 'exp',
+  'lim', 'limsup', 'liminf', 'max', 'min', 'sup', 'inf', 'det', 'dim', 'ker', 'gcd', 'Pr',
+  'frac', 'dfrac', 'tfrac', 'sqrt', 'text', 'operatorname', 'overline', 'bar', 'underline',
+  'hat', 'widehat', 'vec', 'dot', 'ddot', 'left', 'right', 'begin', 'end', 'limits',
+  'displaystyle', 'textstyle', 'quad', 'qquad',
+]);
+
 const FRAKTUR = Object.freeze({
   A: '𝔄', B: '𝔅', C: 'ℭ', D: '𝔇', E: '𝔈', F: '𝔉', G: '𝔊', H: 'ℌ', I: 'ℑ',
   J: '𝔍', K: '𝔎', L: '𝔏', M: '𝔐', N: '𝔑', O: '𝔒', P: '𝔓', Q: '𝔔', R: 'ℜ',
@@ -82,8 +93,17 @@ function readBalancedGroupEnd(source, start) {
   return -1;
 }
 
+function canonicalizeHiveMathEscapes(value) {
+  return String(value || '')
+    .replace(/\\\\([A-Za-z]+)/g, (match, command) => (
+      HIVE_DOUBLE_ESCAPED_COMMANDS.has(command) ? `\\${command}` : match
+    ))
+    .replace(/\\_(?=[A-Za-z0-9{])/g, '_');
+}
+
 function normalizeLatexCompatibility(value) {
-  return String(value || '').replace(/\\mathfrak\{([A-Za-z]+)\}/g, (match, letters) => {
+  const canonical = canonicalizeHiveMathEscapes(value);
+  return canonical.replace(/\\mathfrak\{([A-Za-z]+)\}/g, (match, letters) => {
     const characters = [...letters];
     if (!characters.every((letter) => FRAKTUR[letter])) return match;
     return characters.map((letter) => FRAKTUR[letter]).join('');
@@ -91,7 +111,7 @@ function normalizeLatexCompatibility(value) {
 }
 
 function hasBareMathCommand(value) {
-  const matches = String(value || '').matchAll(/\\([A-Za-z]+)/g);
+  const matches = canonicalizeHiveMathEscapes(value).matchAll(/\\([A-Za-z]+)/g);
   for (const match of matches) {
     if (BARE_MATH_COMMANDS.has(match[1])) return true;
   }
@@ -99,7 +119,7 @@ function hasBareMathCommand(value) {
 }
 
 function looksLikeBareMathFragment(value) {
-  const source = String(value || '').trim();
+  const source = canonicalizeHiveMathEscapes(value).trim();
   if (!source || source.length > 240 || !hasBareMathCommand(source)) return false;
   const scrubbed = source
     .replace(/\\[A-Za-z]+/g, ' ')
@@ -111,7 +131,12 @@ function looksLikeBareMathFragment(value) {
 
 function matchBareMathAtom(source, index) {
   if (source[index] !== '\\' || isEscaped(source, index)) return null;
-  const match = source.slice(index).match(/^\\([A-Za-z]+)/);
+  const candidate = source.slice(index);
+  const doubleMatch = candidate.match(/^\\\\([A-Za-z]+)/);
+  const singleMatch = candidate.match(/^\\([A-Za-z]+)/);
+  const match = doubleMatch && HIVE_DOUBLE_ESCAPED_COMMANDS.has(doubleMatch[1])
+    ? doubleMatch
+    : singleMatch;
   if (!match || !BARE_MATH_COMMANDS.has(match[1])) return null;
   let end = index + match[0].length;
   if (BARE_STYLE_COMMANDS.has(match[1])) {
