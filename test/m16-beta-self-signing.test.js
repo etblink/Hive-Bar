@@ -5,6 +5,7 @@ const test = require('node:test');
 const request = require('supertest');
 const { createApp } = require('../src/app');
 const { SessionStore } = require('../src/auth/session-store');
+const { BETA_M16_4_ACTIONS } = require('../routes/m4');
 const { BETA_M16_3_ACTIONS } = require('../routes/social');
 const { configFrom, logger } = require('./support/test-app');
 const { createFixtureRpc } = require('./support/fixture-rpc');
@@ -36,7 +37,7 @@ function authorized(builder, fixture) {
     .set('x-csrf-token', fixture.session.csrfToken);
 }
 
-test('beta mode remains Keychain-only while M16.3 adds only the vote extension', () => {
+test('beta mode remains Keychain-only while voting and messaging extensions stay explicitly bounded', () => {
   assert.throws(
     () => configFrom({ HIVE_WRITE_MODE: 'beta' }),
     /Beta self-signing mode requires Hive Keychain/,
@@ -50,6 +51,7 @@ test('beta mode remains Keychain-only while M16.3 adds only the vote extension',
   assert.equal(config.hive.betaSelfSigningEnabled, true);
   assert.deepEqual(config.hive.betaSelfActions, ['post', 'comment']);
   assert.deepEqual([...BETA_M16_3_ACTIONS], ['vote']);
+  assert.deepEqual([...BETA_M16_4_ACTIONS], ['wall', 'inbox']);
   assert.equal(config.hive.writesEnabled, false);
   assert.deepEqual(config.hive.controlledAccounts, []);
   assert.equal(config.payments.enabled, false);
@@ -181,7 +183,7 @@ test('M16.3 prepares explicit weighted upvotes and downvotes as the verified bet
     .expect(({ body }) => assert.equal(body.error.code, 'VALIDATION_ERROR'));
 });
 
-test('M16.3 does not open M4 Active-authority paths', async () => {
+test('M16.4 enables only session-bound wall and encrypted inbox Active transfers', async () => {
   const fixture = betaFixture();
 
   const wall = await authorized(
@@ -192,13 +194,101 @@ test('M16.3 does not open M4 Active-authority paths', async () => {
       recipient: 'etblink',
       expectedFee: '1.000 HBD',
       amount: '1.000 HBD',
-      message: 'This must stay closed in M16.3.',
+      message: 'Welcome to the neighborhood.',
+      from: 'attacker',
     })
-    .expect(503);
-  assert.equal(wall.body.error.code, 'FEATURE_UNAVAILABLE');
+    .expect(201);
+
+  assert.equal(wall.body.broadcastMode, 'beta-self');
+  assert.equal(wall.body.account, 'barfriend');
+  assert.equal(wall.body.authority, 'Active');
+  assert.deepEqual(wall.body.operations, [[
+    'transfer',
+    {
+      from: 'barfriend',
+      to: 'etblink',
+      amount: '1.000 HBD',
+      memo: 'hivebar-wall:v1:Welcome to the neighborhood.',
+    },
+  ]]);
+
+  await authorized(
+    request(fixture.app).post(`/api/m4/preflight/${wall.body.id}/accepted`),
+    fixture,
+  )
+    .send({ transactionId: '1'.repeat(40) })
+    .expect(200);
+
+  const observed = await authorized(
+    request(fixture.app).post(`/api/m4/preflight/${wall.body.id}/observe`),
+    fixture,
+  ).expect(200);
+  assert.equal(observed.body.state, 'observed');
+  assert.equal(observed.body.blockNumber, 108944500);
+
+  const inbox = await authorized(
+    request(fixture.app).post('/api/m4/preflight/inbox'),
+    fixture,
+  )
+    .send({
+      recipient: 'etblink',
+      expectedFee: '1.000 HBD',
+      amount: '1.000 HBD',
+      ciphertext: '#8fixtureciphertext',
+      from: 'attacker',
+    })
+    .expect(201);
+
+  assert.equal(inbox.body.broadcastMode, 'beta-self');
+  assert.equal(inbox.body.account, 'barfriend');
+  assert.equal(inbox.body.authority, 'Active');
+  assert.deepEqual(inbox.body.operations, [[
+    'transfer',
+    {
+      from: 'barfriend',
+      to: 'etblink',
+      amount: '1.000 HBD',
+      memo: 'hivebar-inbox:v1:#8fixtureciphertext',
+    },
+  ]]);
+  assert.doesNotMatch(JSON.stringify(inbox.body.summary), /#8fixtureciphertext/);
+
+  await authorized(
+    request(fixture.app).post(`/api/m4/preflight/${inbox.body.id}/cancel`),
+    fixture,
+  ).expect(204);
+
+  const staleFee = await authorized(
+    request(fixture.app).post('/api/m4/preflight/wall'),
+    fixture,
+  )
+    .send({
+      recipient: 'etblink',
+      expectedFee: '2.000 HBD',
+      amount: '2.000 HBD',
+      message: 'Stale fee must not pass.',
+    })
+    .expect(409);
+  assert.equal(staleFee.body.error.code, 'WALL_FEE_CHANGED');
+
+  await authorized(
+    request(fixture.app).post('/api/m4/preflight/profile'),
+    fixture,
+  )
+    .send({})
+    .expect(503)
+    .expect(({ body }) => assert.equal(body.error.code, 'BETA_ACTION_NOT_ALLOWED'));
+
+  await authorized(
+    request(fixture.app).post('/api/m4/preflight/claim-rewards'),
+    fixture,
+  )
+    .send({})
+    .expect(503)
+    .expect(({ body }) => assert.equal(body.error.code, 'BETA_ACTION_NOT_ALLOWED'));
 });
 
-test('beta UI exposes post, replies, and explicit weighted voting while other social writes stay closed', async () => {
+test('beta UI exposes posts, replies, weighted voting, and M16.4 messaging without opening other writes', async () => {
   const fixture = betaFixture({ account: 'etblink' });
 
   const community = await request(fixture.app)
@@ -225,4 +315,15 @@ test('beta UI exposes post, replies, and explicit weighted voting while other so
   const voteForms = post.text.match(/data-social-action="vote"\s+data-signer-mode="keychain"/g) || [];
   assert.equal(voteForms.length, 2);
   assert.match(post.text, /Choose Upvote or Downvote and a whole-number weight from 1% to 100%/);
+
+  const messenger = betaFixture({ account: 'barfriend' });
+  const wall = await request(messenger.app)
+    .get('/profile/etblink/wall-posts')
+    .set('cookie', `hive_bar_session=${messenger.token}`)
+    .expect(200);
+  assert.match(wall.text, /data-m4-action="wall"/);
+  assert.match(wall.text, /data-m4-action="inbox"/);
+  assert.match(wall.text, /Hive-Bar receives only ciphertext/);
+  assert.match(wall.text, /exact Active operation will be reviewed before signing/);
+  assert.doesNotMatch(wall.text, /individually authorized controlled-write run/);
 });
