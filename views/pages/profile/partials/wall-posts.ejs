@@ -5,7 +5,8 @@
     Minimum fee: <strong class="text-white"><%= profileSettings.wallFee %></strong>. Qualifying messages and transfer facts are public and permanent on Hive. Unmarked transfers, encrypted memos, amounts below the fee, and excluded senders do not appear here.
   </p>
 
-  <% if (hiveSession && writesEnabled) { %>
+  <% const betaMessagingEnabled = Boolean(config?.hive?.betaSelfSigningEnabled); %>
+  <% if (hiveSession && (writesEnabled || betaMessagingEnabled)) { %>
     <div class="mt-6 grid gap-5 xl:grid-cols-2">
       <form class="wallet-panel" data-m4-action="wall">
         <h3 class="text-lg font-bold text-bar-gold">Leave a public wall message</h3>
@@ -33,7 +34,7 @@
       </form>
     </div>
   <% } else if (hiveSession) { %>
-    <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and inbox signing are disabled until an individually authorized controlled-write run.</p>
+    <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and encrypted-message signing are not enabled in the current write mode.</p>
   <% } else { %>
     <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Sign in with Hive Keychain to prepare a wall or encrypted inbox transfer.</p>
   <% } %>
