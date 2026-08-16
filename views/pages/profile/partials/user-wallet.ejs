@@ -4,7 +4,7 @@
     <div class="wallet-social__identity">
       <div>
         <h2 id="wallet-heading" class="app-section-title">@<%= userProfile.name %> wallet</h2>
-        <p class="wallet-social__lede">A read-only snapshot of public Hive balances, account resources, and claimable rewards.</p>
+        <p class="wallet-social__lede">A read-only snapshot of public Hive balances, voting resources, and unclaimed rewards.</p>
       </div>
       <span class="wallet-social__badge">Public on Hive</span>
     </div>
@@ -26,7 +26,7 @@
   </dl>
 
   <p class="wallet-capability-note">
-    Hive-Bar cannot move funds, reveal keys, or claim rewards from this public view. Any available owner action remains separately reviewed through Hive Keychain.
+    This page only reads public Hive data. Hive-Bar cannot move funds or access private keys from here. Any available account action is reviewed in Keychain before it happens.
   </p>
 
   <div class="wallet-health-grid">
@@ -46,7 +46,7 @@
         </div>
         <div class="wallet-health__value">
           <strong><%= formatNumber(wallet.votingPowerPercent, 2) %>%</strong>
-          <span>Regenerated to the snapshot timestamp below.</span>
+          <span>Voting power refills over time. This is its value at the update time below.</span>
         </div>
       </div>
     </section>
@@ -61,7 +61,7 @@
         <meter class="wallet-meter" min="0" max="100" value="<%= wallet.resourceCreditsPercent %>">
           <%= formatNumber(wallet.resourceCreditsPercent, 2) %>%
         </meter>
-        <span>Current RC manabar after five-day regeneration.</span>
+        <span>Resource credits are used for actions on Hive and refill over time.</span>
       </div>
     </section>
   </div>
@@ -87,7 +87,7 @@
     <section class="wallet-module" aria-labelledby="rewards-heading">
       <div class="wallet-module__heading">
         <div>
-          <p class="app-kicker">Owner action</p>
+          <p class="app-kicker">Your rewards</p>
           <h3 id="rewards-heading">Claimable rewards</h3>
         </div>
       </div>
@@ -99,21 +99,21 @@
         </dl>
         <% if (canManageProfile && writesEnabled) { %>
           <form class="wallet-reward-action" data-m4-action="claim-rewards">
-            <button type="submit" class="button-primary">Review exact reward claim</button>
+            <button type="submit" class="button-primary">Review reward claim</button>
             <p aria-live="polite" data-m4-status>
-              The latest non-zero balances will be fetched again before Keychain opens.
+              Hive-Bar checks your current rewards again before Keychain asks for approval.
             </p>
           </form>
         <% } else if (canManageProfile) { %>
-          <p class="wallet-module__note">Reward signing is disabled until an individually authorized controlled-write run.</p>
+          <p class="wallet-module__note">Claiming rewards isn’t available here yet.</p>
         <% } %>
       <% } else { %>
-        <p class="wallet-module__note">No non-zero reward balances were reported.</p>
+        <p class="wallet-module__note">No rewards are ready to claim.</p>
       <% } %>
     </section>
   </div>
 
   <p class="wallet-snapshot-time">
-    Calculated at <time datetime="<%= wallet.displayedAt %>"><%= formatHiveDate(wallet.displayedAt) %></time>. Display rounding: 0.001 assets and HP; 0.01 percentage points.
+    Updated at <time datetime="<%= wallet.displayedAt %>"><%= formatHiveDate(wallet.displayedAt) %></time>.
   </p>
 </section>
