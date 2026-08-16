@@ -1,6 +1,6 @@
 'use strict';
 
-const RELEASE_APP_TAG = 'fourth-street-bar-app/0.1.0';
+const { RELEASE_APP_TAG } = require('./release-version');
 
 const EXPLICIT_READ_ONLY_SETTINGS = Object.freeze([
   'NODE_ENV',

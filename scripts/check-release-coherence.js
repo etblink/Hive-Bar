@@ -1,0 +1,85 @@
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { RELEASE_APP_TAG, PACKAGE_VERSION } = require('../src/release/release-version');
+const { V1_ACTIONS } = require('../src/v1/actions');
+
+const root = path.join(__dirname, '..');
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(root, relativePath), 'utf8');
+}
+
+function requireMatch(source, pattern, message) {
+  if (!pattern.test(source)) throw new Error(message);
+}
+
+function assertReleaseCoherence() {
+  const pkg = JSON.parse(read('package.json'));
+  const lock = JSON.parse(read('package-lock.json'));
+  const manifest = JSON.parse(read('ops/privex/manifest.json'));
+  const envExample = read('.env.example');
+  const privexEnv = read('ops/privex/hive-bar.env.example');
+  const workflow = read('.github/workflows/ci.yml');
+  const readme = read('README.md');
+
+  if (pkg.version !== PACKAGE_VERSION) throw new Error('package version source is inconsistent');
+  if (lock.packages?.['']?.version !== PACKAGE_VERSION) {
+    throw new Error('package-lock root version must match package.json');
+  }
+  if (manifest.release?.hiveAppTag !== RELEASE_APP_TAG) {
+    throw new Error('Privex manifest app tag must match the derived release app tag');
+  }
+  for (const [name, source] of [['.env.example', envExample], ['ops/privex/hive-bar.env.example', privexEnv]]) {
+    requireMatch(
+      source,
+      new RegExp(`^HIVE_APP_TAG=${RELEASE_APP_TAG.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'm'),
+      `${name} must use the derived release app tag`,
+    );
+  }
+
+  requireMatch(workflow, /uses:\s+actions\/checkout@[0-9a-f]{40}(?:\s+#.*)?$/m, 'checkout must be pinned by full commit SHA');
+  requireMatch(workflow, /uses:\s+actions\/setup-node@[0-9a-f]{40}(?:\s+#.*)?$/m, 'setup-node must be pinned by full commit SHA');
+  requireMatch(readme, /Node\.js `24\.19\.0`/, 'README must state the pinned Node runtime');
+  requireMatch(readme, /M17\.2/, 'README must identify the current M17.2 source milestone');
+  if (/\bMIT License\b/i.test(readme)) {
+    throw new Error('README must not claim an open-source license that the repository does not provide');
+  }
+
+  if (!Array.isArray(manifest.v1?.selfSignedActions)) {
+    throw new Error('Privex manifest must publish the frozen V1 self-signing action set');
+  }
+  if (JSON.stringify(manifest.v1.selfSignedActions) !== JSON.stringify(V1_ACTIONS)) {
+    throw new Error('Privex manifest V1 action set must match src/v1/actions.js');
+  }
+
+  for (const requiredPath of [
+    'docs/README.md',
+    'docs/ROADMAP.md',
+    'docs/PRODUCTION_OPERATIONS.md',
+    'docs/M17_1_V1_PRODUCT_BOUNDARY.md',
+    'docs/M17_2_SOURCE_OF_TRUTH_AND_V1_GATE.md',
+  ]) {
+    if (!fs.existsSync(path.join(root, requiredPath))) {
+      throw new Error(`required living/release document is missing: ${requiredPath}`);
+    }
+  }
+
+  return Object.freeze({
+    packageVersion: PACKAGE_VERSION,
+    appTag: RELEASE_APP_TAG,
+    v1ActionCount: V1_ACTIONS.length,
+  });
+}
+
+if (require.main === module) {
+  try {
+    process.stdout.write(`${JSON.stringify(assertReleaseCoherence())}\n`);
+  } catch (error) {
+    process.stderr.write(`Hive-Bar release coherence refused: ${error.message}\n`);
+    process.exitCode = 1;
+  }
+}
+
+module.exports = { assertReleaseCoherence };

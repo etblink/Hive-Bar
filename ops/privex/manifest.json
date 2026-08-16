@@ -58,5 +58,31 @@
     "paymentsEnabled": false,
     "distriatorEnabled": false,
     "receiptDatabase": ":memory:"
+  },
+  "runtimeProfiles": {
+    "deploymentBaseline": "privex-public-read-only",
+    "acceptedBeta": "privex-beta-self-signing",
+    "plannedV1": "privex-v1-self-signing"
+  },
+  "v1": {
+    "status": "dormant-until-m17.3-runtime-wiring",
+    "signerMode": "keychain",
+    "selfSignedActions": [
+      "post",
+      "thread",
+      "comment",
+      "vote",
+      "follow",
+      "unfollow",
+      "subscribe",
+      "unsubscribe",
+      "profile",
+      "wall",
+      "inbox"
+    ],
+    "paymentsEnabled": false,
+    "distriatorEnabled": false,
+    "controlledOperatorState": false,
+    "delegatedPostingState": false
   }
 }
