@@ -54,9 +54,9 @@ test('renders only qualifying public wall messages with fee and permanence discl
     configOverrides: { HIVE_GLOBAL_WALL_EXCLUSIONS: 'rewardbot' },
   });
   const response = await request(app).get('/profile/etblink/wall-posts').expect(200);
-  assert.match(response.text, /Minimum fee: <strong[^>]*>1\.000 HBD/);
+  assert.match(response.text, /Posting a wall message costs at least <strong[^>]*>1\.000 HBD/);
   assert.match(response.text, /Welcome to the neighborhood\./);
-  assert.match(response.text, /public and permanent on Hive/);
+  assert.match(response.text, /permanently visible on Hive/);
   assert.doesNotMatch(response.text, /ordinary transfer|Below fee|Outbound|Service noise/);
   assert.doesNotMatch(response.text, /hivebar-wall:v1:/);
   assert.match(response.text, /Sign in with Hive Keychain/);
@@ -106,7 +106,7 @@ test('enforces verified ownership for inbox and settings routes', async () => {
     .expect(403);
 });
 
-test('owner pages expose safe metadata merge, reward claim, and local-only decrypt controls', async () => {
+test('owner pages expose safe settings, reward claim, and local-only decrypt controls', async () => {
   const owner = signedInApp();
   const settings = await request(owner.app)
     .get('/profile/etblink/settings')
@@ -115,26 +115,26 @@ test('owner pages expose safe metadata merge, reward claim, and local-only decry
   assert.match(settings.text, /data-m4-action="profile"/);
   assert.match(settings.text, /value="1\.000 HBD"/);
   assert.match(settings.text, /spammer/);
-  assert.match(settings.text, /preserves unrelated fields/);
+  assert.match(settings.text, /unrelated settings from other apps stay intact/);
 
   const wallet = await request(owner.app)
     .get('/profile/etblink/wallet')
     .set('cookie', owner.cookie)
     .expect(200);
   assert.match(wallet.text, /data-m4-action="claim-rewards"/);
-  assert.match(wallet.text, /latest non-zero balances/i);
+  assert.match(wallet.text, /checks your current rewards again/i);
 
   const inbox = await request(owner.app)
     .get('/profile/etblink/inbox')
     .set('cookie', owner.cookie)
     .expect(200);
   assert.match(inbox.text, /data-inbox-ciphertext="#8fixtureciphertext"/);
-  assert.match(inbox.text, /Decryption happens only through your local Keychain Memo key/);
+  assert.match(inbox.text, /Hive Keychain uses your Memo key in this browser/);
   assert.doesNotMatch(inbox.text, /Welcome to the neighborhood|ordinary transfer/);
   assert.match(inbox.headers['cache-control'], /no-store/);
 });
 
-test('public connection tabs and controlled message forms are available without exposing owner pages', async () => {
+test('public connection tabs and message forms remain available without exposing owner pages', async () => {
   const signedIn = signedInApp('barfriend');
   const followers = await request(signedIn.app).get('/profile/etblink/followers').expect(200);
   assert.match(followers.text, /@etblink followers/);
@@ -146,7 +146,7 @@ test('public connection tabs and controlled message forms are available without 
     .expect(200);
   assert.match(wall.text, /data-m4-action="wall"/);
   assert.match(wall.text, /data-m4-action="inbox"/);
-  assert.match(wall.text, /Hive-Bar receives only ciphertext/);
+  assert.match(wall.text, /Keychain encrypts the message in this browser/);
   assert.doesNotMatch(wall.text, /href="\/profile\/etblink\/settings"/);
 });
 
