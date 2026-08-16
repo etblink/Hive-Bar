@@ -33,7 +33,7 @@
       button.disabled = true;
       setStatus(
         status,
-        `Preparing verified sign-in for @${account}. Keychain will request a Posting signature, not a transaction.`,
+        `Getting sign-in ready for @${account}. Keychain will ask you to sign a login message—this does not send a transaction.`,
       );
 
       try {
@@ -42,7 +42,7 @@
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ account }),
         });
-        setStatus(status, `Confirm the Posting signature in Hive Keychain for @${account}.`);
+        setStatus(status, `Approve the sign-in request in Hive Keychain for @${account}.`);
         const adapter = new window.HiveBarKeychain.KeychainAdapter();
         const signed = await adapter.signBuffer({
           account,
@@ -54,7 +54,7 @@
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ account, challengeId: challenge.id, ...signed }),
         });
-        setStatus(status, `Verified as @${account}. Reloading…`);
+        setStatus(status, `Signed in as @${account}. Reloading…`);
         window.location.reload();
       } catch (error) {
         setStatus(status, error.message || 'Hive Keychain sign-in failed.', true);
