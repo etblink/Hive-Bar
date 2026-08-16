@@ -17,9 +17,7 @@ function requireControlledMode(config) {
   return async (req, _res, next) => {
     if (config.hive.writeMode !== 'controlled') {
       return next(
-        new FeatureUnavailableError(
-          'Hive social broadcasts are disabled. An individually authorized controlled-write run is required.',
-        ),
+        new FeatureUnavailableError('This action isn’t available right now.'),
       );
     }
     try {
@@ -33,7 +31,7 @@ function requireControlledMode(config) {
         req.hivePostingIdentity.author === req.hivePostingIdentity.signer &&
         !config.hive.controlledAccounts.includes(req.hiveSession.account)
       ) {
-        throw new AuthorizationError('This Hive account is not allowlisted for the controlled-write run', {
+        throw new AuthorizationError('This Hive account is not allowed to use this action', {
           code: 'CONTROLLED_ACCOUNT_NOT_ALLOWED',
         });
       }
@@ -52,7 +50,7 @@ function requireSocialWriteMode(config) {
     }
     if (!config.hive.betaSelfSigningEnabled || config.hive.signerMode !== 'keychain') {
       return next(
-        new FeatureUnavailableError('Beta self-signing requires Hive Keychain.', {
+        new FeatureUnavailableError('Hive Keychain is required for beta actions.', {
           code: 'BETA_KEYCHAIN_REQUIRED',
         }),
       );
@@ -69,7 +67,7 @@ function requireSocialWriteMode(config) {
 function assertControlledAction(config, action) {
   if (!config.hive.controlledActions.includes(action)) {
     throw new FeatureUnavailableError(
-      `The ${action} action is disabled for this controlled-write run.`,
+      `The ${action} action isn’t available right now.`,
       { code: 'CONTROLLED_ACTION_NOT_ALLOWED' },
     );
   }
@@ -79,7 +77,7 @@ function assertSocialAction(config, action) {
   if (config.hive.writeMode === 'beta') {
     if (!config.hive.betaSelfActions.includes(action) && !BETA_M16_3_ACTIONS.has(action)) {
       throw new FeatureUnavailableError(
-        `The ${action} action is not enabled for beta self-signing.`,
+        'This action isn’t available in beta yet.',
         { code: 'BETA_ACTION_NOT_ALLOWED' },
       );
     }
@@ -133,7 +131,7 @@ function createSocialRouter({ config }) {
           config.hive.threadsContainerAccount,
         );
         if (!threads.container) {
-          throw new FeatureUnavailableError('No current thread container is available');
+          throw new FeatureUnavailableError('Threads aren’t available yet.');
         }
         threadContainer = threads.container;
       }
@@ -199,8 +197,8 @@ function createSocialRouter({ config }) {
       res.json({
         ...preflight,
         message: transactionId
-          ? 'Broadcast accepted by Keychain; awaiting observation through Hive RPC.'
-          : 'Broadcast accepted by Keychain without a transaction id; awaiting observation and automatic retry is blocked.',
+          ? 'Keychain approved this action. Waiting for Hive to confirm it.'
+          : 'Keychain approved this action, but Hive-Bar couldn’t get a transaction ID. Don’t try again yet; confirmation is still pending.',
       });
     } catch (error) {
       next(error);
@@ -240,8 +238,8 @@ function createSocialRouter({ config }) {
         ...preflight,
         message:
           preflight.state === 'observed'
-            ? 'Operation observed through Hive RPC.'
-            : 'Broadcast accepted; the operation is not observable through Hive RPC yet.',
+            ? 'Confirmed on Hive.'
+            : 'Keychain approved this action; Hive confirmation is still pending.',
       });
     } catch (error) {
       next(error);
