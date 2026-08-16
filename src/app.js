@@ -193,16 +193,16 @@ function createApp(options = {}) {
     dotfiles: 'deny',
     etag: true,
     fallthrough: true,
-    maxAge: config.isProduction ? '1d' : 0,
+    maxAge: 0,
+    setHeaders(res) {
+      res.setHeader('Cache-Control', 'private, no-cache, max-age=0, must-revalidate');
+    },
   };
   app.use(express.static(path.join(__dirname, '..', 'public'), staticOptions));
   app.use('/htmx', express.static(path.dirname(require.resolve('htmx.org')), staticOptions));
   app.use(
     '/vendor/zxing',
-    express.static(path.join(path.dirname(require.resolve('@zxing/browser')), '..', 'umd'), {
-      ...staticOptions,
-      immutable: config.isProduction,
-    }),
+    express.static(path.join(path.dirname(require.resolve('@zxing/browser')), '..', 'umd'), staticOptions),
   );
 
   app.use(createHealthRouter({ config, rpcPool }));
