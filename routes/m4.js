@@ -3,9 +3,28 @@
 const express = require('express');
 const { requireHiveAccount } = require('../src/http/validation');
 const { buildM4Operation, M4_ACTIONS } = require('../src/hive/m4-operations');
-const { ValidationError } = require('../src/lib/errors');
+const { FeatureUnavailableError, ValidationError } = require('../src/lib/errors');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
-const { TRANSACTION_ID_PATTERN, assertControlledAction, requireControlledMode } = require('./social');
+const {
+  TRANSACTION_ID_PATTERN,
+  assertControlledAction,
+  requireSocialWriteMode,
+} = require('./social');
+
+const BETA_M16_4_ACTIONS = new Set(['wall', 'inbox']);
+
+function assertM4Action(config, action) {
+  if (config.hive.writeMode === 'beta') {
+    if (!BETA_M16_4_ACTIONS.has(action)) {
+      throw new FeatureUnavailableError(
+        `The ${action} action is not enabled for beta self-signing.`,
+        { code: 'BETA_ACTION_NOT_ALLOWED' },
+      );
+    }
+    return;
+  }
+  assertControlledAction(config, action);
+}
 
 function requireM4Record(store, id, sessionId) {
   const record = store.get(id, sessionId);
@@ -21,7 +40,7 @@ function createM4Router({ config }) {
     requireAppOrigin(config),
     requireSession,
     requireCsrf,
-    requireControlledMode(config),
+    requireSocialWriteMode(config),
   ];
 
   router.use((_req, res, next) => {
@@ -44,7 +63,7 @@ function createM4Router({ config }) {
   router.post('/preflight/:action', ...protectedWrite, async (req, res, next) => {
     try {
       const action = String(req.params.action || '').toLowerCase();
-      assertControlledAction(config, action);
+      assertM4Action(config, action);
       let envelope;
       if (action === 'profile') {
         const accountRecord = await req.app.locals.services.hiveReads.getAccountRecord(
@@ -89,7 +108,10 @@ function createM4Router({ config }) {
         sessionId: req.hiveSession.id,
         envelope,
       });
-      res.status(201).json({ ...preflight, broadcastMode: 'controlled' });
+      res.status(201).json({
+        ...preflight,
+        broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
+      });
     } catch (error) {
       next(error);
     }
@@ -97,11 +119,12 @@ function createM4Router({ config }) {
 
   router.post('/preflight/:id/cancel', ...protectedWrite, (req, res, next) => {
     try {
-      requireM4Record(
+      const record = requireM4Record(
         req.app.locals.services.preflightStore,
         req.params.id,
         req.hiveSession.id,
       );
+      assertM4Action(config, record.action);
       req.app.locals.services.preflightStore.cancel(req.params.id, req.hiveSession.id);
       res.status(204).end();
     } catch (error) {
@@ -111,11 +134,12 @@ function createM4Router({ config }) {
 
   router.post('/preflight/:id/accepted', ...protectedWrite, (req, res, next) => {
     try {
-      requireM4Record(
+      const record = requireM4Record(
         req.app.locals.services.preflightStore,
         req.params.id,
         req.hiveSession.id,
       );
+      assertM4Action(config, record.action);
       const rawTransactionId = req.body?.transactionId;
       const transactionId = rawTransactionId ? String(rawTransactionId) : null;
       if (transactionId && !TRANSACTION_ID_PATTERN.test(transactionId)) {
@@ -132,8 +156,9 @@ function createM4Router({ config }) {
           action: preflight.action,
           fingerprint: preflight.fingerprint,
           transactionId: preflight.transactionId,
+          broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
         },
-        'controlled M4 Hive broadcast accepted by Keychain',
+        'M4 Hive broadcast accepted by Keychain',
       );
       res.json({
         ...preflight,
@@ -153,6 +178,7 @@ function createM4Router({ config }) {
         req.params.id,
         req.hiveSession.id,
       );
+      assertM4Action(config, record.action);
       const observation = await req.app.locals.services.hiveReads.observeM4Operation(record);
       const preflight = req.app.locals.services.preflightStore.markObserved(
         req.params.id,
@@ -167,8 +193,9 @@ function createM4Router({ config }) {
             fingerprint: preflight.fingerprint,
             transactionId: preflight.transactionId,
             blockNumber: preflight.blockNumber,
+            broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
           },
-          'controlled M4 Hive operation observed on-chain',
+          'M4 Hive operation observed on-chain',
         );
       }
       res.json({
@@ -186,4 +213,9 @@ function createM4Router({ config }) {
   return router;
 }
 
-module.exports = { createM4Router, requireM4Record };
+module.exports = {
+  BETA_M16_4_ACTIONS,
+  assertM4Action,
+  createM4Router,
+  requireM4Record,
+};
