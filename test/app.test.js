@@ -33,7 +33,7 @@ test('renders a truthful, complete home document with hardened response headers'
   assert.match(response.text, /1114 E\. 4th Street, Reno, NV 89512/);
   assert.match(response.text, /\(775\) 324-7827/);
   assert.match(response.text, /Daily, 12:00 p\.m.–2:00 a\.m\./);
-  assert.match(response.text, /Owner-approved photographs/);
+  assert.match(response.text, /A look at the pool table, patio, bar, and East 4th Street entrance in Reno/);
   assert.match(response.text, /\/images\/fourth-street-bar-patio\.jpg/);
   assert.match(response.text, /\/images\/fourth-street-bar-pool-table\.jpg/);
   assert.match(response.text, /\/images\/fourth-street-bar-bartender\.jpg/);
@@ -76,7 +76,7 @@ test('renders only bounded official community-root updates on the home page', as
   });
 
   const response = await request(app).get('/').expect(200);
-  assert.match(response.text, /Latest from 4th Street Bar/);
+  assert.match(response.text, /Latest updates/);
   assert.match(response.text, /Official &lt;update&gt;/);
   assert.match(response.text, /Fresh news/);
   assert.doesNotMatch(response.text, /Do not show/);
@@ -92,7 +92,7 @@ test('keeps the home page available when official updates cannot be read', async
     throw new Error('sensitive RPC outage detail');
   });
   const response = await request(app).get('/').expect(200);
-  assert.match(response.text, /Official updates are temporarily unavailable/);
+  assert.match(response.text, /Updates are temporarily unavailable/);
   assert.doesNotMatch(response.text, /sensitive RPC outage detail/);
 });
 
@@ -150,7 +150,7 @@ test('renders the one-post production-shaped community without per-post RPC call
 
   assert.match(response.text, /Welcome to the 4th Street Bar community/);
   assert.equal((response.text.match(/Welcome to the 4th Street Bar community/g) || []).length, 1);
-  assert.match(response.text, /1 positive votes/);
+  assert.match(response.text, /1 upvotes/);
   assert.match(response.text, /1 downvotes/);
   assert.doesNotMatch(response.text, /No posts|Loading community activity/);
   assertNoExecutableMarkup(response.text);
@@ -180,16 +180,16 @@ test('keeps community information visible when only the post feed fails', async 
 
   assert.match(response.text, /4th Street Bar/);
   assert.match(response.text, /Posts are temporarily unavailable/);
-  assert.match(response.text, /Try the feed again/);
+  assert.match(response.text, /Try again/);
   assert.doesNotMatch(response.text, /feed only failure/);
 });
 
-test('renders the approved empty production thread container as an intentional sparse state', async () => {
+test('renders the approved empty production thread state honestly', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/community/threads').expect(200);
 
   assert.match(response.text, /No threads yet/);
-  assert.match(response.text, /@fourthst\.threads/);
+  assert.match(response.text, /Short posts and replies will appear here|Threads aren’t available yet/);
   assert.match(response.text, /<!doctype html>/i);
 });
 
@@ -201,7 +201,7 @@ test('renders a full post and sanitized flattened comments as a complete or HTMX
   assert.match(full.text, /<!doctype html>/i);
   assert.match(full.text, /Pull up a stool/);
   assert.match(full.text, /Glad to be here/);
-  assert.match(full.text, /Comments <span[^>]*>\(1\)/);
+  assert.match(full.text, /Replies <span[^>]*>\(1\)/);
   assertNoExecutableMarkup(full.text);
 
   const fragment = await request(app).get(path).set('HX-Request', 'true').expect(200);
@@ -209,7 +209,7 @@ test('renders a full post and sanitized flattened comments as a complete or HTMX
   assert.match(fragment.text, /Glad to be here/);
 });
 
-test('renders escaped public profile metadata and paginated blog posts', async () => {
+test('renders escaped public profile metadata and paginated posts', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/profile/barfriend').expect(200);
 
@@ -228,7 +228,7 @@ test('renders exact regenerated wallet values beneath accessible beer visuals', 
   assert.match(response.text, /60\.00%/);
   assert.match(response.text, /Regular Drinker/);
   assert.equal((response.text.match(/beer-segment--filled/g) || []).length, 7);
-  assert.match(response.text, /Calculated at/);
+  assert.match(response.text, /Updated at/);
   assert.match(response.text, /cannot move funds/);
 });
 
