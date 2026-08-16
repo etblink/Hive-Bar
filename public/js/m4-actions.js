@@ -8,7 +8,7 @@
   async function parseResponse(response) {
     const payload = response.status === 204 ? null : await response.json().catch(() => null);
     if (!response.ok) {
-      const error = new Error(payload?.error?.message || 'The Hive action could not be completed.');
+      const error = new Error(payload?.error?.message || 'This Hive action could not be completed.');
       error.code = payload?.error?.code || 'REQUEST_FAILED';
       throw error;
     }
@@ -109,7 +109,7 @@
           ciphertext: encrypted.ciphertext,
         };
       }
-      throw new Error('This M4 action is invalid.');
+      throw new Error('This action is invalid.');
     }
 
     async run(form) {
@@ -125,7 +125,7 @@
         if (!session?.authenticated) throw new Error('Sign in with Hive Keychain before using this action.');
         const adapter = this.keychainFactory();
         if (action === 'inbox') {
-          setStatus(form, 'Encrypting the memo locally with Hive Keychain. Plaintext is not sent to Hive-Bar.');
+          setStatus(form, 'Encrypting your message with Hive Keychain. The message text stays in this browser.');
         }
         const payload = await this.preparePayload(action, form, session, adapter);
         preflight = await this.request(`/api/m4/preflight/${action}`, {
@@ -133,19 +133,16 @@
           csrfToken: session.csrfToken,
           body: payload,
         });
-        setStatus(form, `Prepared exact ${preflight.action} operation for @${preflight.account}.`);
+        setStatus(form, `Ready to review this action for @${preflight.account}.`);
 
         if (!(await this.review(preflight))) {
           await this.cancel(preflight.id, session.csrfToken);
           preflight = null;
-          setStatus(form, 'Cancelled before Keychain. Nothing was broadcast.');
+          setStatus(form, 'Cancelled. Nothing was sent to Hive.');
           return;
         }
 
-        setStatus(
-          form,
-          `Confirm the exact ${preflight.authority} operation in Hive Keychain for @${preflight.account}.`,
-        );
+        setStatus(form, `Approve this action in Hive Keychain for @${preflight.account}.`);
         const result = await adapter.broadcast({
           account: preflight.account,
           operations: preflight.operations,
@@ -176,9 +173,9 @@
           await this.cancel(preflight.id, session.csrfToken).catch(() => {});
         }
         const prefix = broadcastAccepted
-          ? 'Keychain accepted the broadcast, but confirmation is incomplete. Do not retry automatically. '
+          ? 'Keychain approved this action, but Hive confirmation is still pending. Don’t try it again yet. '
           : '';
-        setStatus(form, `${prefix}${error.message || 'The Hive action failed.'}`, true);
+        setStatus(form, `${prefix}${error.message || 'This action failed.'}`, true);
       } finally {
         if (button) button.disabled = false;
       }
@@ -196,7 +193,7 @@
       if (!dialog || typeof dialog.showModal !== 'function') {
         return Promise.resolve(
           global.confirm(
-            `Confirm ${preflight.action} as @${preflight.account} with ${preflight.authority} authority?\n\nFingerprint: ${preflight.fingerprint}\n\n${JSON.stringify(preflight.operations, null, 2)}`,
+            `Review ${preflight.action} for @${preflight.account} before opening Keychain?\n\nTechnical fingerprint: ${preflight.fingerprint}\n\n${JSON.stringify(preflight.operations, null, 2)}`,
           ),
         );
       }
@@ -209,6 +206,8 @@
         2,
       );
       dialog.querySelector('[data-social-account]').textContent = `@${preflight.account}`;
+      const signer = dialog.querySelector('[data-social-signer]');
+      if (signer) signer.textContent = `@${preflight.account}`;
       dialog.querySelector('[data-social-authority]').textContent = preflight.authority;
       dialog.querySelector('[data-social-fingerprint]').textContent = preflight.fingerprint;
       dialog.showModal();
@@ -240,22 +239,22 @@
       const output = container?.querySelector('[data-inbox-plaintext]');
       if (!container || !output) return;
       button.disabled = true;
-      setStatus(container, 'Requesting local Memo-key decryption from Hive Keychain.');
+      setStatus(container, 'Opening Hive Keychain to decrypt this message.');
       try {
         const session = await this.request('/auth/session');
-        if (!session?.authenticated) throw new Error('The verified session has ended. Sign in again.');
+        if (!session?.authenticated) throw new Error('Your sign-in has expired. Sign in again.');
         const decrypted = await this.keychainFactory().decodeMemo({
           account: session.account,
           ciphertext: button.dataset.inboxCiphertext,
         });
         if (!decrypted.plaintext.startsWith(INBOX_INNER_MARKER)) {
-          throw new Error('This encrypted transfer is not a marked Hive-Bar inbox message.');
+          throw new Error('This isn’t a Hive-Bar private message.');
         }
         output.textContent = decrypted.plaintext.slice(INBOX_INNER_MARKER.length);
         output.hidden = false;
-        setStatus(container, 'Decrypted locally. Plaintext was not sent to the server.');
+        setStatus(container, 'Decrypted in this browser. The message text was not sent to Hive-Bar.');
       } catch (error) {
-        setStatus(container, error.message || 'The encrypted memo could not be decrypted.', true);
+        setStatus(container, error.message || 'This encrypted message could not be decrypted.', true);
       } finally {
         button.disabled = false;
       }
