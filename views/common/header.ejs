@@ -36,7 +36,7 @@
         <span
           class="app-nav-link app-nav-link--disabled"
           aria-disabled="true"
-          title="Explore will be wired in a later accepted M15 capability milestone">
+          title="Explore is coming in a future update.">
           <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">◉</span>
           <span class="app-nav-label">Explore</span>
         </span>
@@ -45,7 +45,7 @@
         <span
           class="app-nav-link app-nav-link--disabled"
           aria-disabled="true"
-          title="Create remains unavailable until an accepted write surface is explicitly wired">
+          title="Create is coming here soon. For now, use Community when posting is available.">
           <span class="app-nav-icon inline-grid place-items-center text-xl font-light" aria-hidden="true">＋</span>
           <span class="app-nav-label">Create</span>
         </span>
@@ -66,7 +66,7 @@
           <span
             class="app-nav-link app-nav-link--disabled"
             aria-disabled="true"
-            title="Sign in from You to access Pay"
+            title="Sign in with Hive Keychain to use Pay."
             data-pay-nav>
             <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">▭</span>
             <span class="app-nav-label">Pay</span>
@@ -120,14 +120,14 @@
           <span class="app-account__avatar" aria-hidden="true"><%= hiveSession.account.slice(0, 1).toUpperCase() %></span>
           <span class="min-w-0">
             <strong class="block truncate">@<%= hiveSession.account %></strong>
-            <span class="block text-xs text-gray-400">Verified Hive session</span>
+            <span class="block text-xs text-gray-400">Signed in with Hive Keychain</span>
           </span>
         </a>
         <button type="button" class="app-signout" data-keychain-logout>Sign out</button>
       </div>
       <p class="app-account__status" aria-live="polite" data-keychain-status></p>
     <% } else { %>
-      <p class="app-account__signed-out">Sign in from <strong>You</strong> with Hive Keychain.</p>
+      <p class="app-account__signed-out">Sign in with Hive Keychain from <strong>You</strong>.</p>
     <% } %>
   </div>
 
