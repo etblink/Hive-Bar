@@ -10,7 +10,9 @@ This is the only living document that defines the current and next project miles
 - V1 release gate: operationally rehearsed and accepted without persistent V1 activation.
 - Payments/Distriator: disabled.
 - Controlled/operator/delegated lanes: inert.
-- Current source-of-truth work: M17.4 functional V1 baseline.
+- Canonical repository baseline: accepted M17.4 functional V1 baseline on `main` and the accepted development lineage.
+- Production rollback bookkeeping: `/opt/hive-bar/last-good` reconciled to the exact currently deployed accepted M17.3 release; future distinct exact deployments update it atomically to the validated prior release.
+- Next milestone: M18 cosmetic and user-experience elevation.
 
 ## M17 — Beta closeout and functional V1 readiness
 
@@ -28,11 +30,11 @@ This is the only living document that defines the current and next project miles
 
 ### M17.4 — Functional V1 baseline
 
-**Current.** Freeze one exact pre-final functional V1 baseline from accepted M17.3, keep package/app identity at `0.1.0`, repair future exact-deployment `last-good` bookkeeping in source, pass Ubuntu/Windows CI and all deterministic release checks, and preserve production in beta. After acceptance, canonical `main` reconciliation and stale PR #1 retirement require a separate exact-fast-forward authorization.
+**Accepted.** Froze one exact pre-final functional V1 baseline from accepted M17.3, kept package/app identity at `0.1.0`, hardened future exact-deployment `last-good` bookkeeping in source, passed Ubuntu/Windows CI and all deterministic release checks, exact-fast-forwarded the accepted development lineage and canonical `main` to the same baseline, retired PR #1 as superseded without merge, and preserved production in beta. The existing host-side `last-good` gap was subsequently reconciled to the exact deployed M17.3 release without a service restart or source deployment.
 
 ## M18 — Cosmetic and user-experience elevation
 
-After deterministic V1 functionality is frozen, improve visual identity, navigation, hierarchy, typography, spacing, responsive behavior, onboarding, empty states, composers, profile presentation, Wall/Inbox presentation, and interaction feedback without changing accepted Hive transaction semantics.
+**Next.** Audit and improve visual identity, navigation, hierarchy, typography, spacing, responsive behavior, onboarding, empty states, composers, profile presentation, Wall/Inbox presentation, and interaction feedback without changing accepted Hive transaction semantics, release boundaries, review-before-Keychain behavior, or no-auto-retry behavior.
 
 ## Final V1 release
 
