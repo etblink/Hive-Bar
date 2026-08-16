@@ -3,8 +3,8 @@
     <div class="app-social-column">
       <div class="social-section-heading">
         <div>
-          <p class="app-kicker">Official Hive updates</p>
-          <h2 id="latest-updates-heading" class="app-section-title">Latest from 4th Street Bar</h2>
+          <p class="app-kicker">From 4th Street Bar</p>
+          <h2 id="latest-updates-heading" class="app-section-title">Latest updates</h2>
         </div>
         <a href="/community" class="button-secondary">Browse the community</a>
       </div>
@@ -38,15 +38,15 @@
         </ul>
       <% } else if (officialUpdates.status === 'unavailable') { %>
         <section class="state-card" role="status">
-          <p class="eyebrow">Official updates</p>
+          <p class="eyebrow">Latest updates</p>
           <h2>Updates are temporarily unavailable</h2>
-          <p>Official updates are temporarily unavailable. Browse the public community for the latest posts.</p>
+          <p>We couldn’t load the bar’s latest updates. You can still browse the community.</p>
         </section>
       <% } else { %>
         <section class="state-card">
-          <p class="eyebrow">Official updates</p>
-          <h2>The bar feed is ready</h2>
-          <p>No official updates have been published yet. Browse the public community as new posts arrive.</p>
+          <p class="eyebrow">Latest updates</p>
+          <h2>Nothing from the bar yet</h2>
+          <p>Official posts will appear here as they’re published.</p>
         </section>
       <% } %>
     </div>
