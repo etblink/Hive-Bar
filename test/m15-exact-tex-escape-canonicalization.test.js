@@ -41,7 +41,8 @@ test('M15.5.5 canonicalizes escaped subscripts inside exact bare-parenthesis mat
     String.raw`Assume, for contradiction, that (w(\\sigma\_1) \\neq w(\\sigma\_2)) for two survivors (\\sigma\_1, \\sigma\_2 \\in \\Sigma).`,
   ].join('\n'));
 
-  assert.match(rendered, /𝔈/);
+  assert.match(rendered, /mathvariant="fraktur"/);
+  assert.doesNotMatch(rendered, /\uFFFD/);
   assert.match(rendered, /∈/);
   assert.match(rendered, /∘/);
   assert.match(rendered, /≠/);
