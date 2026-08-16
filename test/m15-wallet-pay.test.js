@@ -47,7 +47,8 @@ test('M15.4 Wallet is human-first while remaining a public read-only snapshot', 
   assert.match(response.text, /Voting power/);
   assert.match(response.text, /Resource credits/);
   assert.match(response.text, /Claimable rewards/);
-  assert.match(response.text, /Hive-Bar cannot move funds, reveal keys, or claim rewards from this public view/);
+  assert.match(response.text, /This page only reads public Hive data/);
+  assert.match(response.text, /cannot move funds or access private keys/);
   assert.doesNotMatch(response.text, /data-m4-action="claim-rewards"/);
 });
 
@@ -59,11 +60,11 @@ test('M15.4 Wallet retains the exact owner reward-claim gate', async () => {
     .expect(200);
 
   assert.match(response.text, /data-m4-action="claim-rewards"/);
-  assert.match(response.text, /Review exact reward claim/);
-  assert.match(response.text, /latest non-zero balances will be fetched again before Keychain opens/i);
+  assert.match(response.text, /Review reward claim/);
+  assert.match(response.text, /checks your current rewards again before Keychain asks for approval/i);
 });
 
-test('M15.4 Pay presents merchant identity and the irreversible no-retry model before sign-in', async () => {
+test('M15.4 Pay presents merchant identity and the no-duplicate-payment model before sign-in', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/pay').expect(200);
 
@@ -71,15 +72,15 @@ test('M15.4 Pay presents merchant identity and the irreversible no-retry model b
   assert.match(response.text, /src="\/images\/fourth-street-bar-logo\.jpg"/);
   assert.match(response.text, /Pay at 4th Street Bar/);
   assert.match(response.text, /Pay your tab with HBD/);
-  assert.match(response.text, /Paid means irreversible/);
-  assert.match(response.text, /two independent Hive nodes report the same exact transfer as irreversible/);
-  assert.match(response.text, /Do not pay again after ambiguity/);
-  assert.match(response.text, /Keychain acceptance means broadcast pending, not Paid/);
-  assert.match(response.text, /Verified sign-in required/);
+  assert.match(response.text, /Paid means confirmed/);
+  assert.match(response.text, /independent Hive nodes confirm the same transfer is final/);
+  assert.match(response.text, /If confirmation is unclear, don’t pay again/);
+  assert.match(response.text, /Keychain approval can happen before Hive-Bar sees final confirmation/);
+  assert.match(response.text, /Sign in to pay/);
   assert.doesNotMatch(response.text, /data-pay-form/);
 });
 
-test('M15.4 controlled Pay keeps every existing payment hook and Active review boundary', async () => {
+test('M15.4 controlled Pay keeps every existing payment hook and review boundary', async () => {
   const fixture = controlledApp({ payment: true });
   const response = await request(fixture.app)
     .get('/pay')
@@ -95,11 +96,11 @@ test('M15.4 controlled Pay keeps every existing payment hook and Active review b
   assert.match(response.text, /data-pay-receipt/);
   assert.match(response.text, /data-pay-receipt-state/);
   assert.match(response.text, /data-pay-recheck/);
-  assert.match(response.text, /Validate and review exact transfer/);
-  assert.match(response.text, /Hive Keychain requests Active authority only after the exact transfer has been validated and reviewed/);
-  assert.match(response.text, /Distriator remains disabled and outside this payment acceptance flow/);
+  assert.match(response.text, /Check payment details/);
+  assert.match(response.text, /Hive-Bar checks the payment and shows you exactly what will be sent/);
+  assert.match(response.text, /Rebates are not available through Hive-Bar right now/);
   assert.doesNotMatch(response.text, /data-distriator-claim/);
-  assert.match(response.text, /Controlled maximum 1\.000 HBD/);
+  assert.match(response.text, /Maximum payment 1\.000 HBD/);
 });
 
 test('M15.4 preserves the accepted browser payment state machine source', () => {
