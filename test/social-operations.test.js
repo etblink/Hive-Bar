@@ -69,7 +69,7 @@ test('matches the exact resolved-container thread operation golden vector', () =
   ]);
 });
 
-test('matches the exact comment and vote operation golden vectors', () => {
+test('matches the exact comment and weighted vote operation golden vectors', () => {
   const comment = build('comment', {
     parentAuthor: 'barfriend',
     parentPermlink: 'hello-reno',
@@ -91,12 +91,41 @@ test('matches the exact comment and vote operation golden vectors', () => {
     ],
   ]);
 
-  const vote = build('vote', { author: 'barfriend', permlink: 'hello-reno', percent: 37 });
-  assert.deepEqual(vote.operations, [
+  const upvote = build('vote', {
+    author: 'barfriend',
+    permlink: 'hello-reno',
+    direction: 'upvote',
+    percent: 37,
+  });
+  assert.deepEqual(upvote.operations, [
     ['vote', { voter: 'etblink', author: 'barfriend', permlink: 'hello-reno', weight: 3700 }],
   ]);
-  assert.equal(vote.summary.percent, 37);
-  assert.equal(vote.summary.weight, 3700);
+  assert.equal(upvote.summary.kind, 'Upvote');
+  assert.equal(upvote.summary.direction, 'upvote');
+  assert.equal(upvote.summary.percent, 37);
+  assert.equal(upvote.summary.weight, 3700);
+
+  const downvote = build('vote', {
+    author: 'barfriend',
+    permlink: 'hello-reno',
+    direction: 'downvote',
+    percent: 63,
+  });
+  assert.deepEqual(downvote.operations, [
+    ['vote', { voter: 'etblink', author: 'barfriend', permlink: 'hello-reno', weight: -6300 }],
+  ]);
+  assert.equal(downvote.summary.kind, 'Downvote');
+  assert.equal(downvote.summary.direction, 'downvote');
+  assert.equal(downvote.summary.percent, 63);
+  assert.equal(downvote.summary.weight, -6300);
+
+  const legacyUpvote = build('vote', {
+    author: 'barfriend',
+    permlink: 'hello-reno',
+    percent: 25,
+  });
+  assert.equal(legacyUpvote.operations[0][1].weight, 2500);
+  assert.equal(legacyUpvote.summary.direction, 'upvote');
 });
 
 test('matches exact follow and unfollow Hivemind golden vectors', () => {
@@ -174,8 +203,12 @@ test('enforces protocol-shaped inputs and UTF-8 byte limits before Keychain', ()
     /500 UTF-8 bytes or fewer/,
   );
   assert.throws(
-    () => build('vote', { author: 'barfriend', permlink: 'hello-reno', percent: 0 }),
+    () => build('vote', { author: 'barfriend', permlink: 'hello-reno', direction: 'upvote', percent: 0 }),
     /whole number from 1 to 100/,
+  );
+  assert.throws(
+    () => build('vote', { author: 'barfriend', permlink: 'hello-reno', direction: 'sideways', percent: 50 }),
+    /Vote direction must be upvote or downvote/,
   );
   assert.throws(
     () => build('follow', { following: 'etblink' }),
