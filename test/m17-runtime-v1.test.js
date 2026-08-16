@@ -79,6 +79,29 @@ function v1Source(overrides = {}) {
 function v1Fixture(account = 'barfriend') {
   const config = runtimeV1Config();
   const rpcPool = createFixtureRpc();
+  const fixtureCall = rpcPool.call.bind(rpcPool);
+  const threadContainer = {
+    ...structuredClone(fixture.communityPosts[0]),
+    author: 'fourthst.threads',
+    permlink: 'hive-bar-thread-container',
+    parent_author: '',
+    parent_permlink: 'hive-108590',
+  };
+  rpcPool.call = async (api, method, params) => {
+    if (
+      `${api}.${method}` === 'bridge.get_account_posts' &&
+      params?.account === 'fourthst.threads'
+    ) {
+      return [structuredClone(threadContainer)];
+    }
+    if (
+      `${api}.${method}` === 'bridge.get_discussion' &&
+      params?.author === 'fourthst.threads'
+    ) {
+      return [structuredClone(threadContainer)];
+    }
+    return fixtureCall(api, method, params);
+  };
   const sessionStore = new SessionStore({
     secret: config.auth.sessionSecret,
     ttlMs: config.auth.sessionTtlMs,

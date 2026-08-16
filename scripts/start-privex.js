@@ -10,27 +10,28 @@ const { assertPrivexControlledPayment } = require('../src/release/payment-readin
 const { startServer } = require('../src/server');
 
 function qualifyPrivexRuntime(config, source = process.env) {
-  switch (config.hive.writeMode) {
-    case 'disabled':
-      return assertPrivexReadOnlyRelease(config, source);
-    case 'beta':
-      return assertPrivexBetaRelease(config, source);
-    case 'production':
-      return assertPrivexV1Release(config, source);
-    case 'controlled':
-      if (
-        config.hive.controlledActions.length === 1 &&
-        config.hive.controlledActions[0] === 'payment'
-      ) {
-        return assertPrivexControlledPayment(config, source);
-      }
-      if (config.hive.m10OperatorArmedUntil || config.hive.m10OperatorAuditPath) {
-        return assertPrivexBarOperatorPosting(config, source);
-      }
-      return assertPrivexControlledPostingPilot(config, source);
-    default:
-      throw new Error(`Unsupported Hive write mode: ${config.hive.writeMode}`);
+  if (config.hive.writeMode === 'disabled') {
+    return assertPrivexReadOnlyRelease(config, source);
   }
+  if (config.hive.writeMode === 'beta') {
+    return assertPrivexBetaRelease(config, source);
+  }
+  if (config.hive.writeMode === 'production') {
+    return assertPrivexV1Release(config, source);
+  }
+  if (config.hive.writeMode !== 'controlled') {
+    throw new Error(`Unsupported Hive write mode: ${config.hive.writeMode}`);
+  }
+  if (
+    config.hive.controlledActions.length === 1 &&
+    config.hive.controlledActions[0] === 'payment'
+  ) {
+    return assertPrivexControlledPayment(config, source);
+  }
+  if (config.hive.m10OperatorArmedUntil || config.hive.m10OperatorAuditPath) {
+    return assertPrivexBarOperatorPosting(config, source);
+  }
+  return assertPrivexControlledPostingPilot(config, source);
 }
 
 try {
