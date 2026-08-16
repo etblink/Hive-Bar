@@ -288,7 +288,7 @@ test('M16.4 enables only session-bound wall and encrypted inbox Active transfers
     .expect(({ body }) => assert.equal(body.error.code, 'BETA_ACTION_NOT_ALLOWED'));
 });
 
-test('beta UI exposes posts, replies, weighted voting, and M16.4 messaging without opening other writes', async () => {
+test('beta UI exposes posts, replies, weighted voting, and messaging in plain language', async () => {
   const fixture = betaFixture({ account: 'etblink' });
 
   const community = await request(fixture.app)
@@ -314,7 +314,7 @@ test('beta UI exposes posts, replies, weighted voting, and M16.4 messaging witho
   assert.match(post.text, /name="parentPermlink" value="re-welcome-fourth-street-bar"/);
   const voteForms = post.text.match(/data-social-action="vote"\s+data-signer-mode="keychain"/g) || [];
   assert.equal(voteForms.length, 2);
-  assert.match(post.text, /Choose Upvote or Downvote and a whole-number weight from 1% to 100%/);
+  assert.match(post.text, /Choose an upvote or downvote and how strongly you want to vote/);
 
   const messenger = betaFixture({ account: 'barfriend' });
   const wall = await request(messenger.app)
@@ -323,6 +323,7 @@ test('beta UI exposes posts, replies, weighted voting, and M16.4 messaging witho
     .expect(200);
   assert.match(wall.text, /data-m4-action="wall"/);
   assert.match(wall.text, /data-m4-action="inbox"/);
-  assert.match(wall.text, /Hive-Bar receives only ciphertext/);
-  assert.match(wall.text, /exact Active operation will be reviewed before signing/);
+  assert.match(wall.text, /Keychain encrypts the message in this browser/);
+  assert.match(wall.text, /review the recipient, message, fee, and payment before Keychain asks for approval/i);
+  assert.doesNotMatch(wall.text, /exact Active operation|controlled-write run|Verified-owner page/);
 });
