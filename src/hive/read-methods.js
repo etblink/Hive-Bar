@@ -12,6 +12,8 @@ const READ_ONLY_RPC_METHODS = new Set([
   'bridge.get_ranked_posts',
   'bridge.list_subscribers',
   'condenser_api.get_accounts',
+  'condenser_api.get_active_votes',
+  'condenser_api.get_content',
   'condenser_api.get_dynamic_global_properties',
   'condenser_api.get_followers',
   'condenser_api.get_following',

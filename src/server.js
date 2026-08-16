@@ -2,6 +2,7 @@
 
 const { createApp } = require('./app');
 const { loadConfig } = require('./config');
+const { applyReadConsistencyHardening } = require('./hive/read-consistency');
 const { HiveRpcPool } = require('./hive/rpc-pool');
 const { createLogger } = require('./lib/logger');
 
@@ -27,6 +28,9 @@ function startServer(options = {}) {
       paymentObserver: options.paymentObserver,
       receiptStore: options.receiptStore,
     });
+  if (app.locals?.services?.hiveReads) {
+    applyReadConsistencyHardening(app.locals.services.hiveReads);
+  }
   const server = app.listen(config.server.port, config.server.bindHost, () => {
     logger.info(
       {
