@@ -67,6 +67,24 @@ function findClosingDelimiter(source, start, delimiter, allowNewline) {
   return -1;
 }
 
+function findClosingBracketDelimiter(source, start) {
+  let depth = 1;
+  for (let index = start; index <= source.length - 2; index += 1) {
+    if (isEscaped(source, index)) continue;
+    if (source.startsWith('\\[', index)) {
+      depth += 1;
+      index += 1;
+      continue;
+    }
+    if (source.startsWith('\\]', index)) {
+      depth -= 1;
+      if (depth === 0) return index;
+      index += 1;
+    }
+  }
+  return -1;
+}
+
 function readBalancedGroupEnd(source, start) {
   if (source[start] !== '{') return -1;
   let depth = 1;
@@ -89,7 +107,8 @@ function canonicalizeHiveMathEscapes(value) {
     .replace(/\\\\([A-Za-z]+)/g, (match, command) => (
       HIVE_DOUBLE_ESCAPED_COMMANDS.has(command) ? `\\${command}` : match
     ))
-    .replace(/\\_(?=[A-Za-z0-9{])/g, '_');
+    .replace(/\\_(?=[A-Za-z0-9{])/g, '_')
+    .replace(/\\([\[\]])/g, '$1');
 }
 
 function normalizeLatexCompatibility(value) {
@@ -238,7 +257,7 @@ function extractMath(source) {
       }
     }
     if (!isEscaped(source, index) && source.startsWith('\\[', index)) {
-      const close = findClosingDelimiter(source, index + 2, '\\]', true);
+      const close = findClosingBracketDelimiter(source, index + 2);
       if (close >= 0 && source.slice(index + 2, close).trim()) {
         addMath(source.slice(index + 2, close), true);
         index = close + 2;
