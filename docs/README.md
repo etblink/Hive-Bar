@@ -7,7 +7,7 @@ This index separates **living documentation** from **historical milestone eviden
 - `../README.md` — current product/developer entry point.
 - `ROADMAP.md` — the only living current/next milestone roadmap.
 - `PRODUCTION_OPERATIONS.md` — current production operating model and release boundary.
-- `.env.example` and `../ops/privex/hive-bar.env.example` — current configuration examples.
+- `../.env.example` and `../ops/privex/hive-bar.env.example` — current configuration examples.
 - `../ops/privex/manifest.json` — machine-readable reviewed production architecture and allowed release profiles.
 
 Living documentation must be updated when its factual claims become stale.
@@ -15,7 +15,8 @@ Living documentation must be updated when its factual claims become stale.
 ## Current release-governance milestone
 
 - `M17_1_V1_PRODUCT_BOUNDARY.md` — accepted V1 functional boundary.
-- `M17_2_SOURCE_OF_TRUTH_AND_V1_GATE.md` — source-of-truth and dormant V1-gate reconciliation candidate.
+- `M17_2_SOURCE_OF_TRUTH_AND_V1_GATE.md` — accepted source-of-truth and V1-gate reconciliation record.
+- `M17_3_RUNTIME_V1_WIRING_AND_OPERATIONAL_ACCEPTANCE.md` — current runtime V1 wiring and operational-acceptance candidate.
 
 ## Historical milestone records
 

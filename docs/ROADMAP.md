@@ -8,7 +8,7 @@ This is the only living document that defines the current and next project miles
 - Accepted beta writes: post, comment, weighted vote, Wall, encrypted Inbox.
 - Payments/Distriator: disabled.
 - Controlled/operator/delegated lanes: inert.
-- Current source-of-truth work: M17.2 source-only reconciliation.
+- Current source-of-truth work: M17.3 runtime V1 wiring and operational acceptance.
 
 ## M17 — Beta closeout and functional V1 readiness
 
@@ -18,11 +18,11 @@ This is the only living document that defines the current and next project miles
 
 ### M17.2 — Source of truth and V1 gate
 
-**Current.** Reconcile living documentation, canonical V1 action identity, release version identity, Privex release architecture, CI immutability, and a dormant fail-closed V1 gate. No production activation.
+**Accepted.** Reconciled living documentation, canonical V1 action identity, release version identity, Privex release architecture, CI immutability, and the fail-closed V1 release gate without production activation.
 
 ### M17.3 — Runtime V1 wiring and operational acceptance
 
-After M17.2 acceptance, wire the frozen V1 action manifest into explicit production self-signing runtime dispatch, rehearse the V1 gate without unintended Hive writes, reconcile liveness/monitoring behavior, and perform bounded browser/device acceptance.
+**Current.** Wire the frozen V1 action manifest into explicit production self-signing runtime dispatch, retain fail-closed direct-start behavior, reconcile profile-aware liveness monitoring, qualify without unintended Hive writes, and perform bounded browser/device acceptance while production remains beta until separately authorized.
 
 ### M17.4 — Functional V1 baseline
 

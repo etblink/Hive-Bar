@@ -1,5 +1,5 @@
 [Unit]
-Description=Hive-Bar public read-only service
+Description=Hive-Bar production service
 Documentation=https://github.com/etblink/Hive-Bar
 Wants=network-online.target caddy.service
 After=network-online.target caddy.service

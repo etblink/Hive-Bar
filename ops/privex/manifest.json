@@ -62,10 +62,10 @@
   "runtimeProfiles": {
     "deploymentBaseline": "privex-public-read-only",
     "acceptedBeta": "privex-beta-self-signing",
-    "plannedV1": "privex-v1-self-signing"
+    "wiredV1": "privex-v1-self-signing"
   },
   "v1": {
-    "status": "dormant-until-m17.3-runtime-wiring",
+    "status": "runtime-wired-not-production-activated",
     "signerMode": "keychain",
     "selfSignedActions": [
       "post",

@@ -36,7 +36,9 @@ function assertPrivexV1Release(config, source = {}) {
   }
   if (config.env !== 'production') issues.push('NODE_ENV must be production');
   if (config.hive.writeMode !== 'production') issues.push('HIVE_WRITE_MODE must be production');
-  if (config.hive.signerMode !== 'keychain') issues.push('HIVE_SIGNER_MODE must be keychain');
+  if (config.hive.signerMode !== 'keychain' || !config.hive.v1SelfSigningEnabled) {
+    issues.push('HIVE_SIGNER_MODE must be keychain and V1 self-signing must be enabled');
+  }
   if (config.hive.controlledAccounts.length !== 0) {
     issues.push('HIVE_CONTROLLED_ACCOUNTS must be explicitly empty');
   }

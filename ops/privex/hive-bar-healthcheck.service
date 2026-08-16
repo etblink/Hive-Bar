@@ -1,5 +1,5 @@
 [Unit]
-Description=Check the local Hive-Bar read-only process
+Description=Check the local Hive-Bar production process
 After=hive-bar.service
 OnFailure=hive-bar-health-alert@%n.service
 

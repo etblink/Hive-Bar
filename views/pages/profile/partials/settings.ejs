@@ -35,13 +35,13 @@
       <textarea id="wall-blocklist" name="blocklist" rows="5" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 font-mono text-sm text-white"><%= profileSettings.blocklist.join('\n') %></textarea>
       <p class="mt-1 text-xs text-gray-400">One Hive account per line, up to 100. Messages from these accounts won’t appear on your Wall or Inbox.</p>
     </div>
-    <% if (writesEnabled && profileSettings.metadataValid) { %>
+    <% if (canWriteAction('profile') && profileSettings.metadataValid) { %>
       <button type="submit" class="button-primary">Review changes</button>
     <% } else { %>
       <button type="button" class="button-primary" disabled>Saving unavailable</button>
     <% } %>
     <p class="text-xs text-gray-300" aria-live="polite" data-m4-status>
-      <% if (!writesEnabled) { %>You can view these settings, but changes can’t be saved here yet.<% } %>
+      <% if (!canWriteAction('profile')) { %>You can view these settings, but changes can’t be saved here yet.<% } %>
     </p>
   </form>
 </section>

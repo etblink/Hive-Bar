@@ -1,12 +1,12 @@
 # Hive-Bar
 
-Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. The accepted production deployment is M16.8 beta at `fourthstreetbar.com`; this M17.2 source candidate reconciles the current source of truth and prepares the dormant V1 release gate without changing production or enabling additional Hive writes.
+Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. The accepted production deployment remains M16.8 beta at `fourthstreetbar.com`; M17.3 source work wires the already-frozen V1 self-signing runtime path without activating that profile in production.
 
 ## Current functional boundary
 
 The accepted beta write manifest remains exactly `post`, `comment`, `vote`, `wall`, and `inbox`, with every user-owned write reviewed before one local Hive Keychain request and independently observed afterward. No server private key or broadcast RPC method exists, and automatic rebroadcast is prohibited.
 
-M17.1 froze the intended patron-facing V1 functional set. V1 will add already implemented deterministic social/profile operations to the self-signing release boundary: `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `wall`, and `inbox`. Reward claiming, Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside the V1 release gate.
+M17.1 froze the intended patron-facing V1 functional set. V1 adds already implemented deterministic social/profile operations to the self-signing release boundary: `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `wall`, and `inbox`. Reward claiming, Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside the V1 release gate.
 
 See `docs/ROADMAP.md` for the only living milestone roadmap and `docs/README.md` for the documentation index.
 
@@ -56,7 +56,7 @@ npm run release:check:beta
 npm run release:check:v1
 ```
 
-`release:check:v1` is a non-network, dormant M17.2 qualification gate. M17.2 does **not** wire `HIVE_WRITE_MODE=production` into the running server; activation remains blocked until a later, separately accepted M17 milestone.
+`release:check:v1` is a non-network M17 qualification gate over a real `HIVE_WRITE_MODE=production` configuration. Direct/unqualified production startup remains refused; only the reviewed Privex startup path may parse production mode and it must pass `privex-v1-self-signing` before the server can start. Production activation still requires a separate explicit authorization.
 
 ## Primary surfaces
 

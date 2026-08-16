@@ -3,30 +3,23 @@
 const { loadConfig } = require('../src/config');
 const { assertPrivexV1Release } = require('../src/release/v1-readiness');
 
-function loadDormantV1Config(source = process.env) {
+function loadV1Config(source = process.env) {
   const requestedMode = String(source.HIVE_WRITE_MODE || '').trim();
   if (requestedMode !== 'production') {
     throw new Error('HIVE_WRITE_MODE must be production');
   }
 
-  const parsed = loadConfig(
-    { ...source, HIVE_WRITE_MODE: 'beta' },
-    { loadDotenv: false },
-  );
-
-  return Object.freeze({
-    ...parsed,
-    hive: Object.freeze({
-      ...parsed.hive,
-      writeMode: 'production',
-      betaSelfSigningEnabled: false,
-    }),
+  return loadConfig(source, {
+    loadDotenv: source === process.env,
+    allowV1Production: true,
   });
 }
 
+const loadDormantV1Config = loadV1Config;
+
 if (require.main === module) {
   try {
-    const config = loadDormantV1Config(process.env);
+    const config = loadV1Config(process.env);
     const summary = assertPrivexV1Release(config, process.env);
     process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
   } catch (error) {
@@ -35,4 +28,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { loadDormantV1Config };
+module.exports = { loadDormantV1Config, loadV1Config };

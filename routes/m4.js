@@ -5,9 +5,11 @@ const { requireHiveAccount } = require('../src/http/validation');
 const { buildM4Operation, M4_ACTIONS } = require('../src/hive/m4-operations');
 const { FeatureUnavailableError, ValidationError } = require('../src/lib/errors');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
+const { isV1M4Action } = require('../src/v1/actions');
 const {
   TRANSACTION_ID_PATTERN,
   assertControlledAction,
+  broadcastModeFor,
   requireSocialWriteMode,
 } = require('./social');
 
@@ -23,7 +25,20 @@ function assertM4Action(config, action) {
     }
     return;
   }
-  assertControlledAction(config, action);
+  if (config.hive.writeMode === 'production') {
+    if (!isV1M4Action(action)) {
+      throw new FeatureUnavailableError(
+        'This action isn’t available in V1 self-signing mode.',
+        { code: 'V1_ACTION_NOT_ALLOWED' },
+      );
+    }
+    return;
+  }
+  if (config.hive.writeMode === 'controlled') {
+    assertControlledAction(config, action);
+    return;
+  }
+  throw new FeatureUnavailableError('This action isn’t available right now.');
 }
 
 function requireM4Record(store, id, sessionId) {
@@ -42,6 +57,7 @@ function createM4Router({ config }) {
     requireCsrf,
     requireSocialWriteMode(config),
   ];
+  const broadcastMode = broadcastModeFor(config);
 
   router.use((_req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -110,7 +126,7 @@ function createM4Router({ config }) {
       });
       res.status(201).json({
         ...preflight,
-        broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
+        broadcastMode,
       });
     } catch (error) {
       next(error);
@@ -156,7 +172,7 @@ function createM4Router({ config }) {
           action: preflight.action,
           fingerprint: preflight.fingerprint,
           transactionId: preflight.transactionId,
-          broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
+          broadcastMode,
         },
         'M4 Hive broadcast accepted by Keychain',
       );
@@ -193,7 +209,7 @@ function createM4Router({ config }) {
             fingerprint: preflight.fingerprint,
             transactionId: preflight.transactionId,
             blockNumber: preflight.blockNumber,
-            broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
+            broadcastMode,
           },
           'M4 Hive operation observed on-chain',
         );

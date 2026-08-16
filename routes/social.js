@@ -8,10 +8,18 @@ const { appendOperatorAudit } = require('../src/social/operator-audit');
 const { assertM10OperatorArmActive } = require('../src/social/operator-posting-mode');
 const { resolvePostingIdentity } = require('../src/social/delegated-posting-mode');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
+const { isV1SocialAction } = require('../src/v1/actions');
 
 const TRANSACTION_ID_PATTERN = /^[0-9a-f]{40}$/i;
 const CONTENT_ACTIONS = new Set(['post', 'thread', 'comment']);
 const BETA_M16_3_ACTIONS = new Set(['vote']);
+
+function broadcastModeFor(config) {
+  if (config.hive.writeMode === 'beta') return 'beta-self';
+  if (config.hive.writeMode === 'production') return 'v1-self';
+  if (config.hive.writeMode === 'controlled') return 'controlled';
+  return 'disabled';
+}
 
 function requireControlledMode(config) {
   return async (req, _res, next) => {
@@ -45,22 +53,43 @@ function requireControlledMode(config) {
 function requireSocialWriteMode(config) {
   const controlled = requireControlledMode(config);
   return async (req, res, next) => {
-    if (config.hive.writeMode !== 'beta') {
+    if (config.hive.writeMode === 'controlled') {
       return controlled(req, res, next);
     }
-    if (!config.hive.betaSelfSigningEnabled || config.hive.signerMode !== 'keychain') {
-      return next(
-        new FeatureUnavailableError('Hive Keychain is required for beta actions.', {
-          code: 'BETA_KEYCHAIN_REQUIRED',
-        }),
-      );
+
+    if (config.hive.writeMode === 'beta') {
+      if (!config.hive.betaSelfSigningEnabled || config.hive.signerMode !== 'keychain') {
+        return next(
+          new FeatureUnavailableError('Hive Keychain is required for beta actions.', {
+            code: 'BETA_KEYCHAIN_REQUIRED',
+          }),
+        );
+      }
+      req.hivePostingIdentity = Object.freeze({
+        author: req.hiveSession.account,
+        signer: req.hiveSession.account,
+        mode: 'beta-self',
+      });
+      return next();
     }
-    req.hivePostingIdentity = Object.freeze({
-      author: req.hiveSession.account,
-      signer: req.hiveSession.account,
-      mode: 'beta-self',
-    });
-    return next();
+
+    if (config.hive.writeMode === 'production') {
+      if (!config.hive.v1SelfSigningEnabled || config.hive.signerMode !== 'keychain') {
+        return next(
+          new FeatureUnavailableError('Hive Keychain is required for V1 actions.', {
+            code: 'V1_KEYCHAIN_REQUIRED',
+          }),
+        );
+      }
+      req.hivePostingIdentity = Object.freeze({
+        author: req.hiveSession.account,
+        signer: req.hiveSession.account,
+        mode: 'v1-self',
+      });
+      return next();
+    }
+
+    return next(new FeatureUnavailableError('This action isn’t available right now.'));
   };
 }
 
@@ -83,7 +112,20 @@ function assertSocialAction(config, action) {
     }
     return;
   }
-  assertControlledAction(config, action);
+  if (config.hive.writeMode === 'production') {
+    if (!isV1SocialAction(action)) {
+      throw new FeatureUnavailableError(
+        'This action isn’t available in V1 self-signing mode.',
+        { code: 'V1_ACTION_NOT_ALLOWED' },
+      );
+    }
+    return;
+  }
+  if (config.hive.writeMode === 'controlled') {
+    assertControlledAction(config, action);
+    return;
+  }
+  throw new FeatureUnavailableError('This action isn’t available right now.');
 }
 
 function requireControlledAction(config, action) {
@@ -114,6 +156,7 @@ function createSocialRouter({ config }) {
     requireSocialWriteMode(config),
   ];
   const controlledRun = config.hive.writeMode === 'controlled';
+  const broadcastMode = broadcastModeFor(config);
 
   router.use((_req, res, next) => {
     res.set('Cache-Control', 'no-store');
@@ -149,7 +192,7 @@ function createSocialRouter({ config }) {
       if (controlledRun) appendOperatorAudit(config, 'prepared', preflight);
       res.status(201).json({
         ...preflight,
-        broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
+        broadcastMode,
       });
     } catch (error) {
       next(error);
@@ -190,7 +233,7 @@ function createSocialRouter({ config }) {
           action: preflight.action,
           fingerprint: preflight.fingerprint,
           transactionId: preflight.transactionId,
-          broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
+          broadcastMode,
         },
         'Hive social broadcast accepted by Keychain',
       );
@@ -229,7 +272,7 @@ function createSocialRouter({ config }) {
             action: preflight.action,
             fingerprint: preflight.fingerprint,
             transactionId: preflight.transactionId,
-            broadcastMode: config.hive.writeMode === 'beta' ? 'beta-self' : 'controlled',
+            broadcastMode,
           },
           'Hive social operation observed on-chain',
         );
@@ -254,6 +297,7 @@ module.exports = {
   TRANSACTION_ID_PATTERN,
   assertControlledAction,
   assertSocialAction,
+  broadcastModeFor,
   createSocialRouter,
   requireControlledAction,
   requireControlledMode,

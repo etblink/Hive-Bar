@@ -21,6 +21,7 @@ const { sessionContext } = require('./middleware/session');
 const { PreflightStore } = require('./social/preflight-store');
 const { isM10OperatorArmActive } = require('./social/operator-posting-mode');
 const { createHealthRouter } = require('./routes/health');
+const { isV1Action } = require('./v1/actions');
 const { createAuthRouter } = require('../routes/auth');
 const { createM4Router } = require('../routes/m4');
 const { createPaymentRouter } = require('../routes/payments');
@@ -125,6 +126,9 @@ function createApp(options = {}) {
   app.locals.canWriteAction = (action) => {
     if (config.hive.betaSelfSigningEnabled) {
       return isBetaAction(action);
+    }
+    if (config.hive.v1SelfSigningEnabled) {
+      return isV1Action(action);
     }
     return (
       config.hive.writesEnabled &&

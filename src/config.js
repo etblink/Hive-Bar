@@ -347,6 +347,13 @@ const envSchema = z
         message: 'Beta self-signing mode requires Hive Keychain',
       });
     }
+    if (env.HIVE_WRITE_MODE === 'production' && env.HIVE_SIGNER_MODE !== 'keychain') {
+      context.addIssue({
+        code: 'custom',
+        path: ['HIVE_SIGNER_MODE'],
+        message: 'V1 self-signing production mode requires Hive Keychain',
+      });
+    }
     const m12Configured = Boolean(env.HIVE_M12_MERCHANT_AUTHOR || env.HIVE_M12_AUTHORIZED_SIGNERS.length);
     if (m12Configured && (!env.HIVE_M12_MERCHANT_AUTHOR || env.HIVE_M12_AUTHORIZED_SIGNERS.length === 0)) {
       context.addIssue({
@@ -370,16 +377,12 @@ const envSchema = z
         message: 'Controlled mode requires an explicit durable receipt database path',
       });
     }
-    if (env.HIVE_WRITE_MODE === 'production') {
-      context.addIssue({
-        code: 'custom',
-        path: ['HIVE_WRITE_MODE'],
-        message: 'Production write mode is not authorized before the V1 release gate',
-      });
-    }
   });
 
-function loadConfig(source = process.env, { loadDotenv = source === process.env } = {}) {
+function loadConfig(
+  source = process.env,
+  { loadDotenv = source === process.env, allowV1Production = false } = {},
+) {
   if (loadDotenv) dotenv.config({ quiet: true });
 
   if (String(source.NODE_ENV || '').trim() === 'production') {
@@ -394,6 +397,12 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
         `Invalid Hive-Bar configuration: production requires explicit ${missing.join(', ')}`,
       );
     }
+  }
+
+  if (String(source.HIVE_WRITE_MODE || '').trim() === 'production' && !allowV1Production) {
+    throw new Error(
+      'Invalid Hive-Bar configuration: HIVE_WRITE_MODE: Production write mode is not authorized before the V1 release gate',
+    );
   }
 
   const result = envSchema.safeParse(source);
@@ -448,6 +457,8 @@ function loadConfig(source = process.env, { loadDotenv = source === process.env 
       betaSelfActions: BETA_SELF_ACTIONS,
       betaSelfSigningEnabled:
         result.data.HIVE_WRITE_MODE === 'beta' && result.data.HIVE_SIGNER_MODE === 'keychain',
+      v1SelfSigningEnabled:
+        result.data.HIVE_WRITE_MODE === 'production' && result.data.HIVE_SIGNER_MODE === 'keychain',
       signerMode: result.data.HIVE_SIGNER_MODE,
       m9PilotControlPath: result.data.HIVE_M9_PILOT_CONTROL_PATH,
       m10OperatorArmedUntil: result.data.HIVE_M10_OPERATOR_ARMED_UNTIL,

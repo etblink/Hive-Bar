@@ -4,11 +4,20 @@ set -eu
 response="$(curl --fail --silent --show-error --max-time 5 http://127.0.0.1:3000/healthz)"
 
 case "$response" in
-  *'"status":"ok"'*'"writeMode":"disabled"'*)
+  *'"status":"ok"'*'"service":"hive-bar"'*'"environment":"production"'*)
+    ;;
+  *)
+    logger -p daemon.err -t hive-bar-healthcheck 'Unexpected local health identity'
+    exit 1
+    ;;
+esac
+
+case "$response" in
+  *'"writeMode":"disabled"'*|*'"writeMode":"beta"'*|*'"writeMode":"production"'*|*'"writeMode":"controlled"'*)
     exit 0
     ;;
   *)
-    logger -p daemon.err -t hive-bar-healthcheck 'Unexpected local health response'
+    logger -p daemon.err -t hive-bar-healthcheck 'Unexpected local write mode'
     exit 1
     ;;
 esac

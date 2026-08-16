@@ -42,9 +42,17 @@ Current accepted production profile. Users sign only their own accepted beta ope
 
 ### `privex-v1-self-signing`
 
-M17.2 defines this profile as a dormant source gate only. Runtime activation is not authorized until later M17 acceptance. The V1 manifest is defined in `src/v1/actions.js`.
+M17.3 wires this profile into the reviewed Privex startup path. The exact V1 action manifest remains defined in `src/v1/actions.js`. Direct/unqualified production-mode loading remains refused; only an explicitly V1-enabled loader may parse `HIVE_WRITE_MODE=production`, and `scripts/start-privex.js` must pass `assertPrivexV1Release()` before starting the server.
+
+Runtime wiring does not itself authorize production activation. Production remains beta until a separately authorized transition changes the active environment.
 
 Controlled operator posting and controlled payment profiles remain separate procedures and are not implicit V1 capabilities.
+
+## Liveness and readiness
+
+`/healthz` is process identity/liveness. The local health timer verifies `status=ok`, `service=hive-bar`, `environment=production`, and one recognized runtime write mode (`disabled`, `beta`, `production`, or `controlled`). It does not decide whether that profile is authorized.
+
+Authorization correctness is fail-closed at service startup through the exact release gate selected by `scripts/start-privex.js`. `/readyz` separately verifies a bounded Hive read call. The monitoring timer must never issue Hive writes or mutate external infrastructure.
 
 ## Secrets and keys
 
@@ -67,4 +75,4 @@ For every accepted production transition retain:
 
 The local health timer is observational and must never issue Hive writes or restart external infrastructure. Exact deployment rollback is explicit and operator-authorized. Retain at least the current and last known-good release. For ambiguous state, observe first and obtain fresh authorization before any new mutation.
 
-M17.3 will reconcile the historical read-only wording/assumptions in the installed health-check assets with the accepted multi-profile operating model before V1 runtime activation.
+M17.3 operational acceptance should rehearse the real V1 release gate without changing the persistent production environment, invoking Keychain, or broadcasting to Hive. Only a later separately authorized activation may place the service in V1 production mode.

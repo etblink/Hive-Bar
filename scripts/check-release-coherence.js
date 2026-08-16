@@ -42,7 +42,7 @@ function assertReleaseCoherence() {
   requireMatch(workflow, /uses:\s+actions\/checkout@[0-9a-f]{40}(?:\s+#.*)?$/m, 'checkout must be pinned by full commit SHA');
   requireMatch(workflow, /uses:\s+actions\/setup-node@[0-9a-f]{40}(?:\s+#.*)?$/m, 'setup-node must be pinned by full commit SHA');
   requireMatch(readme, /Node\.js `24\.19\.0`/, 'README must state the pinned Node runtime');
-  requireMatch(readme, /M17\.2/, 'README must identify the current M17.2 source milestone');
+  requireMatch(readme, /M17\.3/, 'README must identify the current M17.3 source milestone');
   if (/\bMIT License\b/i.test(readme)) {
     throw new Error('README must not claim an open-source license that the repository does not provide');
   }
@@ -53,6 +53,12 @@ function assertReleaseCoherence() {
   if (JSON.stringify(manifest.v1.selfSignedActions) !== JSON.stringify(V1_ACTIONS)) {
     throw new Error('Privex manifest V1 action set must match src/v1/actions.js');
   }
+  if (manifest.runtimeProfiles?.wiredV1 !== 'privex-v1-self-signing') {
+    throw new Error('Privex manifest must identify the wired V1 runtime profile');
+  }
+  if (manifest.v1?.status !== 'runtime-wired-not-production-activated') {
+    throw new Error('Privex manifest must distinguish V1 runtime wiring from production activation');
+  }
 
   for (const requiredPath of [
     'docs/README.md',
@@ -60,6 +66,7 @@ function assertReleaseCoherence() {
     'docs/PRODUCTION_OPERATIONS.md',
     'docs/M17_1_V1_PRODUCT_BOUNDARY.md',
     'docs/M17_2_SOURCE_OF_TRUTH_AND_V1_GATE.md',
+    'docs/M17_3_RUNTIME_V1_WIRING_AND_OPERATIONAL_ACCEPTANCE.md',
   ]) {
     if (!fs.existsSync(path.join(root, requiredPath))) {
       throw new Error(`required living/release document is missing: ${requiredPath}`);
