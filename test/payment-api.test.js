@@ -257,7 +257,7 @@ test('allows a same-account pending receipt to be safely rechecked after write m
     .get('/pay')
     .set('cookie', `hive_bar_session=${token}`)
     .expect(200);
-  assert.match(page.text, /Pay Tab is safely disabled/);
+  assert.match(page.text, /Payments aren’t available right now/);
   assert.match(page.text, /data-pay-receipt hidden/);
   assert.match(page.text, /src="\/js\/pay-tab\.js"/);
   assert.doesNotMatch(page.text, /src="\/vendor\/zxing/);
@@ -294,7 +294,7 @@ test('renders the configured Pay Tab and hides the claim link until eligibility 
     .expect(200);
   assert.match(page.text, /@fourthstreetbar/);
   assert.match(page.text, /1\.000 HBD/);
-  assert.match(page.text, /Hive HBD payment QR—not a Lightning or LNURL invoice/);
+  assert.match(page.text, /Use the HBD payment QR provided by the bar; Lightning and LNURL invoices are not supported here/);
   assert.doesNotMatch(page.text, /data-distriator-claim/);
 
   const enabled = controlledApp({ configOverrides: { DISTRIATOR_ENABLED: 'true' } });
