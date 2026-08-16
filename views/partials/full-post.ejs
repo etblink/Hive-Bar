@@ -18,7 +18,7 @@
         </div>
       </div>
     </div>
-    <p class="app-kicker mt-5">Hive post</p>
+    <p class="app-kicker mt-5">Community post</p>
     <h1 class="conversation-post__title break-words"><%= post.title %></h1>
   </header>
 
@@ -27,7 +27,7 @@
   </div>
 
   <footer class="conversation-post__stats" aria-label="Post activity">
-    <span><%= post.positiveVotes.toLocaleString() %> positive votes</span>
+    <span><%= post.positiveVotes.toLocaleString() %> upvotes</span>
     <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
     <span class="text-bar-gold">$<%= formatPayout(post) %></span>
   </footer>
@@ -36,7 +36,7 @@
 
 <section class="conversation-comments" aria-labelledby="comments-heading">
   <h2 id="comments-heading" class="conversation-comments__heading">
-    Comments <span class="text-gray-400">(<%= comments.length %>)</span>
+    Replies <span class="text-gray-400">(<%= comments.length %>)</span>
   </h2>
 
   <% if (hiveSession && canWriteAction('comment')) { %>
@@ -44,11 +44,11 @@
       <input type="hidden" name="parentAuthor" value="<%= post.author %>">
       <input type="hidden" name="parentPermlink" value="<%= post.permlink %>">
       <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-comment-body">Add a comment</label>
+        <label class="block text-sm font-bold text-gray-200" for="new-comment-body">Add a reply</label>
         <textarea id="new-comment-body" name="body" required rows="5" data-max-bytes="8192" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 UTF-8 bytes</p>
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 byte limit</p>
       </div>
-      <button type="submit" class="button-primary">Review comment</button>
+      <button type="submit" class="button-primary">Review reply</button>
       <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
     </form>
   <% } %>
@@ -62,8 +62,8 @@
   <% } else { %>
     <section class="state-card mt-4">
       <p class="eyebrow">Conversation</p>
-      <h2>No comments yet</h2>
-      <p>No comments have been posted yet.</p>
+      <h2>No replies yet</h2>
+      <p>Replies will appear here as people join the conversation.</p>
     </section>
   <% } %>
 </section>
