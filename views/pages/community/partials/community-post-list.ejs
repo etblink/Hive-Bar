@@ -5,17 +5,17 @@
       <div>
         <label class="block text-sm font-bold text-gray-200" for="new-post-title">Title</label>
         <input id="new-post-title" name="title" type="text" required data-max-bytes="256" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white">
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 256 UTF-8 bytes</p>
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 256 byte limit</p>
       </div>
       <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-post-body">Post body</label>
+        <label class="block text-sm font-bold text-gray-200" for="new-post-body">Post</label>
         <textarea id="new-post-body" name="body" required rows="8" data-max-bytes="32768" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 32,768 UTF-8 bytes</p>
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 32,768 byte limit</p>
       </div>
       <div>
         <label class="block text-sm font-bold text-gray-200" for="new-post-tags">Tags</label>
         <input id="new-post-tags" name="tags" type="text" placeholder="reno, nightlife" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white">
-        <p class="mt-1 text-xs text-gray-400">Comma-separated; the configured community tag is added automatically.</p>
+        <p class="mt-1 text-xs text-gray-400">Separate tags with commas. We’ll add the community tag for you.</p>
       </div>
       <button type="submit" class="button-primary">Review post</button>
       <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
@@ -61,8 +61,8 @@
   <% } %>
 <% } else { %>
   <section class="state-card mt-4">
-    <p class="eyebrow">A fresh tap</p>
+    <p class="eyebrow">Community posts</p>
     <h2>The conversation is just getting started</h2>
-    <p>There are no posts in this view yet. This is the live 4th Street Bar community—not substitute content from another community.</p>
+    <p>No posts here yet. New posts will appear as the community gets the conversation going.</p>
   </section>
 <% } %>
