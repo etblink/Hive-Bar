@@ -77,8 +77,14 @@ test('M17.4 living documentation separates current beta production from V1 activ
 
   assert.match(readme, /M17\.4 is the current source milestone/);
   assert.match(readme, /persistent runtime remains the accepted beta self-signing profile/);
-  assert.match(roadmap, /### M17\.3 — Runtime V1 wiring and operational acceptance\n\n\*\*Accepted\.\*\*/);
-  assert.match(roadmap, /### M17\.4 — Functional V1 baseline\n\n\*\*Current\.\*\*/);
+  assert.match(
+    roadmap,
+    /### M17\.3 — Runtime V1 wiring and operational acceptance\r?\n\r?\n\*\*Accepted\.\*\*/,
+  );
+  assert.match(
+    roadmap,
+    /### M17\.4 — Functional V1 baseline\r?\n\r?\n\*\*Current\.\*\*/,
+  );
   assert.match(operations, /deployed source and operational wiring: accepted M17\.3/);
   assert.match(operations, /Production remains beta until a separately authorized transition/);
   assert.match(operations, /last-good.*unresolved/);
