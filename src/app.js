@@ -121,11 +121,16 @@ function createApp(options = {}) {
   app.locals.threadsContainerAccount = config.hive.threadsContainerAccount;
   app.locals.writesEnabled = config.hive.writesEnabled;
   app.locals.signerMode = config.hive.signerMode;
-  app.locals.canWriteAction = (action) => (
-    config.hive.writesEnabled &&
-    config.hive.controlledActions.includes(action) &&
-    isM10OperatorArmActive(config)
-  );
+  app.locals.canWriteAction = (action) => {
+    if (config.hive.betaSelfSigningEnabled) {
+      return config.hive.betaSelfActions.includes(action);
+    }
+    return (
+      config.hive.writesEnabled &&
+      config.hive.controlledActions.includes(action) &&
+      isM10OperatorArmActive(config)
+    );
+  };
   app.locals.paymentsEnabled = config.payments.enabled;
   app.locals.currentYear = new Date().getUTCFullYear();
   app.locals.formatPayout = (item) => {
