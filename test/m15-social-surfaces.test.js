@@ -98,7 +98,7 @@ test('M15.3 Conversation is content-first while preserving comment and vote gate
   assert.match(surface.querySelector('.conversation-post__title')?.textContent || '', /Welcome to the 4th Street Bar community/);
   assert.match(surface.textContent, /Pull up a stool/);
   assert.match(surface.textContent, /Glad to be here/);
-  assert.match(surface.querySelector('#comments-heading')?.textContent || '', /Comments\s*\(1\)/);
+  assert.match(surface.querySelector('#comments-heading')?.textContent || '', /Replies\s*\(1\)/);
 
   assert.ok(surface.querySelector('[data-comment-thread] .social-comment'));
   assert.equal(surface.querySelector('form[data-social-action="comment"]'), null);
@@ -143,7 +143,7 @@ test('M15.3 Profile becomes a modern identity header while retaining every curre
 
   assert.match(PROFILE_INFO_SOURCE, /canWriteAction\(followState \? 'unfollow' : 'follow'\)/);
   assert.match(PROFILE_INFO_SOURCE, /data-social-action="<%= followState \? 'unfollow' : 'follow' %>"/);
-  assert.match(PROFILE_INFO_SOURCE, /Current on-chain state:/);
+  assert.match(PROFILE_INFO_SOURCE, /You’re following this account/);
 });
 
 test('M15.3 social stylesheet is local, token-driven, and does not invent remote assets', () => {
