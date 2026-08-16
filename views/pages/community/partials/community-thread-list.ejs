@@ -3,9 +3,9 @@
     <summary class="cursor-pointer font-bold text-bar-gold">Create a thread</summary>
     <form class="mt-4 space-y-4" data-social-action="thread">
       <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-thread-body">Thread text</label>
+        <label class="block text-sm font-bold text-gray-200" for="new-thread-body">Thread</label>
         <textarea id="new-thread-body" name="body" required rows="4" data-max-bytes="500" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 500 UTF-8 bytes</p>
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 500 byte limit</p>
       </div>
       <button type="submit" class="button-primary">Review thread</button>
       <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
@@ -14,9 +14,9 @@
 <% } %>
 <% if (threads.length > 0) { %>
   <section class="mb-5 rounded-xl border border-gray-700 bg-gray-900 p-4" aria-labelledby="thread-container-heading">
-    <h2 id="thread-container-heading" class="font-bold text-bar-gold">Current thread container</h2>
+    <h2 id="thread-container-heading" class="font-bold text-bar-gold">Threads on Hive</h2>
     <a href="/post/<%= container.author %>/<%= container.permlink %>" class="mt-1 block break-words text-gray-200 underline">
-      @<%= container.author %>/<%= container.permlink %>
+      View the parent post
     </a>
   </section>
   <div class="space-y-4">
@@ -29,9 +29,9 @@
     <p class="eyebrow">Short-form community</p>
     <h2>No threads yet</h2>
     <% if (container) { %>
-      <p>The container exists, but nobody has replied to it yet.</p>
+      <p>Short posts and replies will appear here as the conversation gets started.</p>
     <% } else { %>
-      <p>Short-form discussion will appear here after @<%= threadsContainerAccount %> publishes its first container post.</p>
+      <p>Threads aren’t available yet.</p>
     <% } %>
   </section>
 <% } %>
