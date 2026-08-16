@@ -44,10 +44,11 @@ function assertReleaseCoherence() {
   requireMatch(workflow, /uses:\s+actions\/checkout@[0-9a-f]{40}(?:\s+#.*)?$/m, 'checkout must be pinned by full commit SHA');
   requireMatch(workflow, /uses:\s+actions\/setup-node@[0-9a-f]{40}(?:\s+#.*)?$/m, 'setup-node must be pinned by full commit SHA');
   requireMatch(readme, /Node\.js `24\.19\.0`/, 'README must state the pinned Node runtime');
-  requireMatch(readme, /M17\.4/, 'README must identify the current M17.4 source milestone');
-  requireMatch(roadmap, /### M17\.4 — Functional V1 baseline/, 'roadmap must contain the M17.4 functional baseline');
-  requireMatch(roadmap, /\*\*Current\.\*\*/, 'roadmap must identify one current milestone');
+  requireMatch(readme, /M17 is complete/, 'README must identify M17 as complete');
+  requireMatch(roadmap, /### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M17.4 as accepted');
+  requireMatch(roadmap, /## M18 — Cosmetic and user-experience elevation[\s\S]*?\*\*Next\.\*\*/, 'roadmap must identify M18 as next');
   requireMatch(operations, /deployed source and operational wiring: accepted M17\.3/, 'operations must identify the deployed M17.3 source boundary');
+  requireMatch(operations, /last-good.*reconciled/, 'operations must record the reconciled last-good host state');
   if (/\bMIT License\b/i.test(readme)) {
     throw new Error('README must not claim an open-source license that the repository does not provide');
   }
