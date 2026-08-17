@@ -1,0 +1,96 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+const { JSDOM } = require('jsdom');
+const request = require('supertest');
+const {
+  FIXTURE_ACCOUNT,
+  VISUAL_HEIGHT,
+  VISUAL_WIDTHS,
+  createM18VisualFixture,
+} = require('./support/m18-visual-fixture');
+
+const ROOT = path.join(__dirname, '..');
+
+test('M18.2 visual fixture is deterministic, non-signing, and mutation-fail-closed', async () => {
+  const fixture = createM18VisualFixture();
+
+  assert.deepEqual(VISUAL_WIDTHS, [360, 390, 768, 1024, 1440, 1600]);
+  assert.equal(VISUAL_HEIGHT, 900);
+  assert.equal(fixture.config.hive.writeMode, 'disabled');
+  assert.equal(fixture.config.hive.signerMode, 'disabled');
+  assert.equal(fixture.config.hive.writesEnabled, false);
+  assert.equal(fixture.config.payments.enabled, false);
+  assert.equal(fixture.session.account, FIXTURE_ACCOUNT);
+
+  const blocked = await request(fixture.app)
+    .post('/auth/challenge')
+    .send({ account: FIXTURE_ACCOUNT })
+    .expect(405);
+  assert.equal(blocked.body.error.code, 'M18_VISUAL_MUTATION_FORBIDDEN');
+  assert.deepEqual(fixture.mutationAttempts, [{ method: 'POST', path: '/auth/challenge' }]);
+  assert.deepEqual(fixture.rpcPool.calls, []);
+  assert.deepEqual(fixture.hiveReadService.calls, []);
+});
+
+test('M18.2 visual fixture renders real signed-out and fixture-authenticated shell states', async () => {
+  const fixture = createM18VisualFixture();
+
+  const signedOut = await request(fixture.app)
+    .get(`/profile/${FIXTURE_ACCOUNT}/inbox`)
+    .expect(401);
+  const signedOutDocument = new JSDOM(signedOut.text).window.document;
+  assert.equal(signedOutDocument.querySelector('h1')?.textContent.trim(), 'Sign in required');
+  assert.deepEqual(
+    Array.from(signedOutDocument.querySelectorAll('.app-nav-label'), (item) =>
+      item.textContent.trim(),
+    ),
+    ['Home', 'Community', 'Threads', 'Sign in'],
+  );
+  assert.ok(signedOutDocument.querySelector('.app-signin__panel .app-field-control'));
+  assert.ok(signedOutDocument.querySelector('.app-state--access .button-primary'));
+
+  const authenticated = await request(fixture.app)
+    .get(`/profile/${FIXTURE_ACCOUNT}`)
+    .set('cookie', `hive_bar_session=${fixture.token}`)
+    .expect(200);
+  const authenticatedDocument = new JSDOM(authenticated.text).window.document;
+  assert.deepEqual(
+    Array.from(authenticatedDocument.querySelectorAll('.app-nav-label'), (item) =>
+      item.textContent.trim(),
+    ),
+    ['Home', 'Community', 'Threads', 'You'],
+  );
+  assert.equal(
+    authenticatedDocument
+      .querySelector(`a[href="/profile/${FIXTURE_ACCOUNT}"]`)
+      ?.getAttribute('aria-current'),
+    'page',
+  );
+  assert.equal(authenticatedDocument.querySelector('#profile-heading')?.textContent.trim(), 'Evan');
+  assert.ok(authenticatedDocument.querySelector('[data-keychain-logout]'));
+  assert.equal(authenticatedDocument.querySelector('[data-keychain-login]'), null);
+  assert.ok(authenticatedDocument.querySelector('.transaction-review[data-social-confirm]'));
+  assert.deepEqual(fixture.rpcPool.calls, []);
+  assert.deepEqual(fixture.hiveReadService.unexpectedCalls, []);
+  assert.deepEqual(
+    fixture.hiveReadService.calls.map((call) => call.method),
+    ['getProfile', 'getAccountPosts'],
+  );
+});
+
+test('M18.2 CI retains dual-OS source qualification and one pinned Ubuntu visual artifact job', () => {
+  const workflow = fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8');
+  const capture = fs.readFileSync(path.join(ROOT, 'scripts', 'capture-m18-visual.js'), 'utf8');
+
+  assert.match(workflow, /os:\s*[\s\S]*ubuntu-latest[\s\S]*windows-latest/);
+  assert.match(workflow, /visual-acceptance:[\s\S]*runs-on:\s*ubuntu-latest/);
+  assert.match(workflow, /npm run test:visual:m18/);
+  assert.match(workflow, /m18-2-visual-evidence-\$\{\{ github\.sha \}\}/);
+  assert.match(workflow, /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/);
+  assert.match(capture, /M18 visual qualification forbids Keychain access/);
+  assert.match(capture, /method !== 'GET' && method !== 'HEAD'/);
+});

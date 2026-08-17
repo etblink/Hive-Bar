@@ -26,6 +26,7 @@
     "start:privex": "node scripts/start-privex.js",
     "lint": "eslint src routes public/js test scripts index.js eslint.config.js --max-warnings=0",
     "test": "node --test --test-concurrency=1 test/*.test.js",
+    "test:visual:m18": "node scripts/capture-m18-visual.js",
     "rehearse:m9": "node --test --test-concurrency=1 test/m9-bounded-bar-publishing.test.js",
     "test:coverage": "node --test --experimental-test-coverage --test-concurrency=1 test/*.test.js",
     "check:secrets": "node scripts/check-secrets.js",
@@ -56,6 +57,7 @@
     "eslint": "10.0.0",
     "html-validate": "11.6.2",
     "jsdom": "29.1.1",
+    "playwright": "1.62.1",
     "supertest": "7.2.2",
     "tailwindcss": "4.3.3"
   },

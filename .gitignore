@@ -5,6 +5,7 @@ node_modules/
 .idx/
 .bolt/
 coverage/
+artifacts/
 logs/
 *.log
 .DS_Store
