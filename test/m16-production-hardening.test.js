@@ -27,9 +27,12 @@ test('M16.7 binds first-party CSS and JavaScript URLs to exact runtime bytes', (
 
   const head = source('views/common/head.ejs');
   const footer = source('views/common/footer.ejs');
-  for (const publicPath of FIRST_PARTY_ASSETS.filter((item) => item.startsWith('/css/'))) {
-    assert.ok(head.includes(`assetUrl('${publicPath}')`));
-  }
+  const profile = source('views/pages/profile/index.ejs');
+  const pay = source('views/pages/pay/index.ejs');
+  assert.ok(head.includes("assetUrl('/css/style.css')"));
+  assert.ok(head.includes("assetUrl('/css/m15-social.css')"));
+  assert.ok(profile.includes("assetUrl('/css/m15-wallet-pay.css')"));
+  assert.ok(pay.includes("assetUrl('/css/m15-wallet-pay.css')"));
   for (const publicPath of FIRST_PARTY_ASSETS.filter((item) => item.startsWith('/js/'))) {
     assert.ok(footer.includes(`assetUrl('${publicPath}')`));
   }

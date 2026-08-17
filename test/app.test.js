@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const { JSDOM } = require('jsdom');
 const request = require('supertest');
 const { createApp } = require('../src/app');
 const { configFrom, createFixtureApp, logger } = require('./support/test-app');
@@ -17,9 +18,26 @@ function appWithRpc(call = async () => ({}), configOverrides = {}) {
 
 function assertNoExecutableMarkup(html) {
   assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)/i);
-  assert.doesNotMatch(html, /<(?:svg|iframe|object|embed)[^>]*>/i);
+  assert.doesNotMatch(html, /<(?:iframe|object|embed|foreignObject)[^>]*>/i);
   assert.doesNotMatch((html.match(/<[^>]+>/g) || []).join(' '), /\son[a-z]+\s*=/i);
   assert.doesNotMatch((html.match(/<[^>]+>/g) || []).join(' '), /(?:href|src)=["']javascript:/i);
+
+  const document = new JSDOM(html).window.document;
+  const allowedSvgAttributes = new Set([
+    'class', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
+    'aria-hidden', 'focusable',
+  ]);
+  const allowedShapeAttributes = new Set(['d', 'cx', 'cy', 'r']);
+  for (const svg of document.querySelectorAll('svg')) {
+    assert.ok(svg.matches('.app-primary-nav svg.app-nav-icon'));
+    for (const attribute of svg.getAttributeNames()) assert.ok(allowedSvgAttributes.has(attribute));
+    for (const shape of svg.querySelectorAll('*')) {
+      assert.ok(['path', 'circle'].includes(shape.localName));
+      for (const attribute of shape.getAttributeNames()) {
+        assert.ok(allowedShapeAttributes.has(attribute));
+      }
+    }
+  }
 }
 
 test('renders a truthful, complete home document with hardened response headers', async () => {

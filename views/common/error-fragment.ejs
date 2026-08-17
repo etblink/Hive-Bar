@@ -1,6 +1,12 @@
-<section class="rounded-lg border border-red-900 bg-red-950/40 p-6" role="alert">
-  <h2 class="text-lg font-bold text-red-200"><%= pageTitle %></h2>
-  <p class="mt-2 text-red-100"><%= message %></p>
-  <p class="mt-3 text-xs text-red-300">Reference: <%= requestId %></p>
-  <a href="<%= retryUrl %>" class="button-secondary mt-5">Try again</a>
+<section class="app-state app-state--<%= stateKind %>" role="<%= announceRole %>">
+  <p class="app-state__label"><%= stateLabel %></p>
+  <h2 class="app-state__title"><%= pageTitle %></h2>
+  <p class="app-state__message"><%= message %></p>
+  <div class="app-state__actions">
+    <a href="<%= primaryAction.href %>" class="button-primary"><%= primaryAction.label %></a>
+    <% if (secondaryAction) { %>
+      <a href="<%= secondaryAction.href %>" class="button-secondary"><%= secondaryAction.label %></a>
+    <% } %>
+  </div>
+  <p class="app-state__reference">Reference: <%= requestId %></p>
 </section>

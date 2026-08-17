@@ -1,0 +1,27 @@
+<svg
+  class="app-nav-icon"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.8"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false">
+  <% if (name === 'home') { %>
+    <path d="M3.5 10.5 12 3.75l8.5 6.75"></path>
+    <path d="M5.5 9.25V20h13V9.25"></path>
+    <path d="M9.5 20v-6h5v6"></path>
+  <% } else if (name === 'community') { %>
+    <circle cx="9" cy="8" r="3"></circle>
+    <path d="M3.75 19c.35-3.4 2.1-5.25 5.25-5.25S13.9 15.6 14.25 19"></path>
+    <path d="M14.5 5.6a3 3 0 0 1 0 4.8"></path>
+    <path d="M16 13.9c2.45.55 3.8 2.25 4.1 5.1"></path>
+  <% } else if (name === 'threads') { %>
+    <path d="M4 5.5h11a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H9l-4 3v-3H4a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3Z"></path>
+    <path d="M10.5 17.25h3.75l3.75 2.5v-2.5h.5a2.5 2.5 0 0 0 2.5-2.5v-1.5"></path>
+  <% } else { %>
+    <circle cx="12" cy="8" r="3.5"></circle>
+    <path d="M4.5 20c.55-4.2 3.05-6.5 7.5-6.5s6.95 2.3 7.5 6.5"></path>
+  <% } %>
+</svg>

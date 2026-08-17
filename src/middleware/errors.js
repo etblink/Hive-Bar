@@ -46,6 +46,66 @@ function classifyError(error) {
   };
 }
 
+function errorPresentation({ statusCode, code, message, retryUrl, isDynamic = false }) {
+  if (code === 'SESSION_REQUIRED') {
+    return {
+      pageTitle: 'Sign in required',
+      stateKind: 'access',
+      stateLabel: 'Private account page',
+      message,
+      announceRole: 'status',
+      primaryAction: { href: '/#hive-sign-in', label: 'Go to sign in' },
+      secondaryAction: { href: '/', label: 'Return home' },
+    };
+  }
+
+  if (code === 'PROFILE_OWNER_REQUIRED') {
+    return {
+      pageTitle: 'This page belongs to another account',
+      stateKind: 'access',
+      stateLabel: 'Owner-only page',
+      message,
+      announceRole: 'status',
+      primaryAction: { href: '/', label: 'Return home' },
+      secondaryAction: null,
+    };
+  }
+
+  if (statusCode === 404) {
+    return {
+      pageTitle: 'Page not found',
+      stateKind: 'info',
+      stateLabel: 'Nothing here',
+      message,
+      announceRole: 'status',
+      primaryAction: { href: '/community', label: 'Browse the community' },
+      secondaryAction: { href: '/', label: 'Return home' },
+    };
+  }
+
+  if (statusCode === 503) {
+    return {
+      pageTitle: 'This page is temporarily unavailable',
+      stateKind: 'warning',
+      stateLabel: 'Please try again',
+      message,
+      announceRole: 'status',
+      primaryAction: { href: retryUrl, label: 'Try again' },
+      secondaryAction: { href: '/', label: 'Return home' },
+    };
+  }
+
+  return {
+    pageTitle: 'Something went wrong',
+    stateKind: 'error',
+    stateLabel: `${statusCode} · ${code}`,
+    message,
+    announceRole: isDynamic ? 'alert' : 'status',
+    primaryAction: { href: retryUrl, label: 'Try again' },
+    secondaryAction: { href: '/', label: 'Return home' },
+  };
+}
+
 function errorHandler(error, req, res, next) {
   if (res.headersSent) return next(error);
 
@@ -58,22 +118,25 @@ function errorHandler(error, req, res, next) {
     return res.json({ error: { code, message, requestId: req.id } });
   }
 
-  const view = req.get('HX-Request') === 'true' ? 'common/error-fragment' : 'error';
+  const isDynamic = req.get('HX-Request') === 'true';
+  const view = isDynamic ? 'common/error-fragment' : 'error';
+  const retryUrl =
+    req.originalUrl.startsWith('/') && !req.originalUrl.startsWith('//')
+      ? req.originalUrl
+      : '/';
+  const presentation = errorPresentation({ statusCode, code, message, retryUrl, isDynamic });
   return res.render(view, {
-    pageTitle: statusCode === 404 ? 'Page not found' : 'Something went wrong',
+    ...presentation,
     statusCode,
     errorCode: code,
-    message,
     requestId: req.id,
-    retryUrl:
-      req.originalUrl.startsWith('/') && !req.originalUrl.startsWith('//')
-        ? req.originalUrl
-        : '/',
+    retryUrl,
   });
 }
 
 module.exports = {
   classifyError,
+  errorPresentation,
   errorHandler,
   notFoundHandler,
 };

@@ -232,7 +232,7 @@ test('responsive shell and activation tooling retain explicit mobile, desktop, a
   assert.match(css, /safe-area-inset-bottom/);
   assert.match(css, /min-height:\s*44px/);
   assert.match(css, /@media\s*\(min-width:\s*640px\)/);
-  assert.match(css, /@media\s*\(min-width:\s*1024px\)/);
+  assert.match(css, /@media\s*\(min-width:\s*1200px\)/);
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
 
   const startup = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'start-privex.js'), 'utf8');

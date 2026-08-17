@@ -203,13 +203,17 @@ function contrast(foreground, background) {
   return (light + 0.05) / (dark + 0.05);
 }
 
-test('primary text color pairs meet WCAG AA normal-text contrast', () => {
+test('M18 venue and status color pairs meet WCAG AA normal-text contrast', () => {
   const pairs = [
-    ['#f4a460', '#030712'],
-    ['#000000', '#f4a460'],
-    ['#ffffff', '#111827'],
-    ['#d1d5db', '#111827'],
-    ['#9ca3af', '#030712'],
+    ['#f4a460', '#080706'],
+    ['#080706', '#f4a460'],
+    ['#f7f1e8', '#11100f'],
+    ['#c8bfb4', '#11100f'],
+    ['#9b9085', '#11100f'],
+    ['#8fb4e0', '#11100f'],
+    ['#76b78a', '#11100f'],
+    ['#f0b86b', '#11100f'],
+    ['#f08a8a', '#11100f'],
   ];
 
   for (const [foreground, background] of pairs) {

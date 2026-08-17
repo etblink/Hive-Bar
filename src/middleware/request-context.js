@@ -9,6 +9,7 @@ function requestContext(logger) {
 
     req.id = requestId;
     req.log = logger.child({ requestId });
+    res.locals.requestPath = req.path;
     res.setHeader('X-Request-Id', requestId);
 
     res.once('finish', () => {

@@ -22,35 +22,35 @@ function shellLabels(document) {
     .filter(Boolean);
 }
 
-test('M15.2 shell presents the approved navigation model without inventing future routes', async () => {
+test('M18.2 shell presents only real patron destinations with local inert icons', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/').expect(200);
   const dom = new JSDOM(response.text);
   const { document } = dom.window;
 
-  assert.deepEqual(shellLabels(document), ['Home', 'Explore', 'Create', 'Community', 'Pay', 'You']);
+  assert.deepEqual(shellLabels(document), ['Home', 'Community', 'Threads', 'Sign in']);
 
   assert.equal(document.querySelector('a.app-nav-link[href="/"]')?.getAttribute('aria-current'), 'page');
   assert.equal(document.querySelector('a.app-nav-link[href="/community"] .app-nav-label')?.textContent.trim(), 'Community');
+  assert.equal(document.querySelector('a.app-nav-link[href="/community/threads"] .app-nav-label')?.textContent.trim(), 'Threads');
   assert.equal(document.querySelector('a.app-nav-link[href="/pay"]'), null);
-
-  const signedOutPay = document.querySelector('.app-nav-link[data-pay-nav][aria-disabled="true"]');
-  assert.ok(signedOutPay);
-  assert.equal(signedOutPay.tagName, 'SPAN');
-  assert.equal(signedOutPay.querySelector('.app-nav-label')?.textContent.trim(), 'Pay');
-  assert.equal(signedOutPay.getAttribute('title'), 'Sign in with Hive Keychain to use Pay.');
 
   const disabledLabels = Array.from(document.querySelectorAll('.app-nav-link[aria-disabled="true"]'))
     .map((item) => item.querySelector('.app-nav-label')?.textContent.trim() || '')
     .filter(Boolean);
-  assert.deepEqual(disabledLabels, ['Explore', 'Create', 'Pay']);
+  assert.deepEqual(disabledLabels, []);
 
   assert.equal(document.querySelector('a[href="/explore"]'), null);
   assert.equal(document.querySelector('a[href="/create"]'), null);
-  assert.ok(document.querySelector('.app-nav-item--community'));
+  assert.equal(document.querySelector('.app-nav-item--community'), null);
   assert.ok(document.querySelector('.app-nav-signin form[data-keychain-login]'));
   assert.match(response.text, /Never enter a private key here\./);
-  assert.doesNotMatch(response.text, /<svg\b/i);
+  assert.equal(document.querySelectorAll('svg.app-nav-icon').length, 4);
+  assert.equal(document.querySelector('svg script, svg foreignObject, svg [href]'), null);
+  for (const icon of document.querySelectorAll('svg.app-nav-icon')) {
+    assert.equal(icon.getAttribute('aria-hidden'), 'true');
+    assert.equal(icon.getAttribute('focusable'), 'false');
+  }
 
   dom.window.close();
 
@@ -83,14 +83,11 @@ test('M15.2 signed-in You destination reuses the verified Hive session and keeps
   const dom = new JSDOM(response.text);
   const { document } = dom.window;
   const you = document.querySelector('a.app-nav-link[href="/profile/etblink"]');
-  const pay = document.querySelector('a.app-nav-link[data-pay-nav][href="/pay"]');
 
   assert.ok(you);
   assert.equal(you.getAttribute('aria-current'), 'page');
   assert.equal(you.querySelector('.app-nav-label')?.textContent.trim(), 'You');
-  assert.ok(pay);
-  assert.equal(pay.getAttribute('aria-disabled'), null);
-  assert.equal(pay.querySelector('.app-nav-label')?.textContent.trim(), 'Pay');
+  assert.equal(document.querySelector('a.app-nav-link[href="/pay"]'), null);
   assert.ok(document.querySelector('button[data-keychain-logout]'));
   assert.equal(document.querySelector('form[data-keychain-login]'), null);
   assert.match(document.querySelector('.app-account__identity')?.textContent || '', /@etblink/);
@@ -99,28 +96,31 @@ test('M15.2 signed-in You destination reuses the verified Hive session and keeps
   dom.window.close();
 });
 
-test('M15.2 design tokens and responsive shell contracts are explicit in source CSS', () => {
+test('M18.2 venue tokens and coordinated responsive shell contracts are explicit in source CSS', () => {
   const requiredTokens = [
-    '--hb-bg: #050505',
-    '--hb-surface: #111113',
-    '--hb-surface-raised: #1a1a1d',
-    '--hb-surface-strong: #242428',
-    '--hb-border: #34343a',
-    '--hb-text: #f5f5f2',
-    '--hb-text-muted: #d1d5db',
-    '--hb-text-subtle: #9ca3af',
-    '--hb-accent: #f4a460',
-    '--hb-accent-hover: #f6c27a',
-    '--hb-shell-rail: 17rem',
+    '--venue-canvas: #080706',
+    '--venue-surface-1: #11100f',
+    '--venue-surface-2: #191613',
+    '--venue-surface-3: #241f1b',
+    '--venue-border: #3c342e',
+    '--venue-text: #f7f1e8',
+    '--venue-text-muted: #c8bfb4',
+    '--venue-text-subtle: #9b9085',
+    '--venue-accent: #f4a460',
+    '--venue-info: #8fb4e0',
+    '--venue-success: #76b78a',
+    '--venue-warning: #f0b86b',
+    '--venue-danger: #f08a8a',
+    '--hb-shell-rail: 15rem',
   ];
 
   for (const token of requiredTokens) {
     assert.match(CSS_SOURCE, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  assert.match(CSS_SOURCE, /grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/);
-  assert.match(CSS_SOURCE, /\.app-nav-item--community\s*\{\s*display:\s*none;/);
-  assert.match(CSS_SOURCE, /@media\s*\(min-width:\s*1024px\)/);
+  assert.match(CSS_SOURCE, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
+  assert.doesNotMatch(CSS_SOURCE, /\.app-nav-item--community/);
+  assert.match(CSS_SOURCE, /@media\s*\(min-width:\s*1200px\)/);
   assert.match(CSS_SOURCE, /padding-left:\s*var\(--hb-shell-rail\)/);
   assert.match(CSS_SOURCE, /safe-area-inset-bottom/);
   assert.match(CSS_SOURCE, /min-height:\s*44px/);

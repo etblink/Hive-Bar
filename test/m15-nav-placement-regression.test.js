@@ -10,7 +10,7 @@ const HEADER = fs.readFileSync(path.join(ROOT, 'views', 'common', 'header.ejs'),
 const INPUT_CSS = fs.readFileSync(path.join(ROOT, 'src', 'input.css'), 'utf8');
 const BUILT_CSS = fs.readFileSync(path.join(ROOT, 'public', 'css', 'style.css'), 'utf8');
 
-test('M15.5 keeps primary navigation viewport-fixed at the bottom through tablet widths', () => {
+test('M18.2 keeps primary navigation viewport-fixed through compact desktop widths', () => {
   assert.match(
     HEADER,
     /<header class="app-shell-header \[backdrop-filter:none\]">/,
@@ -25,8 +25,8 @@ test('M15.5 keeps primary navigation viewport-fixed at the bottom through tablet
   );
   assert.match(
     INPUT_CSS,
-    /@media\s*\(min-width:\s*1024px\)[\s\S]*?\.app-primary-nav\s*\{[^}]*position:\s*static;/,
-    'desktop rail conversion must not begin before 1024px',
+    /@media\s*\(min-width:\s*1200px\)[\s\S]*?\.app-primary-nav\s*\{[^}]*position:\s*static;/,
+    'desktop rail conversion must not begin before 1200px',
   );
 
   assert.match(

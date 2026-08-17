@@ -83,9 +83,7 @@ test('M15.5 signed-out, read-only, controlled, owner-only, and payment-enabled s
 
   const signedOutDocument = documentFor(signedOutPay.text);
   const signedOutPayNav = signedOutDocument.querySelector('.app-nav-link[data-pay-nav]');
-  assert.ok(signedOutPayNav);
-  assert.equal(signedOutPayNav.tagName, 'SPAN');
-  assert.equal(signedOutPayNav.getAttribute('aria-disabled'), 'true');
+  assert.equal(signedOutPayNav, null);
   assert.equal(signedOutDocument.querySelector('a.app-nav-link[href="/pay"]'), null);
   signedOutDocument.defaultView?.close();
 
@@ -96,7 +94,7 @@ test('M15.5 signed-out, read-only, controlled, owner-only, and payment-enabled s
     .expect(200);
   assert.match(disabledProfile.text, /Signed in with Hive Keychain/);
   assert.match(disabledProfile.text, /href="\/profile\/etblink"[^>]*class="app-nav-link app-nav-link--active"/);
-  assert.match(disabledProfile.text, /href="\/pay"[^>]*data-pay-nav/);
+  assert.doesNotMatch(disabledProfile.text, /data-pay-nav/);
   assert.doesNotMatch(disabledProfile.text, /data-social-action="post"/);
 
   const controlled = verifiedApp({
@@ -169,7 +167,7 @@ test('M15.5 sparse, unavailable, malformed-pagination, and future-capability sta
   const disabledLabels = Array.from(document.querySelectorAll('.app-nav-link[aria-disabled="true"]'))
     .map((item) => item.querySelector('.app-nav-label')?.textContent.trim())
     .filter(Boolean);
-  assert.deepEqual(disabledLabels, ['Explore', 'Create', 'Pay']);
+  assert.deepEqual(disabledLabels, []);
   assert.doesNotMatch(document.querySelector('.app-primary-nav')?.textContent || '', /\bLive\b|\bEvents?\b/);
   document.defaultView?.close();
 });
@@ -188,7 +186,8 @@ test('M15.5 responsive source contracts cover the required review matrix without
   assert.match(shellCss, /safe-area-inset-bottom/);
   assert.match(shellCss, /min-height:\s*44px/);
   assert.match(combinedCss, /@media\s*\(min-width:\s*640px\)/);
-  assert.match(combinedCss, /@media\s*\(min-width:\s*900px\)/);
+  assert.match(combinedCss, /@media\s*\(min-width:\s*1200px\)/);
+  assert.match(combinedCss, /@media\s*\(min-width:\s*1280px\)/);
   assert.match(combinedCss, /@media\s*\(min-width:\s*1024px\)/);
   assert.match(shellCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
   assert.match(shellCss, /padding-left:\s*var\(--hb-shell-rail\)/);

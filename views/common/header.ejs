@@ -1,11 +1,12 @@
 <%
-  const shellTitle = typeof pageTitle === 'string' ? pageTitle : '';
-  const shellHomeActive = shellTitle === siteName;
+  const shellPath = typeof requestPath === 'string' ? requestPath : '';
+  const shellHomeActive = shellPath === '/';
+  const shellThreadsActive = shellPath === '/community/threads';
   const shellCommunityActive =
-    shellTitle.startsWith('Community —') || shellTitle.startsWith('Threads —');
-  const shellPayActive = shellTitle.startsWith('Pay Tab —');
+    !shellThreadsActive && (shellPath.startsWith('/community') || shellPath.startsWith('/post/'));
+  const shellYouPath = hiveSession ? `/profile/${hiveSession.account}` : '';
   const shellYouActive =
-    Boolean(hiveSession) && shellTitle.startsWith(`@${hiveSession.account} `);
+    Boolean(shellYouPath) && (shellPath === shellYouPath || shellPath.startsWith(`${shellYouPath}/`));
 %>
 <a href="#main-content" class="skip-link">Skip to main content</a>
 <header class="app-shell-header [backdrop-filter:none]">
@@ -16,7 +17,7 @@
       width="720"
       height="720"
       decoding="async"
-      class="block h-10 w-10 max-w-full flex-none rounded-lg object-cover lg:h-24 lg:w-24"
+      class="app-brand__logo max-w-full"
       data-bar-logo>
     <span class="app-brand__wordmark">
       <strong>4th Street Bar</strong>
@@ -28,65 +29,36 @@
     <ul class="app-nav-list flex-wrap">
       <li class="app-nav-item">
         <a href="/" class="app-nav-link <%= shellHomeActive ? 'app-nav-link--active' : '' %>" <% if (shellHomeActive) { %>aria-current="page"<% } %>>
-          <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">⌂</span>
+          <%- include('icon', { name: 'home' }) %>
           <span class="app-nav-label">Home</span>
         </a>
       </li>
       <li class="app-nav-item">
-        <span
-          class="app-nav-link app-nav-link--disabled"
-          aria-disabled="true"
-          title="Explore is coming in a future update.">
-          <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">◉</span>
-          <span class="app-nav-label">Explore</span>
-        </span>
-      </li>
-      <li class="app-nav-item">
-        <span
-          class="app-nav-link app-nav-link--disabled"
-          aria-disabled="true"
-          title="Create is coming here soon. For now, use Community when posting is available.">
-          <span class="app-nav-icon inline-grid place-items-center text-xl font-light" aria-hidden="true">＋</span>
-          <span class="app-nav-label">Create</span>
-        </span>
-      </li>
-      <li class="app-nav-item app-nav-item--community">
         <a href="/community" class="app-nav-link <%= shellCommunityActive ? 'app-nav-link--active' : '' %>" <% if (shellCommunityActive) { %>aria-current="page"<% } %>>
-          <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">◎</span>
+          <%- include('icon', { name: 'community' }) %>
           <span class="app-nav-label">Community</span>
         </a>
       </li>
       <li class="app-nav-item">
-        <% if (hiveSession) { %>
-          <a href="/pay" class="app-nav-link <%= shellPayActive ? 'app-nav-link--active' : '' %>" data-pay-nav <% if (shellPayActive) { %>aria-current="page"<% } %>>
-            <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">▭</span>
-            <span class="app-nav-label">Pay</span>
-          </a>
-        <% } else { %>
-          <span
-            class="app-nav-link app-nav-link--disabled"
-            aria-disabled="true"
-            title="Sign in with Hive Keychain to use Pay."
-            data-pay-nav>
-            <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">▭</span>
-            <span class="app-nav-label">Pay</span>
-          </span>
-        <% } %>
+        <a href="/community/threads" class="app-nav-link <%= shellThreadsActive ? 'app-nav-link--active' : '' %>" <% if (shellThreadsActive) { %>aria-current="page"<% } %>>
+          <%- include('icon', { name: 'threads' }) %>
+          <span class="app-nav-label">Threads</span>
+        </a>
       </li>
       <li class="app-nav-item">
         <% if (hiveSession) { %>
           <a href="/profile/<%= hiveSession.account %>" class="app-nav-link <%= shellYouActive ? 'app-nav-link--active' : '' %>" <% if (shellYouActive) { %>aria-current="page"<% } %>>
-            <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">○</span>
+            <%- include('icon', { name: 'user' }) %>
             <span class="app-nav-label">You</span>
           </a>
         <% } else { %>
-          <details class="app-nav-signin">
+          <details id="hive-sign-in" class="app-nav-signin">
             <summary class="app-nav-link">
-              <span class="app-nav-icon inline-grid place-items-center text-lg font-light" aria-hidden="true">○</span>
-              <span class="app-nav-label">You</span>
+              <%- include('icon', { name: 'user' }) %>
+              <span class="app-nav-label">Sign in</span>
             </summary>
             <form class="app-signin__panel" data-keychain-login>
-              <label for="hive-login-account" class="block text-xs font-bold text-gray-200">Hive account</label>
+              <label for="hive-login-account" class="app-field-label">Hive account</label>
               <input
                 id="hive-login-account"
                 name="account"
@@ -98,14 +70,15 @@
                 autocapitalize="none"
                 spellcheck="false"
                 placeholder="your-account"
-                class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-sm text-white">
+                aria-describedby="hive-login-help hive-login-status"
+                class="app-field-control">
               <button type="submit" class="button-primary mt-3 w-full text-sm">Continue with Keychain</button>
-              <p class="mt-3 text-xs leading-5 text-gray-400">
+              <p id="hive-login-help" class="app-field-hint">
                 Uses the
                 <a class="underline hover:text-bar-gold" href="https://hive-keychain.com" rel="noopener noreferrer">Hive Keychain extension</a>.
                 Never enter a private key here.
               </p>
-              <p class="mt-2 min-h-5 text-xs leading-5 text-gray-300" aria-live="polite" data-keychain-status></p>
+              <p id="hive-login-status" class="app-field-hint min-h-5" role="status" aria-live="polite" data-keychain-status></p>
             </form>
           </details>
         <% } %>
@@ -127,7 +100,7 @@
       </div>
       <p class="app-account__status" aria-live="polite" data-keychain-status></p>
     <% } else { %>
-      <p class="app-account__signed-out">Sign in with Hive Keychain from <strong>You</strong>.</p>
+      <p class="app-account__signed-out">Browse freely. Sign in only when you want to participate.</p>
     <% } %>
   </div>
 

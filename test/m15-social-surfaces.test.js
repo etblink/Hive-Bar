@@ -47,7 +47,7 @@ test('M15.3 Home is feed-first, venue-led, and uses only current capabilities', 
 
   assert.doesNotMatch(main.textContent, /\bLive\b|\bEvents?\b|\bNearby\b|\bFor You\b/);
   assert.equal(main.querySelector('input[type="search"]'), null);
-  assert.doesNotMatch(response.text, /<svg\b/i);
+  assert.equal(main.querySelector('svg'), null);
 });
 
 test('M15.3 Community prioritizes the feed while preserving exact current tabs and write gating', async () => {
@@ -103,7 +103,7 @@ test('M15.3 Conversation is content-first while preserving comment and vote gate
   assert.ok(surface.querySelector('[data-comment-thread] .social-comment'));
   assert.equal(surface.querySelector('form[data-social-action="comment"]'), null);
   assert.equal(surface.querySelector('form[data-social-action="vote"]'), null);
-  assert.doesNotMatch(response.text, /<svg\b/i);
+  assert.equal(surface.querySelector('svg'), null);
 
   assert.match(FULL_POST_SOURCE, /canWriteAction\('comment'\)/);
   assert.match(FULL_POST_SOURCE, /data-social-action="comment"/);

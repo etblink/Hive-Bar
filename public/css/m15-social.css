@@ -518,7 +518,7 @@
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1280px) {
   .community-layout {
     grid-template-columns: minmax(0, 2fr) minmax(15rem, 0.85fr);
     align-items: start;
