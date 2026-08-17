@@ -85,12 +85,25 @@ test('M18.2 visual fixture renders real signed-out and fixture-authenticated she
 test('M18.2 CI retains dual-OS source qualification and one pinned Ubuntu visual artifact job', () => {
   const workflow = fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8');
   const capture = fs.readFileSync(path.join(ROOT, 'scripts', 'capture-m18-visual.js'), 'utf8');
+  const visualJob = workflow.match(/  visual-acceptance:\n[\s\S]*?(?=\n  live-read-smoke:)/)?.[0];
 
   assert.match(workflow, /os:\s*[\s\S]*ubuntu-latest[\s\S]*windows-latest/);
-  assert.match(workflow, /visual-acceptance:[\s\S]*runs-on:\s*ubuntu-latest/);
-  assert.match(workflow, /npm run test:visual:m18/);
-  assert.match(workflow, /m18-2-visual-evidence-\$\{\{ github\.sha \}\}/);
-  assert.match(workflow, /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/);
+  assert.ok(visualJob);
+  assert.match(visualJob, /runs-on:\s*ubuntu-latest/);
+  assert.match(
+    visualJob,
+    /with:\n\s+ref: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}\n\s+fetch-depth: 2\n\s+persist-credentials: false/,
+  );
+  assert.match(visualJob, /npm run test:visual:m18/);
+  assert.match(
+    visualJob,
+    /m18-2-visual-evidence-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/,
+  );
+  assert.equal(
+    visualJob.match(/\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/g)?.length,
+    2,
+  );
+  assert.match(visualJob, /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/);
   assert.match(capture, /M18 visual qualification forbids Keychain access/);
   assert.match(capture, /method !== 'GET' && method !== 'HEAD'/);
 });
