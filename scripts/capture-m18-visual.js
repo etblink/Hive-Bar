@@ -20,6 +20,8 @@ const OUTPUT_ROOT = path.resolve(ROOT, process.env.M18_VISUAL_OUTPUT || 'artifac
 const SCREENSHOT_ROOT = path.join(OUTPUT_ROOT, 'screenshots');
 const EXPECTED_SIGNED_OUT_NAV = ['Home', 'Community', 'Threads', 'Sign in'];
 const EXPECTED_SIGNED_IN_NAV = ['Home', 'Community', 'Threads', 'You'];
+const EXPECTED_INTENTIONAL_401_CONSOLE_ERROR =
+  'Failed to load resource: the server responded with a status of 401 (Unauthorized)';
 const KEYCHAIN_STUB = `'use strict';
 Object.defineProperty(window, '__M18_VISUAL_KEYCHAIN_DISABLED__', { value: true });
 window.HiveBarKeychain = Object.freeze({
@@ -78,6 +80,19 @@ function relativeArtifactPath(filename) {
 function assertSafeOutputRoot() {
   const relative = path.relative(ROOT, OUTPUT_ROOT);
   assert.ok(relative && !relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function assertExpectedConsoleErrors({ consoleErrors, documentUrl, statusCode }) {
+  if (statusCode !== 401) {
+    assert.deepEqual(consoleErrors, []);
+    return;
+  }
+
+  assert.equal(consoleErrors.length, 1);
+  assert.equal(consoleErrors[0].text, EXPECTED_INTENTIONAL_401_CONSOLE_ERROR);
+  if (consoleErrors[0].locationUrl) {
+    assert.equal(consoleErrors[0].locationUrl, documentUrl);
+  }
 }
 
 async function listen(app) {
@@ -430,12 +445,18 @@ async function captureScenario({ browser, baseUrl, scenario, token, width }) {
   const consoleErrors = [];
   const pageErrors = [];
   page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text());
+    if (message.type() !== 'error') return;
+    const locationUrl = message.location().url;
+    consoleErrors.push({
+      locationUrl: locationUrl || null,
+      text: message.text(),
+    });
   });
   page.on('pageerror', (error) => pageErrors.push(error.message));
 
   try {
-    const response = await page.goto(`${baseUrl}${scenario.path}`, {
+    const documentUrl = `${baseUrl}${scenario.path}`;
+    const response = await page.goto(documentUrl, {
       waitUntil: 'load',
       timeout: 15_000,
     });
@@ -455,7 +476,11 @@ async function captureScenario({ browser, baseUrl, scenario, token, width }) {
 
     assert.deepEqual(network.violations, []);
     assert.equal(network.keychainStubCount(), 1);
-    assert.deepEqual(consoleErrors, []);
+    assertExpectedConsoleErrors({
+      consoleErrors,
+      documentUrl,
+      statusCode: scenario.statusCode,
+    });
     assert.deepEqual(pageErrors, []);
 
     return {
@@ -637,7 +662,14 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+module.exports = {
+  EXPECTED_INTENTIONAL_401_CONSOLE_ERROR,
+  assertExpectedConsoleErrors,
+};
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}

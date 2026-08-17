@@ -7,6 +7,10 @@ const test = require('node:test');
 const { JSDOM } = require('jsdom');
 const request = require('supertest');
 const {
+  EXPECTED_INTENTIONAL_401_CONSOLE_ERROR,
+  assertExpectedConsoleErrors,
+} = require('../scripts/capture-m18-visual');
+const {
   FIXTURE_ACCOUNT,
   VISUAL_HEIGHT,
   VISUAL_WIDTHS,
@@ -14,6 +18,69 @@ const {
 } = require('./support/m18-visual-fixture');
 
 const ROOT = path.join(__dirname, '..');
+
+test('M18.2 console policy permits only one exact intentional main-document 401 error', () => {
+  const documentUrl = 'http://127.0.0.1:3000/profile/etblink/inbox';
+  const exactWithoutLocation = {
+    locationUrl: null,
+    text: EXPECTED_INTENTIONAL_401_CONSOLE_ERROR,
+  };
+  const exactWithLocation = {
+    locationUrl: documentUrl,
+    text: EXPECTED_INTENTIONAL_401_CONSOLE_ERROR,
+  };
+
+  assert.doesNotThrow(() =>
+    assertExpectedConsoleErrors({
+      consoleErrors: [exactWithoutLocation],
+      documentUrl,
+      statusCode: 401,
+    }),
+  );
+  assert.doesNotThrow(() =>
+    assertExpectedConsoleErrors({
+      consoleErrors: [exactWithLocation],
+      documentUrl,
+      statusCode: 401,
+    }),
+  );
+  assert.doesNotThrow(() =>
+    assertExpectedConsoleErrors({ consoleErrors: [], documentUrl, statusCode: 200 }),
+  );
+
+  const rejectedConsoleErrors = [
+    [],
+    [exactWithoutLocation, exactWithoutLocation],
+    [
+      exactWithoutLocation,
+      { locationUrl: null, text: 'Unrelated console error' },
+    ],
+    [
+      {
+        locationUrl: null,
+        text: 'Failed to load resource: the server responded with a status of 401',
+      },
+    ],
+    [
+      {
+        locationUrl: 'http://127.0.0.1:3000/unexpected-resource',
+        text: EXPECTED_INTENTIONAL_401_CONSOLE_ERROR,
+      },
+    ],
+  ];
+  for (const consoleErrors of rejectedConsoleErrors) {
+    assert.throws(() =>
+      assertExpectedConsoleErrors({ consoleErrors, documentUrl, statusCode: 401 }),
+    );
+  }
+  assert.throws(() =>
+    assertExpectedConsoleErrors({
+      consoleErrors: [exactWithoutLocation],
+      documentUrl,
+      statusCode: 200,
+    }),
+  );
+});
 
 test('M18.2 visual fixture is deterministic, non-signing, and mutation-fail-closed', async () => {
   const fixture = createM18VisualFixture();
@@ -106,4 +173,7 @@ test('M18.2 CI retains dual-OS source qualification and one pinned Ubuntu visual
   assert.match(visualJob, /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/);
   assert.match(capture, /M18 visual qualification forbids Keychain access/);
   assert.match(capture, /method !== 'GET' && method !== 'HEAD'/);
+  assert.match(capture, /assert\.deepEqual\(network\.violations, \[\]\)/);
+  assert.match(capture, /assertExpectedConsoleErrors\(\{/);
+  assert.match(capture, /assert\.deepEqual\(pageErrors, \[\]\)/);
 });
