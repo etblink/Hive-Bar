@@ -68,7 +68,7 @@ test('M17.4 last-good bookkeeping is atomic and does not weaken explicit rollbac
   assert.doesNotMatch(rollback, /commit=.*last_good/);
 });
 
-test('accepted M17 living documentation tracks M18 and reconciled last-good state', () => {
+test('accepted M17 invariants coexist with current M18 living documentation and reconciled last-good state', () => {
   const readme = read('README.md');
   const roadmap = read('docs/ROADMAP.md');
   const operations = read('docs/PRODUCTION_OPERATIONS.md');
@@ -76,18 +76,19 @@ test('accepted M17 living documentation tracks M18 and reconciled last-good stat
   const milestone = read('docs/M17_4_FUNCTIONAL_V1_BASELINE.md');
 
   assert.match(readme, /M17 is complete/);
-  assert.match(readme, /persistent runtime remains the accepted beta self-signing profile/);
-  assert.match(
-    roadmap,
-    /### M17\.3 — Runtime V1 wiring and operational acceptance\r?\n\r?\n\*\*Accepted\.\*\*/,
-  );
+  assert.match(readme, /Production still runs the accepted M17\.3 deployed source with the beta self-signing runtime/);
+  assert.match(roadmap, /Persistent production runtime: accepted beta self-signing profile\./);
   assert.match(
     roadmap,
     /### M17\.4 — Functional V1 baseline\r?\n\r?\n\*\*Accepted\.\*\*/,
   );
   assert.match(
     roadmap,
-    /## M18 — Cosmetic and user-experience elevation\r?\n\r?\n\*\*Next\.\*\*/,
+    /### M18\.1–M18\.3\r?\n\r?\n\*\*Accepted in source\.\*\*/,
+  );
+  assert.match(
+    roadmap,
+    /### M18\.4 — Beta-readiness closure\r?\n\r?\n\*\*Current\.\*\*/,
   );
   assert.match(operations, /deployed source and operational wiring: accepted M17\.3/);
   assert.match(operations, /Production remains beta until a separately authorized transition/);

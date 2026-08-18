@@ -39,6 +39,7 @@ jobs:
         run: npm run release:check:runtime
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund
+
       - name: Apply pinned dependency patch
         run: npx --no-install patch-package
       - name: Run deterministic quality gate
@@ -65,6 +66,7 @@ jobs:
         run: npm run release:check:runtime
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund
+
       - name: Apply pinned dependency patch
         run: npx --no-install patch-package
       - name: Install pinned Chromium runtime
@@ -107,6 +109,7 @@ jobs:
         run: npm run release:check:runtime
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund
+
       - name: Apply pinned dependency patch
         run: npx --no-install patch-package
       - name: Install pinned Chromium runtime
@@ -150,6 +153,7 @@ jobs:
         run: npm run release:check:runtime
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund
+
       - name: Apply pinned dependency patch
         run: npx --no-install patch-package
       - name: Install pinned Chromium runtime
@@ -187,6 +191,7 @@ jobs:
           package-manager-cache: false
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund
+
       - name: Apply pinned dependency patch
         run: npx --no-install patch-package
       - name: Verify production targets through read-only RPC calls
