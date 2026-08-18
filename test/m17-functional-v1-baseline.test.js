@@ -68,7 +68,7 @@ test('M17.4 last-good bookkeeping is atomic and does not weaken explicit rollbac
   assert.doesNotMatch(rollback, /commit=.*last_good/);
 });
 
-test('accepted M17 living documentation tracks M18 and reconciled last-good state', () => {
+test('accepted M17 living documentation tracks current M18 closure and reconciled last-good state', () => {
   const readme = read('README.md');
   const roadmap = read('docs/ROADMAP.md');
   const operations = read('docs/PRODUCTION_OPERATIONS.md');
@@ -87,13 +87,13 @@ test('accepted M17 living documentation tracks M18 and reconciled last-good stat
   );
   assert.match(
     roadmap,
-    /## M18 — Cosmetic and user-experience elevation\r?\n\r?\n\*\*Next\.\*\*/,
+    /### M18\.4 — Beta-readiness closure\r?\n\r?\n\*\*Current source-qualification lane\.\*\*/,
   );
   assert.match(operations, /deployed source and operational wiring: accepted M17\.3/);
   assert.match(operations, /Production remains beta until a separately authorized transition/);
   assert.match(operations, /last-good.*reconciled/);
   assert.match(index, /M17_4_FUNCTIONAL_V1_BASELINE\.md/);
-  assert.match(index, /M18/);
+  assert.match(index, /M18_4_BETA_READINESS_CLOSURE\.md/);
   assert.match(milestone, /No cosmetic redesign is required for M17\.4 acceptance/);
   assert.match(milestone, /canonicalization is not part of this source-qualification authorization/);
 });

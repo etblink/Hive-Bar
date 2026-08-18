@@ -7,7 +7,7 @@
             </a>
         </div>
     <% }); %>
-<% } else if (error) { %>
+<% } else if (typeof error !== 'undefined' && error) { %>
     <p class="text-red-500"><%= error %></p>
 <% } else { %>
     <p class="text-gray-400"><%= emptyMessage || 'No users found.' %></p>

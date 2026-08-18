@@ -69,7 +69,7 @@ test('controlled authenticated pages expose all eight actions behind exact prefl
   assert.match(community.text, /data-social-action="post"/);
   assert.match(community.text, /data-social-action="vote"/);
   assert.match(community.text, /data-social-action="subscribe"/);
-  assert.match(community.text, /0 \/ 32,768 byte limit/);
+  assert.match(community.text, /0 \/ 32,768 used/);
   assert.match(community.text, /Review before signing/);
   assert.match(community.text, /data-social-fingerprint/);
   assert.match(community.text, /@etblink/);
@@ -80,7 +80,7 @@ test('controlled authenticated pages expose all eight actions behind exact prefl
     .set('cookie', fixtureApp.cookie)
     .expect(200);
   assert.match(threads.text, /data-social-action="thread"/);
-  assert.match(threads.text, /0 \/ 500 byte limit/);
+  assert.match(threads.text, /0 \/ 500 used/);
 
   const post = await request(fixtureApp.app)
     .get('/post/etblink/welcome-fourth-street-bar')
@@ -88,7 +88,7 @@ test('controlled authenticated pages expose all eight actions behind exact prefl
     .expect(200);
   assert.match(post.text, /data-social-action="comment"/);
   assert.match(post.text, /data-social-action="vote"/);
-  assert.match(post.text, /0 \/ 8,192 byte limit/);
+  assert.match(post.text, /0 \/ 8,192 used/);
 
   const profile = await request(fixtureApp.app)
     .get('/profile/barfriend')

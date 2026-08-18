@@ -33,6 +33,14 @@ async function run() {
   assert.ok(Array.isArray(postsPage.items), 'Community posts are not an array');
   assert.ok(Array.isArray(threadsData.threads), 'Threads are not an array');
 
+  const socialGraphAccount = postsPage.items[0]?.author || config.hive.officialBarAccount;
+  const [followersPage, followingPage] = await Promise.all([
+    reads.getFollowers(socialGraphAccount),
+    reads.getFollowing(socialGraphAccount),
+  ]);
+  assert.ok(Array.isArray(followersPage.items), 'Followers are not an array');
+  assert.ok(Array.isArray(followingPage.items), 'Following accounts are not an array');
+
   let sampledProfile = null;
   let sampledDiscussion = null;
   let sampledWallet = null;
@@ -58,6 +66,11 @@ async function run() {
     threadsContainerAccount: config.hive.threadsContainerAccount,
     threadContainerObserved: Boolean(threadsData.container),
     threadsObserved: threadsData.threads.length,
+    socialGraphAccount,
+    followersObserved: followersPage.items.length,
+    nextFollowersPageAvailable: Boolean(followersPage.nextCursor),
+    followingObserved: followingPage.items.length,
+    nextFollowingPageAvailable: Boolean(followingPage.nextCursor),
     sampledAuthor: sampledProfile?.name || null,
     sampledComments: sampledDiscussion?.comments.length ?? null,
     sampledWalletDisplayedAt: sampledWallet?.displayedAt || null,
