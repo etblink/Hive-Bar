@@ -2,24 +2,24 @@
   <div class="pay-step-heading">
     <span aria-hidden="true">2</span>
     <div>
-      <p class="app-kicker">Payment receipt</p>
+      <p class="app-kicker">Review &amp; receipt</p>
       <h2 id="receipt-heading">Payment status</h2>
     </div>
   </div>
 
   <p class="pay-receipt__state" aria-live="polite" data-pay-receipt-state></p>
 
-  <dl class="pay-receipt__evidence grid grid-cols-1 gap-4 sm:grid-cols-2">
-    <div><dt>Payer</dt><dd data-pay-receipt-account></dd></div>
+  <dl class="pay-receipt__evidence m18-pay-receipt__primary grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div><dt>Amount</dt><dd class="m18-pay-receipt__amount" data-pay-receipt-amount></dd></div>
     <div><dt>Merchant</dt><dd data-pay-receipt-merchant></dd></div>
-    <div><dt>Amount</dt><dd data-pay-receipt-amount></dd></div>
+    <div><dt>Payer</dt><dd data-pay-receipt-account></dd></div>
     <div><dt>Block</dt><dd data-pay-receipt-block>Pending</dd></div>
     <div class="sm:col-span-2"><dt>Transaction ID</dt><dd class="pay-proof" data-pay-receipt-transaction>Pending</dd></div>
   </dl>
 
   <details class="mt-4 text-sm text-gray-400">
     <summary class="cursor-pointer">Technical details</summary>
-    <dl class="pay-receipt__evidence mt-3">
+    <dl class="pay-receipt__evidence">
       <div><dt>Operation fingerprint</dt><dd class="pay-proof" data-pay-receipt-fingerprint></dd></div>
     </dl>
   </details>

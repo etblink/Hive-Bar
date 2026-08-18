@@ -6,8 +6,8 @@
 </head>
 <body class="flex min-h-screen flex-col">
   <%- include('../../common/header') %>
-  <main id="main-content" class="pay-shell app-content-frame" data-pay-tab data-m15-surface="pay">
-    <header class="pay-hero">
+  <main id="main-content" class="pay-shell app-content-frame" data-pay-tab data-m15-surface="pay" data-m18-3-surface="pay">
+    <header class="pay-hero m18-pay-merchant">
       <img
         src="/images/fourth-street-bar-logo.jpg"
         alt=""
@@ -18,40 +18,18 @@
       <div class="pay-hero__copy">
         <p class="app-kicker">Pay at 4th Street Bar</p>
         <h1 class="app-page-title">Pay your tab with HBD</h1>
-        <p class="pay-hero__lede">
-          Scan or paste the HBD payment request from the bar. Hive-Bar checks the recipient, amount, and memo before Keychain asks you to approve anything.
-        </p>
+        <p class="pay-hero__lede">Pay a verified 4th Street Bar request with Hive Keychain.</p>
         <div class="pay-merchant-meta">
-          <span>Accepted account<%= payment.merchants.length === 1 ? '' : 's' %>: <% payment.merchants.forEach((merchant, index) => { %><%= index ? ', ' : '' %>@<%= merchant %><% }) %></span>
+          <span>Verified destination<%= payment.merchants.length === 1 ? '' : 's' %>: <% payment.merchants.forEach((merchant, index) => { %><%= index ? ', ' : '' %>@<%= merchant %><% }) %></span>
           <span aria-hidden="true">·</span>
           <span>Maximum payment <%= payment.maxHbd %></span>
         </div>
       </div>
     </header>
 
-    <section class="pay-safety" aria-labelledby="pay-safety-heading">
-      <h2 id="pay-safety-heading" class="sr-only">Payment safety</h2>
-      <div class="pay-safety__item">
-        <strong>Review before you pay</strong>
-        <span>You’ll see who you’re paying, the amount, memo, and transaction details before Keychain opens.</span>
-      </div>
-      <div class="pay-safety__item">
-        <strong>Approve in Keychain</strong>
-        <span>Hive-Bar never receives your private keys.</span>
-      </div>
-      <div class="pay-safety__item">
-        <strong>Paid means confirmed</strong>
-        <span>Hive-Bar marks a payment Paid only after independent Hive nodes confirm the same transfer is final.</span>
-      </div>
-    </section>
-
-    <p class="pay-no-retry">
-      <strong>If confirmation is unclear, don’t pay again.</strong> Check the receipt first. Keychain approval can happen before Hive-Bar sees final confirmation.
-    </p>
-
     <% if (!hiveSession) { %>
-      <section class="pay-state-panel" aria-labelledby="pay-sign-in-heading">
-        <p class="app-kicker">Payment unavailable</p>
+      <section class="pay-state-panel m18-pay-sign-in" aria-labelledby="pay-sign-in-heading">
+        <p class="app-kicker">Ready when you are</p>
         <h2 id="pay-sign-in-heading">Sign in to pay</h2>
         <p>Sign in from <strong>You</strong> with Hive Keychain. Signing in verifies your account and does not send a transaction.</p>
       </section>
@@ -63,50 +41,83 @@
       </section>
       <%- include('partials/receipt', { receiptClass: 'pay-receipt--standalone' }) %>
     <% } else { %>
-      <div class="pay-workspace grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section class="pay-invoice-panel" aria-labelledby="invoice-heading">
-          <div class="pay-step-heading">
-            <span aria-hidden="true">1</span>
-            <div>
-              <p class="app-kicker">Payment request</p>
-              <h2 id="invoice-heading">Scan or paste the Hive payment request</h2>
-            </div>
+      <section class="m18-pay-task mt-6" aria-labelledby="m18-pay-task-heading">
+        <div class="social-section-heading">
+          <div>
+            <p class="app-kicker">Pay your tab</p>
+            <h2 id="m18-pay-task-heading">Scan, import, or paste the payment request</h2>
           </div>
-          <p class="pay-panel-copy">Camera and imported-image data stay in this browser. Use the HBD payment QR provided by the bar; Lightning and LNURL invoices are not supported here.</p>
+          <p>Nothing is sent until you review the payment and approve it in Keychain.</p>
+        </div>
 
-          <div class="pay-capture-actions">
-            <button type="button" class="button-secondary" data-pay-camera-start>Start camera</button>
-            <button type="button" class="button-secondary" data-pay-camera-stop hidden>Stop camera</button>
-            <label class="button-secondary cursor-pointer" for="pay-invoice-image">Import QR image</label>
-            <input id="pay-invoice-image" class="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-pay-image>
-          </div>
-          <video class="pay-camera hidden aspect-video w-full" playsinline muted aria-hidden="true" data-pay-video></video>
-
-          <form class="pay-invoice-form" data-pay-form>
-            <div>
-              <label for="pay-invoice-uri">Hive payment request</label>
-              <textarea
-                id="pay-invoice-uri"
-                name="uri"
-                rows="5"
-                required
-                maxlength="16384"
-                spellcheck="false"
-                autocapitalize="none"
-                autocomplete="off"
-                placeholder="hive://sign/transfer/..."
-                data-pay-uri
-              ></textarea>
+        <div class="pay-workspace grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <section class="pay-invoice-panel" aria-labelledby="invoice-heading">
+            <div class="pay-step-heading">
+              <span aria-hidden="true">1</span>
+              <div>
+                <p class="app-kicker">Payment request</p>
+                <h2 id="invoice-heading">Choose how to load it</h2>
+              </div>
             </div>
-            <button type="submit" class="button-primary w-full">Check payment details</button>
-          </form>
-          <p class="pay-signing-boundary"><strong>Before Keychain opens:</strong> Hive-Bar checks the payment and shows you exactly what will be sent.</p>
-          <p class="pay-status" role="status" aria-live="polite" data-pay-status>Ready to scan or paste an HBD payment request.</p>
-        </section>
 
-        <%- include('partials/receipt', { receiptClass: '' }) %>
-      </div>
+            <div class="pay-capture-actions" aria-label="Payment request input options">
+              <button type="button" class="button-secondary" data-pay-camera-start>Scan QR</button>
+              <button type="button" class="button-secondary" data-pay-camera-stop hidden>Stop camera</button>
+              <label class="button-secondary cursor-pointer" for="pay-invoice-image">Import QR image</label>
+              <input id="pay-invoice-image" class="sr-only" type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-pay-image>
+            </div>
+            <video class="pay-camera hidden aspect-video w-full" playsinline muted aria-hidden="true" data-pay-video></video>
+
+            <form class="pay-invoice-form" data-pay-form>
+              <div>
+                <label for="pay-invoice-uri">Or paste the Hive payment request</label>
+                <textarea
+                  id="pay-invoice-uri"
+                  name="uri"
+                  rows="5"
+                  required
+                  maxlength="16384"
+                  spellcheck="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  placeholder="hive://sign/transfer/..."
+                  data-pay-uri
+                ></textarea>
+              </div>
+              <button type="submit" class="button-primary w-full">Check payment details</button>
+            </form>
+            <p class="pay-panel-copy">Camera and imported-image data stay in this browser. Use the HBD payment QR provided by the bar; Lightning and LNURL invoices are not supported here.</p>
+            <p class="pay-signing-boundary"><strong>Before Keychain opens:</strong> Hive-Bar checks the payment and shows you exactly what will be sent: recipient, amount, memo, and transaction details.</p>
+            <p class="pay-status" role="status" aria-live="polite" data-pay-status>Ready to scan, import, or paste an HBD payment request.</p>
+          </section>
+
+          <%- include('partials/receipt', { receiptClass: '' }) %>
+        </div>
+      </section>
     <% } %>
+
+    <details class="mt-6 border-y border-gray-700 py-2">
+      <summary class="cursor-pointer py-3 font-bold text-gray-200">How payment works</summary>
+      <section class="pay-safety" aria-labelledby="pay-safety-heading">
+        <h2 id="pay-safety-heading" class="sr-only">Payment safety</h2>
+        <div class="pay-safety__item">
+          <strong>Review before you pay</strong>
+          <span>You’ll see who you’re paying, the amount, memo, and transaction details before Keychain opens.</span>
+        </div>
+        <div class="pay-safety__item">
+          <strong>Approve in Keychain</strong>
+          <span>Hive-Bar never receives your private keys.</span>
+        </div>
+        <div class="pay-safety__item">
+          <strong>Paid means confirmed</strong>
+          <span>Hive-Bar marks a payment Paid only after independent Hive nodes confirm the same transfer is final.</span>
+        </div>
+      </section>
+    </details>
+
+    <p class="pay-no-retry">
+      <strong>If confirmation is unclear, don’t pay again.</strong> Check the receipt first. Keychain approval can happen before Hive-Bar sees final confirmation.
+    </p>
   </main>
   <%- include('../../common/footer') %>
   <% if (hiveSession) { %>
