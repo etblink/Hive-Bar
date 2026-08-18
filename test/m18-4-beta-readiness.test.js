@@ -61,6 +61,7 @@ test('M18.4 keeps optional connection error handling safe without requiring an e
 test('M18.4 keeps exact byte enforcement while presenting friendly length feedback', () => {
   const files = [
     'views/pages/community/partials/community-post-list.ejs',
+    'views/pages/community/partials/community-thread-list.ejs',
     'views/partials/full-post.ejs',
     'views/common/comment.ejs',
     'views/pages/profile/partials/settings.ejs',
@@ -68,6 +69,7 @@ test('M18.4 keeps exact byte enforcement while presenting friendly length feedba
   ].map(read).join('\n');
   assert.match(files, /data-max-bytes="256"/);
   assert.match(files, /data-max-bytes="32768"/);
+  assert.match(files, /data-max-bytes="500"/);
   assert.match(files, /data-max-bytes="8192"/);
   assert.match(files, /data-max-bytes="512"/);
   assert.match(files, /data-max-bytes="2000"/);
