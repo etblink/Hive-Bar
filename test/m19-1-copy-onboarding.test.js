@@ -51,7 +51,7 @@ test('M19.1 states the encrypted-message and public-settings boundaries accurate
     .set('cookie', owner.cookie)
     .expect(200);
   assert.match(inbox.text, /Messages are stored on Hive as encrypted text/);
-  assert.match(inbox.text, /Memo key locally in this browser/);
+  assert.match(inbox.text, /Hive Keychain uses your Memo key in this browser to decrypt the message locally/);
   assert.match(inbox.text, /decrypted message is not sent back to Hive-Bar/);
   assert.doesNotMatch(inbox.text, /Message text is encrypted on Hive/);
 
