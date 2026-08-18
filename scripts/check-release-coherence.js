@@ -47,7 +47,8 @@ function assertReleaseCoherence() {
   requireMatch(readme, /M17 is complete/, 'README must identify M17 as complete');
   requireMatch(roadmap, /### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M17.4 as accepted');
   requireMatch(roadmap, /### M18\.1–M18\.3[\s\S]*?\*\*Accepted in source\.\*\*/, 'roadmap must identify M18.1–M18.3 as accepted in source');
-  requireMatch(roadmap, /### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Current\.\*\*/, 'roadmap must identify M18.4 as current');
+  requireMatch(roadmap, /### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Accepted in source\.\*\*/, 'roadmap must identify M18.4 as accepted in source');
+  requireMatch(roadmap, /### M19\.1 — Copy and onboarding readiness[\s\S]*?\*\*Current\.\*\*/, 'roadmap must identify M19.1 as current');
   requireMatch(operations, /deployed source and operational wiring: accepted M17\.3/, 'operations must identify the deployed M17.3 source boundary');
   requireMatch(operations, /last-good.*reconciled/, 'operations must record the reconciled last-good host state');
   if (/\bMIT License\b/i.test(readme)) {
@@ -84,6 +85,7 @@ function assertReleaseCoherence() {
     'docs/M17_2_SOURCE_OF_TRUTH_AND_V1_GATE.md',
     'docs/M17_3_RUNTIME_V1_WIRING_AND_OPERATIONAL_ACCEPTANCE.md',
     'docs/M17_4_FUNCTIONAL_V1_BASELINE.md',
+    'docs/M19_1_COPY_AND_ONBOARDING_READINESS.md',
   ]) {
     if (!fs.existsSync(path.join(root, requiredPath))) {
       throw new Error(`required living/release document is missing: ${requiredPath}`);

@@ -68,7 +68,7 @@ test('M17.4 last-good bookkeeping is atomic and does not weaken explicit rollbac
   assert.doesNotMatch(rollback, /commit=.*last_good/);
 });
 
-test('accepted M17 invariants coexist with current M18 living documentation and reconciled last-good state', () => {
+test('accepted M17 invariants coexist with current M19 living documentation and reconciled last-good state', () => {
   const readme = read('README.md');
   const roadmap = read('docs/ROADMAP.md');
   const operations = read('docs/PRODUCTION_OPERATIONS.md');
@@ -88,13 +88,18 @@ test('accepted M17 invariants coexist with current M18 living documentation and 
   );
   assert.match(
     roadmap,
-    /### M18\.4 — Beta-readiness closure\r?\n\r?\n\*\*Current\.\*\*/,
+    /### M18\.4 — Beta-readiness closure\r?\n\r?\n\*\*Accepted in source\.\*\*/,
+  );
+  assert.match(
+    roadmap,
+    /### M19\.1 — Copy and onboarding readiness\r?\n\r?\n\*\*Current\.\*\*/,
   );
   assert.match(operations, /deployed source and operational wiring: accepted M17\.3/);
+  assert.match(operations, /canonical repository source: accepted M18\.4 commit `1aaef44c5b300810841f89044cf302aab789caf5`/);
   assert.match(operations, /Production remains beta until a separately authorized transition/);
   assert.match(operations, /last-good.*reconciled/);
   assert.match(index, /M17_4_FUNCTIONAL_V1_BASELINE\.md/);
-  assert.match(index, /M18/);
+  assert.match(index, /M19_1_COPY_AND_ONBOARDING_READINESS\.md/);
   assert.match(milestone, /No cosmetic redesign is required for M17\.4 acceptance/);
   assert.match(milestone, /canonicalization is not part of this source-qualification authorization/);
 });

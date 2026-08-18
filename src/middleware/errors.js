@@ -2,8 +2,8 @@
 
 const { AppError, NotFoundError } = require('../lib/errors');
 
-function notFoundHandler(req, _res, next) {
-  next(new NotFoundError(`No route matches ${req.method} ${req.path}`));
+function notFoundHandler(_req, _res, next) {
+  next(new NotFoundError('We couldn’t find that page. Check the address or return to the community.'));
 }
 
 function wantsJson(req) {

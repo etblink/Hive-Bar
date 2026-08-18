@@ -12,7 +12,7 @@ This is the living production operations document. Historical M6/M14/M16/M17 run
 - health: `/healthz`
 - readiness: `/readyz`
 - deployed source and operational wiring: accepted M17.3
-- canonical repository source: accepted M18.3 commit `524732a18559858bf20d2976cb5b791d6eaa36c8` (tree `ea2c5742f65669f8e5842fc2b357da821e893325`)
+- canonical repository source: accepted M18.4 commit `1aaef44c5b300810841f89044cf302aab789caf5` (tree `ece4e565a514f01879761f2d5467dc7cc5323773`)
 - current accepted write mode: beta self-signing through local Hive Keychain
 - accepted beta action set: post, comment, vote, wall, inbox
 - V1 gate: accepted in a temporary non-persistent M17.3 rehearsal; V1 service activation was not performed
@@ -82,10 +82,10 @@ For every accepted production transition retain:
 - public edge result;
 - rollback identity or preserved prior environment as applicable.
 
-M17.3 operational acceptance established the V1 gate only in a temporary process environment, restored the accepted beta environment byte-for-byte, retained Pay/Distriator disabled, and made no Hive or Keychain write during the rehearsal. M17.4 subsequently established the accepted pre-final functional V1 baseline on canonical `main` without deploying it or activating V1 in production.
+M17.3 operational acceptance established the V1 gate only in a temporary process environment, restored the accepted beta environment byte-for-byte, retained Pay/Distriator disabled, and made no Hive or Keychain write during the rehearsal. M17.4 subsequently established the accepted pre-final functional V1 baseline on canonical `main` without deploying it or activating V1 in production. M18.4 is now the accepted canonical repository source and likewise has not been deployed.
 
 ## Monitoring and recovery
 
 The local health timer is observational and must never issue Hive writes or restart external infrastructure. Exact deployment rollback is explicit and operator-authorized. Retain at least the current and one independently identified prior release. For ambiguous state, observe first and obtain fresh authorization before any new mutation.
 
-M17 is complete. Production remains on the accepted M17.3 source with the beta self-signing runtime. Canonical repository source is accepted M18.3 at commit `524732a18559858bf20d2976cb5b791d6eaa36c8` (tree `ea2c5742f65669f8e5842fc2b357da821e893325`) and has not been deployed. M18.4 is the current beta-readiness closure source milestone; no source milestone implicitly deploys source, activates V1, or changes the accepted production runtime.
+M17 is complete. Production remains on the accepted M17.3 source with the beta self-signing runtime. Canonical repository source is accepted M18.4 at commit `1aaef44c5b300810841f89044cf302aab789caf5` (tree `ece4e565a514f01879761f2d5467dc7cc5323773`) and has not been deployed. M19.1 is the current source-only copy and onboarding readiness milestone; no source milestone implicitly deploys source, activates V1, or changes the accepted production runtime.

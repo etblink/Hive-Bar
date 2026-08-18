@@ -14,9 +14,9 @@ Living documentation must be updated when its factual claims become stale.
 
 ## Current accepted source and production state
 
-Canonical `main` is the accepted M18.3 source at commit `524732a18559858bf20d2976cb5b791d6eaa36c8`, tree `ea2c5742f65669f8e5842fc2b357da821e893325`. Production remains on the accepted M17.3 deployed source with the beta self-signing runtime; accepted M18.3 source has not been deployed. The next source milestone is M18.4 beta-readiness closure and final targeted qualification before a separately authorized controlled beta deployment.
+Canonical `main` is the accepted M18.4 source at commit `1aaef44c5b300810841f89044cf302aab789caf5`, tree `ece4e565a514f01879761f2d5467dc7cc5323773`. Production remains on the accepted M17.3 deployed source with the beta self-signing runtime; accepted M18.4 source has not been deployed. The current source milestone is M19.1 copy and onboarding readiness before a separately authorized controlled beta deployment.
 
-The live `/opt/hive-bar/last-good` pointer remains governed by `PRODUCTION_OPERATIONS.md`; this documentation update does not alter host state.
+The live `/opt/hive-bar/last-good` pointer remains governed by `PRODUCTION_OPERATIONS.md`; this source work does not alter host state.
 
 ## Accepted M17 release-governance record
 
@@ -27,7 +27,11 @@ The live `/opt/hive-bar/last-good` pointer remains governed by `PRODUCTION_OPERA
 
 ## Accepted M18 historical evidence
 
-M18 milestone files and tests preserve the accepted visual/user-experience work through M18.3. They are historical evidence, not a substitute for the living current-state statements above.
+M18 milestone files, tests, CI runs, and visual evidence preserve the accepted visual/user-experience work through M18.4. They are historical evidence, not a substitute for the living current-state statements above.
+
+## Current M19 record
+
+- `M19_1_COPY_AND_ONBOARDING_READINESS.md` — current copy/onboarding scope and beta-launch boundary.
 
 ## Historical milestone records
 

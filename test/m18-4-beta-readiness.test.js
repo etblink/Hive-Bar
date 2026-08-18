@@ -89,13 +89,13 @@ test('M18.4 distinguishes future sign-in-required follow copy from unavailable c
   assert.match(profile, /Following isn’t available here yet\./);
 });
 
-test('M18.4 living documentation names accepted M18.3 source, current M17.3 production, and closure next', () => {
+test('M18.4 living documentation remains bound after acceptance while production stays M17.3', () => {
   for (const relative of ['README.md', 'docs/README.md', 'docs/ROADMAP.md']) {
     const content = read(relative);
-    assert.match(content, /524732a18559858bf20d2976cb5b791d6eaa36c8/);
-    assert.match(content, /M18\.3/);
+    assert.match(content, /1aaef44c5b300810841f89044cf302aab789caf5/);
+    assert.match(content, /M18\.4/);
     assert.match(content, /M17\.3/);
-    assert.match(content, /M18\.4|beta-readiness closure/i);
+    assert.match(content, /M19\.1|copy and onboarding readiness/i);
   }
 });
 

@@ -1,6 +1,6 @@
 # Hive-Bar
 
-Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Canonical `main` is the accepted M18.3 source at commit `524732a18559858bf20d2976cb5b791d6eaa36c8` (tree `ea2c5742f65669f8e5842fc2b357da821e893325`). Production still runs the accepted M17.3 deployed source with the beta self-signing runtime; M18.3 has not been deployed.
+Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Canonical `main` is the accepted M18.4 source at commit `1aaef44c5b300810841f89044cf302aab789caf5` (tree `ece4e565a514f01879761f2d5467dc7cc5323773`). Production still runs the accepted M17.3 deployed source with the beta self-signing runtime; M18.4 has not been deployed.
 
 ## Current functional boundary
 
@@ -8,7 +8,7 @@ The accepted beta write manifest remains exactly `post`, `comment`, `vote`, `wal
 
 M17.1 froze the intended patron-facing V1 functional set. V1 adds already implemented deterministic social/profile operations to the self-signing release boundary: `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `wall`, and `inbox`. Reward claiming, Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside the V1 release gate.
 
-M17 is complete. M18.3 is accepted in source. It completed the current Home, Wall, and Pay experience redesign and deterministic visual qualification without changing transaction semantics. The next source milestone is M18.4 beta-readiness closure: repair the proven Followers/Following empty-state render defect, close bounded patron-copy and living-document gaps, and add targeted patron-surface qualification before any separate controlled beta deployment.
+M17 is complete. M18 is accepted in source through M18.4. M18.4 closed beta-readiness gaps in Followers/Following, patron copy, living release governance, read-only social-graph qualification, and targeted patron-surface visual coverage without changing accepted transaction semantics. The current source milestone is M19.1 copy and onboarding readiness for a separately authorized controlled beta deployment.
 
 See `docs/ROADMAP.md` for the only living milestone roadmap and `docs/README.md` for the documentation index.
 
@@ -66,7 +66,7 @@ Useful release checks include `release:check:runtime`, `release:check:read-only`
 
 ## Repository governance
 
-Canonical `main` is the accepted M18.3 source identity above. Production remains separately pinned to accepted M17.3. M18.4 work must be a child of the accepted M18.3 source and must not implicitly deploy source, activate V1, enable payments/Distriator, change infrastructure, or perform a Hive/Keychain operation.
+Canonical `main` is the accepted M18.4 source identity above. Production remains separately pinned to accepted M17.3. M19.1 is a source-only copy and onboarding readiness milestone; it must not implicitly deploy source, activate V1, enable payments/Distriator, change infrastructure, or perform a Hive/Keychain operation.
 
 ## Licensing
 
