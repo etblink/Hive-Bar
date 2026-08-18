@@ -51,12 +51,12 @@ test('renders a truthful, complete home document with hardened response headers'
   assert.match(response.text, /1114 E\. 4th Street, Reno, NV 89512/);
   assert.match(response.text, /\(775\) 324-7827/);
   assert.match(response.text, /Daily, 12:00 p\.m.–2:00 a\.m\./);
-  assert.match(response.text, /A look at the pool table, patio, bar, and East 4th Street entrance in Reno/);
+  assert.match(response.text, /Pool, a welcome from behind the bar, and the East 4th Street entrance/);
   assert.match(response.text, /\/images\/fourth-street-bar-patio\.jpg/);
   assert.match(response.text, /\/images\/fourth-street-bar-pool-table\.jpg/);
   assert.match(response.text, /\/images\/fourth-street-bar-bartender\.jpg/);
   assert.match(response.text, /\/images\/fourth-street-bar-exterior\.jpg/);
-  assert.equal((response.text.match(/loading="lazy"/g) || []).length, 4);
+  assert.equal((response.text.match(/loading="lazy"/g) || []).length, 3);
   assert.doesNotMatch(response.text, /Bar photos are coming|photo-placeholder/);
   assert.doesNotMatch(response.text, /John D\.|Sarah M\.|Mike R\.|images\.unsplash/);
   assert.doesNotMatch(response.text, /\son[a-z]+\s*=/i);
@@ -94,7 +94,7 @@ test('renders only bounded official community-root updates on the home page', as
   });
 
   const response = await request(app).get('/').expect(200);
-  assert.match(response.text, /Latest updates/);
+  assert.match(response.text, /Latest from the bar/);
   assert.match(response.text, /Official &lt;update&gt;/);
   assert.match(response.text, /Fresh news/);
   assert.doesNotMatch(response.text, /Do not show/);

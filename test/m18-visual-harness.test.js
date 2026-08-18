@@ -152,7 +152,7 @@ test('M18.2 visual fixture renders real signed-out and fixture-authenticated she
 test('M18.2 CI retains dual-OS source qualification and one pinned Ubuntu visual artifact job', () => {
   const workflow = fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'ci.yml'), 'utf8');
   const capture = fs.readFileSync(path.join(ROOT, 'scripts', 'capture-m18-visual.js'), 'utf8');
-  const visualJob = workflow.match(/  visual-acceptance:\n[\s\S]*?(?=\n  live-read-smoke:)/)?.[0];
+  const visualJob = workflow.match(/  visual-acceptance:\n[\s\S]*?(?=\n  m18-3-visual-acceptance:)/)?.[0];
 
   assert.match(workflow, /os:\s*[\s\S]*ubuntu-latest[\s\S]*windows-latest/);
   assert.ok(visualJob);

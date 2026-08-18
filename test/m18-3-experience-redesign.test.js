@@ -18,6 +18,10 @@ const WALL_SOURCE = fs.readFileSync(
   'utf8',
 );
 const PAY_SOURCE = fs.readFileSync(path.join(ROOT, 'views', 'pages', 'pay', 'index.ejs'), 'utf8');
+const PAY_RECEIPT_SOURCE = fs.readFileSync(
+  path.join(ROOT, 'views', 'pages', 'pay', 'partials', 'receipt.ejs'),
+  'utf8',
+);
 
 function documentFor(html) {
   return new JSDOM(html).window.document;
@@ -222,7 +226,10 @@ test('M18.3 source contracts retain dynamic fees and every accepted write/paymen
     /data-pay-image/,
     /data-pay-uri/,
     /data-pay-status/,
+  ]) assert.match(PAY_SOURCE, pattern);
+
+  for (const pattern of [
     /data-pay-receipt/,
     /data-pay-recheck/,
-  ]) assert.match(PAY_SOURCE, pattern);
+  ]) assert.match(PAY_RECEIPT_SOURCE, pattern);
 });
