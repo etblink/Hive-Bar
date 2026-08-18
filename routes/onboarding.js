@@ -1,10 +1,24 @@
 'use strict';
 
-const path = require('node:path');
 const express = require('express');
 const { requireAppOrigin, requireCsrf, requireSession } = require('../src/middleware/session');
+const {
+  BROWSER_MODULE_MOUNTS,
+  ONBOARDING_IMPORT_MAP_TEXT,
+  authorizeOnboardingImportMap,
+} = require('../src/onboarding/browser-modules');
 const { parseOnboardingConfig } = require('../src/onboarding/config');
 const { OnboardingService } = require('../src/onboarding/service');
+
+const browserModuleStaticOptions = Object.freeze({
+  dotfiles: 'deny',
+  etag: true,
+  fallthrough: false,
+  maxAge: 0,
+  setHeaders(res) {
+    res.setHeader('Cache-Control', 'private, no-cache, max-age=0, must-revalidate');
+  },
+});
 
 function getService(req) {
   if (req.app.locals.services.onboardingService) return req.app.locals.services.onboardingService;
@@ -17,6 +31,14 @@ function getService(req) {
   });
   req.app.locals.services.onboardingService = service;
   return service;
+}
+
+function requireJavascriptModule(req, res, next) {
+  if (!/\.m?js$/u.test(req.path)) {
+    res.status(404).end();
+    return;
+  }
+  next();
 }
 
 function createOnboardingRouter() {
@@ -33,21 +55,22 @@ function createOnboardingRouter() {
     next();
   });
 
-  router.get('/vendor/hive-tx/index.mjs', (_req, res, next) => {
-    try {
-      const dist = path.dirname(require.resolve('hive-tx'));
-      res.sendFile(path.join(dist, 'index.mjs'));
-    } catch (error) {
-      next(error);
-    }
-  });
+  for (const mount of BROWSER_MODULE_MOUNTS) {
+    router.use(
+      mount.urlPrefix,
+      requireJavascriptModule,
+      express.static(mount.root, browserModuleStaticOptions),
+    );
+  }
 
   router.get('/create-account', (req, res, next) => {
     try {
       const onboarding = getService(req).publicConfig();
+      if (onboarding.active) authorizeOnboardingImportMap(res);
       res.render('pages/onboarding/index', {
         pageTitle: `Create a Hive account — ${res.app.locals.siteName}`,
         onboarding,
+        onboardingImportMap: onboarding.active ? ONBOARDING_IMPORT_MAP_TEXT : '',
       });
     } catch (error) {
       next(error);

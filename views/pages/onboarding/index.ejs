@@ -109,6 +109,7 @@
   </main>
   <%- include('../../common/footer') %>
   <% if (onboarding.active) { %>
+    <script type="importmap"><%- onboardingImportMap %></script>
     <script src="/vendor/zxing/zxing-browser.min.js" defer></script>
     <script type="module" src="<%= typeof assetUrl === 'function' ? assetUrl('/js/onboarding-customer.js') : '/js/onboarding-customer.js' %>"></script>
   <% } %>

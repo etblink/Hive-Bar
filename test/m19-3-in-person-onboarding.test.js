@@ -4,12 +4,19 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const request = require('supertest');
+const {
+  EXPECTED_BROWSER_MODULE_VERSIONS,
+  ONBOARDING_IMPORT_MAP,
+  ONBOARDING_IMPORT_MAP_CSP_SOURCE,
+  ONBOARDING_IMPORT_MAP_TEXT,
+} = require('../src/onboarding/browser-modules');
 const { parseOnboardingConfig } = require('../src/onboarding/config');
 const { buildOnboardingOperations, hpToVests } = require('../src/onboarding/operations');
 const { OnboardingRequestStore } = require('../src/onboarding/request-store');
 const { OnboardingService } = require('../src/onboarding/service');
 const { requireHivePublicKey, requireNewHiveAccountName } = require('../src/onboarding/validation');
-const { configFrom } = require('./support/test-app');
+const { configFrom, createFixtureApp } = require('./support/test-app');
 
 const ROOT = path.join(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), 'utf8');
@@ -132,14 +139,69 @@ test('M19.3 observes exact account keys + exact delegation without rebroadcast',
     return rpc(publicKeys, { created: createdOnChain }).call(api, method, params);
   } };
   const service = new OnboardingService({ rpcPool: pool, config: enabledConfig() });
-  const request = await service.createRequest({ username: 'newhiver', publicKeys, recoveryAcknowledged: true });
-  await service.prepare(request.id, { staffAccount: 'etblink', cashConfirmed: true });
-  service.beginBroadcast(request.id, { staffAccount: 'etblink' });
-  service.recordBroadcast(request.id, { staffAccount: 'etblink', ambiguous: true });
-  assert.equal((await service.status(request.id)).status, 'observing');
+  const onboardRequest = await service.createRequest({ username: 'newhiver', publicKeys, recoveryAcknowledged: true });
+  await service.prepare(onboardRequest.id, { staffAccount: 'etblink', cashConfirmed: true });
+  service.beginBroadcast(onboardRequest.id, { staffAccount: 'etblink' });
+  service.recordBroadcast(onboardRequest.id, { staffAccount: 'etblink', ambiguous: true });
+  assert.equal((await service.status(onboardRequest.id)).status, 'observing');
   createdOnChain = true;
-  assert.equal((await service.status(request.id)).status, 'complete');
-  assert.throws(() => service.beginBroadcast(request.id, { staffAccount: 'etblink' }));
+  assert.equal((await service.status(onboardRequest.id)).status, 'complete');
+  assert.throws(() => service.beginBroadcast(onboardRequest.id, { staffAccount: 'etblink' }));
+});
+
+test('M19.3.1 pins a same-origin browser module graph and exact import-map CSP hash', async () => {
+  assert.deepEqual(EXPECTED_BROWSER_MODULE_VERSIONS, {
+    'hive-tx': '7.2.0',
+    '@noble/ciphers': '2.3.0',
+    '@noble/curves': '2.3.0',
+    '@noble/hashes': '2.3.0',
+    bs58: '6.0.0',
+    'base-x': '5.0.1',
+  });
+  assert.equal(JSON.stringify(ONBOARDING_IMPORT_MAP), ONBOARDING_IMPORT_MAP_TEXT);
+  for (const value of Object.values(ONBOARDING_IMPORT_MAP.imports)) {
+    assert.match(value, /^\/vendor\/onboarding\//);
+    assert.doesNotMatch(value, /^https?:/);
+  }
+  assert.match(ONBOARDING_IMPORT_MAP_CSP_SOURCE, /^'sha256-[A-Za-z0-9+/=]+'$/);
+
+  const customer = read('public/js/onboarding-customer.js');
+  const template = read('views/pages/onboarding/index.ejs');
+  const route = read('routes/onboarding.js');
+  const packageSource = read('package.json');
+  assert.match(customer, /await import\('hive-tx'\)/);
+  assert.doesNotMatch(customer, /\/vendor\/hive-tx\/index\.mjs/);
+  assert.match(template, /<script type="importmap"><%- onboardingImportMap %><\/script>/);
+  assert.doesNotMatch(route, /router\.get\('\/vendor\/hive-tx\/index\.mjs'/);
+  assert.match(packageSource, /"test:visual:m18": "npm run test:browser:m19-3-1 && node scripts\/capture-m18-visual\.js"/);
+
+  const { app } = createFixtureApp({
+    configOverrides: { HIVE_WRITE_MODE: 'beta', HIVE_SIGNER_MODE: 'keychain' },
+  });
+  app.locals.onboardingEnvironment = {
+    HIVE_ONBOARDING_ENABLED: 'true',
+    HIVE_ONBOARDING_CREATOR_ACCOUNT: 'etblink',
+    HIVE_ONBOARDING_STARTER_HP: '5.000',
+    HIVE_ONBOARDING_REQUEST_TTL_MS: '900000',
+  };
+  const page = await request(app).get('/create-account').expect(200);
+  assert.ok(page.headers['content-security-policy'].includes(ONBOARDING_IMPORT_MAP_CSP_SOURCE));
+  assert.ok(page.text.includes(`<script type="importmap">${ONBOARDING_IMPORT_MAP_TEXT}</script>`));
+
+  const imports = ONBOARDING_IMPORT_MAP.imports;
+  for (const modulePath of [
+    imports['hive-tx'],
+    `${imports['@noble/ciphers/']}aes.js`,
+    `${imports['@noble/curves/']}secp256k1.js`,
+    `${imports['@noble/hashes/']}utils.js`,
+    imports.bs58,
+    imports['base-x'],
+  ]) {
+    await request(app).get(modulePath).expect(200).expect('Content-Type', /javascript/);
+  }
+  await request(app)
+    .get('/vendor/onboarding/hive-tx/7.2.0/package.json')
+    .expect(404);
 });
 
 test('M19.3 browser and governance contracts preserve customer custody and separate live authorization', () => {

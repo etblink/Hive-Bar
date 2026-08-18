@@ -34,7 +34,7 @@ if (root) {
   }
 
   async function deriveCredentials(username) {
-    const { PrivateKey } = await import('/vendor/hive-tx/index.mjs');
+    const { PrivateKey } = await import('hive-tx');
     const masterPassword = randomMasterPassword();
     const roles = ['owner', 'active', 'posting', 'memo'];
     const derived = Object.fromEntries(
@@ -157,7 +157,7 @@ if (root) {
       qrPanel.hidden = false;
       recoveryText.textContent = 'Recovery credentials hidden after QR creation. Keep the downloaded recovery file safe.';
       credentials = null;
-      setStatus(`Show this QR to the bartender after paying the $5 cash onboarding fee.`);
+      setStatus('Show this QR to the bartender after paying the $5 cash onboarding fee.');
       pollStatus(body.statusUrl);
     } catch (error) {
       qrButton.disabled = false;

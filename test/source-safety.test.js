@@ -14,12 +14,17 @@ function filesUnder(directory) {
 
 test('EJS templates contain no inline event handlers or executable inline scripts', () => {
   const viewsDirectory = path.join(__dirname, '..', 'views');
+  const onboardingTemplate = path.join(viewsDirectory, 'pages', 'onboarding', 'index.ejs');
+  const importMapPattern = /<script type="importmap"><%- onboardingImportMap %><\/script>/g;
 
   for (const filename of filesUnder(viewsDirectory).filter((file) => file.endsWith('.ejs'))) {
     const source = fs.readFileSync(filename, 'utf8');
-    assert.doesNotMatch(source, /\son[a-z]+\s*=/i, `${filename} contains an inline event handler`);
+    const importMaps = source.match(importMapPattern) || [];
+    assert.equal(importMaps.length, filename === onboardingTemplate ? 1 : 0, filename);
+    const executableSource = source.replace(importMapPattern, '');
+    assert.doesNotMatch(executableSource, /\son[a-z]+\s*=/i, `${filename} contains an inline event handler`);
     assert.doesNotMatch(
-      source,
+      executableSource,
       /<script(?![^>]*\bsrc=)/i,
       `${filename} contains an executable inline script`,
     );
