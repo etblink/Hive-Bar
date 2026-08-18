@@ -153,7 +153,7 @@ test('M18.2 foundation binds warm venue tokens, status semantics, and coordinate
   );
   assert.match(css, /\[aria-busy="true"\]::before\s*\{[^}]*content:\s*"Loading…";/s);
   assert.match(
-    css,
+    socialCss,
     /@media\s*\(max-width:\s*1199px\)\s*\{[\s\S]*?\.profile-shell\s*\{[^}]*padding-bottom:\s*calc\(4\.75rem \+ env\(safe-area-inset-bottom,\s*0px\)\);/,
   );
   assert.match(
