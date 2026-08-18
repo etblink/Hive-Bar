@@ -1,4 +1,5 @@
 'use strict';
+/* global document */
 
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
