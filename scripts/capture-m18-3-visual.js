@@ -163,9 +163,9 @@ function listen(app) {
 async function settle(page) {
   await page.addStyleTag({ content: '*{animation-duration:0s!important;transition-duration:0s!important;caret-color:transparent!important}' });
   await page.evaluate(async () => {
-    await document.fonts.ready;
-    await Promise.all(Array.from(document.images, (image) => image.complete ? Promise.resolve() : image.decode()));
-    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await globalThis.document.fonts.ready;
+    await Promise.all(Array.from(globalThis.document.images, (image) => image.complete ? Promise.resolve() : image.decode()));
+    await new Promise((resolve) => globalThis.requestAnimationFrame(resolve));
   });
 }
 
@@ -176,7 +176,7 @@ async function prepare(page, id) {
   }
   if (id === 'pay-authenticated-receipt') {
     await page.evaluate(() => {
-      const receipt = document.querySelector('[data-pay-receipt]');
+      const receipt = globalThis.document.querySelector('[data-pay-receipt]');
       receipt.hidden = false;
       receipt.querySelector('[data-pay-receipt-state]').textContent = 'Confirmation pending';
       receipt.querySelector('[data-pay-receipt-account]').textContent = '@etblink';
@@ -194,22 +194,22 @@ async function prepare(page, id) {
 
 async function evidence(page, scenario, width) {
   const result = await page.evaluate(({ scenarioId, widthValue }) => {
-    const root = document.documentElement;
+    const root = globalThis.document.documentElement;
     const visible = (node) => {
-      const style = getComputedStyle(node);
+      const style = globalThis.getComputedStyle(node);
       const rect = node.getBoundingClientRect();
       return !node.hidden && style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
     };
-    const outsideFocusables = Array.from(document.querySelectorAll('a[href],button,input,textarea,select,summary'))
+    const outsideFocusables = Array.from(globalThis.document.querySelectorAll('a[href],button,input,textarea,select,summary'))
       .filter(visible)
       .map((node) => node.getBoundingClientRect())
-      .filter((rect) => rect.left < -1 || rect.right > innerWidth + 1).length;
-    const undersizedButtonsAndSummaries = Array.from(document.querySelectorAll('button,[data-m18-private-composer] > summary'))
+      .filter((rect) => rect.left < -1 || rect.right > globalThis.innerWidth + 1).length;
+    const undersizedButtonsAndSummaries = Array.from(globalThis.document.querySelectorAll('button,[data-m18-private-composer] > summary'))
       .filter(visible)
       .map((node) => ({ text: node.textContent.trim(), rect: node.getBoundingClientRect() }))
       .filter(({ rect }) => rect.height < 44 || rect.width < 44)
       .map(({ text, rect }) => ({ text, width: rect.width, height: rect.height }));
-    const receipt = document.querySelector('[data-pay-receipt]');
+    const receipt = globalThis.document.querySelector('[data-pay-receipt]');
     const receiptOverflow = receipt && visible(receipt) ? Math.max(0, receipt.scrollWidth - receipt.clientWidth) : 0;
     return {
       scenarioId,
@@ -218,16 +218,16 @@ async function evidence(page, scenario, width) {
       outsideFocusables,
       undersizedButtonsAndSummaries,
       receiptOverflow,
-      home: Boolean(document.querySelector('[data-m18-3-surface="home"]')),
-      wall: Boolean(document.querySelector('[data-m18-3-surface="wall"]')),
-      pay: Boolean(document.querySelector('[data-m18-3-surface="pay"]')),
-      publicComposer: Boolean(document.querySelector('form[data-m4-action="wall"]')),
-      privateComposer: Boolean(document.querySelector('form[data-m4-action="inbox"]')),
-      privateExpanded: Boolean(document.querySelector('[data-m18-private-composer]')?.open),
-      payForm: Boolean(document.querySelector('[data-pay-form]')),
+      home: Boolean(globalThis.document.querySelector('[data-m18-3-surface="home"]')),
+      wall: Boolean(globalThis.document.querySelector('[data-m18-3-surface="wall"]')),
+      pay: Boolean(globalThis.document.querySelector('[data-m18-3-surface="pay"]')),
+      publicComposer: Boolean(globalThis.document.querySelector('form[data-m4-action="wall"]')),
+      privateComposer: Boolean(globalThis.document.querySelector('form[data-m4-action="inbox"]')),
+      privateExpanded: Boolean(globalThis.document.querySelector('[data-m18-private-composer]')?.open),
+      payForm: Boolean(globalThis.document.querySelector('[data-pay-form]')),
       payReceiptVisible: Boolean(receipt && visible(receipt)),
-      keychainStub: window.__M18_3_KEYCHAIN_DISABLED__ === true,
-      nativeKeychain: Boolean(window.hive_keychain),
+      keychainStub: globalThis.__M18_3_KEYCHAIN_DISABLED__ === true,
+      nativeKeychain: Boolean(globalThis.hive_keychain),
     };
   }, { scenarioId: scenario.id, widthValue: width });
 
@@ -256,15 +256,15 @@ async function evidence(page, scenario, width) {
   if (scenario.id === 'pay-authenticated-receipt') assert.equal(result.payReceiptVisible, true);
 
   if (width < 1200) {
-    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    await page.evaluate(() => globalThis.scrollTo(0, globalThis.document.documentElement.scrollHeight));
     await page.waitForTimeout(20);
     const footer = await page.evaluate(() => {
-      const line = document.querySelector('.app-footer p:last-child').getBoundingClientRect();
-      const nav = document.querySelector('.app-primary-nav').getBoundingClientRect();
+      const line = globalThis.document.querySelector('.app-footer p:last-child').getBoundingClientRect();
+      const nav = globalThis.document.querySelector('.app-primary-nav').getBoundingClientRect();
       return { footerLineBottom: line.bottom, navigationTop: nav.top };
     });
     assert.ok(footer.footerLineBottom <= footer.navigationTop + 1, JSON.stringify(footer));
-    await page.evaluate(() => scrollTo(0, 0));
+    await page.evaluate(() => globalThis.scrollTo(0, 0));
   }
   return result;
 }
