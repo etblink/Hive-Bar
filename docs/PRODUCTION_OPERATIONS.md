@@ -12,7 +12,7 @@ This is the living production operations document. Historical M6/M14/M16/M17 run
 - health: `/healthz`
 - readiness: `/readyz`
 - deployed source and operational wiring: accepted M17.3
-- canonical repository baseline: accepted M17.4 functional V1 baseline
+- canonical repository source: accepted M18.3 commit `524732a18559858bf20d2976cb5b791d6eaa36c8` (tree `ea2c5742f65669f8e5842fc2b357da821e893325`)
 - current accepted write mode: beta self-signing through local Hive Keychain
 - accepted beta action set: post, comment, vote, wall, inbox
 - V1 gate: accepted in a temporary non-persistent M17.3 rehearsal; V1 service activation was not performed
@@ -88,4 +88,4 @@ M17.3 operational acceptance established the V1 gate only in a temporary process
 
 The local health timer is observational and must never issue Hive writes or restart external infrastructure. Exact deployment rollback is explicit and operator-authorized. Retain at least the current and one independently identified prior release. For ambiguous state, observe first and obtain fresh authorization before any new mutation.
 
-M17 is complete. Production remains on the accepted M17.3 source with the beta self-signing runtime; the accepted M17.4 functional baseline is canonical in the repository but has not been deployed. M18 is the next source milestone and is limited to cosmetic/user-experience elevation unless a separate authorization changes the functional or production boundary.
+M17 is complete. Production remains on the accepted M17.3 source with the beta self-signing runtime. Canonical repository source is accepted M18.3 at commit `524732a18559858bf20d2976cb5b791d6eaa36c8` (tree `ea2c5742f65669f8e5842fc2b357da821e893325`) and has not been deployed. M18.4 is the current beta-readiness closure source milestone; no source milestone implicitly deploys source, activates V1, or changes the accepted production runtime.

@@ -46,7 +46,8 @@ function assertReleaseCoherence() {
   requireMatch(readme, /Node\.js `24\.19\.0`/, 'README must state the pinned Node runtime');
   requireMatch(readme, /M17 is complete/, 'README must identify M17 as complete');
   requireMatch(roadmap, /### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M17.4 as accepted');
-  requireMatch(roadmap, /## M18 — Cosmetic and user-experience elevation[\s\S]*?\*\*Next\.\*\*/, 'roadmap must identify M18 as next');
+  requireMatch(roadmap, /### M18\.1–M18\.3[\s\S]*?\*\*Accepted in source\.\*\*/, 'roadmap must identify M18.1–M18.3 as accepted in source');
+  requireMatch(roadmap, /### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Current\.\*\*/, 'roadmap must identify M18.4 as current');
   requireMatch(operations, /deployed source and operational wiring: accepted M17\.3/, 'operations must identify the deployed M17.3 source boundary');
   requireMatch(operations, /last-good.*reconciled/, 'operations must record the reconciled last-good host state');
   if (/\bMIT License\b/i.test(readme)) {
