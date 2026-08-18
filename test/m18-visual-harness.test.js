@@ -176,4 +176,9 @@ test('M18.2 CI retains dual-OS source qualification and one pinned Ubuntu visual
   assert.match(capture, /assert\.deepEqual\(network\.violations, \[\]\)/);
   assert.match(capture, /assertExpectedConsoleErrors\(\{/);
   assert.match(capture, /assert\.deepEqual\(pageErrors, \[\]\)/);
+  assert.match(capture, /footerNavigationOverlap/);
+  assert.match(capture, /wordmark\.clipped/);
+  assert.match(capture, /horizontalCenterDelta/);
+  assert.match(capture, /summaryHorizontalOverflow/);
+  assert.match(capture, /busyCueContent/);
 });

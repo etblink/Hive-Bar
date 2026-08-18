@@ -198,7 +198,15 @@ async function shellEvidence(page, { authenticated, width }) {
     const body = globalThis.document.body;
     const navRect = navigation.getBoundingClientRect();
     const headerRect = header.getBoundingClientRect();
+    const wordmark = globalThis.document.querySelector('.app-brand__wordmark strong');
+    const wordmarkStyle = globalThis.getComputedStyle(wordmark);
+    const footerLine = globalThis.document.querySelector('.app-footer p:last-child');
+    const footerLineRect = footerLine.getBoundingClientRect();
     const navItems = Array.from(navigation.querySelectorAll('.app-nav-item'));
+    const footerNavigationOverlap = Math.max(
+      0,
+      Math.min(footerLineRect.bottom, navRect.bottom) - Math.max(footerLineRect.top, navRect.top),
+    );
     return {
       labels: Array.from(navigation.querySelectorAll('.app-nav-label'), (item) =>
         item.textContent.trim(),
@@ -233,6 +241,16 @@ async function shellEvidence(page, { authenticated, width }) {
       horizontalOverflow: Math.max(0, root.scrollWidth - globalThis.innerWidth),
       keychainDisabled: globalThis.__M18_VISUAL_KEYCHAIN_DISABLED__ === true,
       nativeKeychainPresent: typeof globalThis.hive_keychain !== 'undefined',
+      footerNavigationOverlap,
+      wordmark: {
+        text: wordmark.textContent.trim(),
+        clipped:
+          wordmark.scrollWidth > wordmark.clientWidth + 1 &&
+          ['hidden', 'clip'].includes(wordmarkStyle.overflowX),
+        overflowX: wordmarkStyle.overflowX,
+        textOverflow: wordmarkStyle.textOverflow,
+        whiteSpace: wordmarkStyle.whiteSpace,
+      },
     };
   });
 
@@ -256,11 +274,16 @@ async function shellEvidence(page, { authenticated, width }) {
     assert.ok(Math.abs(evidence.navigationRect.bottom - VISUAL_HEIGHT) <= 1);
     assert.ok(evidence.bodyPaddingBottom >= 75);
     assert.ok(evidence.bodyPaddingLeft <= 1);
+    assert.ok(evidence.footerNavigationOverlap <= 1);
   } else {
     assert.equal(evidence.navigationPosition, 'static');
     assert.equal(evidence.headerPosition, 'fixed');
     assert.ok(Math.abs(evidence.headerRect.width - 240) <= 1);
     assert.ok(Math.abs(evidence.bodyPaddingLeft - 240) <= 1);
+    assert.equal(evidence.wordmark.text, '4th Street Bar');
+    assert.equal(evidence.wordmark.clipped, false);
+    assert.notEqual(evidence.wordmark.textOverflow, 'ellipsis');
+    assert.equal(evidence.wordmark.whiteSpace, 'normal');
   }
 
   return evidence;
@@ -361,6 +384,8 @@ async function prepareScenario(page, scenario) {
         'No operation exists in this presentation-only fixture.';
       element.showModal();
       const rect = element.getBoundingClientRect();
+      const summary = element.querySelector('[data-social-summary]');
+      const summaryStyle = globalThis.getComputedStyle(summary);
       const confirm = element.querySelector('[data-social-confirm-button]').getBoundingClientRect();
       const cancel = element.querySelector('[data-social-cancel-button]').getBoundingClientRect();
       const style = globalThis.getComputedStyle(element);
@@ -368,6 +393,10 @@ async function prepareScenario(page, scenario) {
         open: element.open,
         rect: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom },
         overflowY: style.overflowY,
+        horizontalCenterDelta: Math.abs((rect.left + rect.right) / 2 - globalThis.innerWidth / 2),
+        verticalCenterDelta: Math.abs((rect.top + rect.bottom) / 2 - globalThis.innerHeight / 2),
+        summaryHorizontalOverflow: Math.max(0, summary.scrollWidth - summary.clientWidth),
+        summaryWhiteSpace: summaryStyle.whiteSpace,
         confirmVisible: confirm.top >= rect.top && confirm.bottom <= rect.bottom,
         cancelVisible: cancel.top >= rect.top && cancel.bottom <= rect.bottom,
       };
@@ -378,6 +407,12 @@ async function prepareScenario(page, scenario) {
     assert.ok(dialog.rect.top >= -1);
     assert.ok(dialog.rect.bottom <= VISUAL_HEIGHT + 1);
     assert.ok(['auto', 'scroll'].includes(dialog.overflowY));
+    assert.ok(dialog.horizontalCenterDelta <= 2);
+    assert.ok(dialog.verticalCenterDelta <= 2);
+    if (page.viewportSize().width <= 390) {
+      assert.ok(dialog.summaryHorizontalOverflow <= 1);
+      assert.equal(dialog.summaryWhiteSpace, 'pre-wrap');
+    }
     assert.equal(dialog.confirmVisible, true);
     assert.equal(dialog.cancelVisible, true);
     return { dialog };
@@ -389,13 +424,18 @@ async function prepareScenario(page, scenario) {
       globalThis.document.dispatchEvent(
         new globalThis.CustomEvent('htmx:beforeRequest', { detail: { target } }),
       );
+      const busyCue = globalThis.getComputedStyle(target, '::before');
       return {
         value: target.getAttribute('aria-busy'),
         cursor: globalThis.getComputedStyle(target).cursor,
+        busyCueContent: busyCue.content,
+        busyCueDisplay: busyCue.display,
       };
     });
     assert.equal(busy.value, 'true');
     assert.equal(busy.cursor, 'progress');
+    assert.match(busy.busyCueContent, /Loading/);
+    assert.notEqual(busy.busyCueDisplay, 'none');
     return { busy };
   }
 
@@ -409,10 +449,15 @@ async function completeScenario(page, scenario, details) {
       globalThis.document.dispatchEvent(
         new globalThis.CustomEvent('htmx:afterRequest', { detail: { target } }),
       );
-      return target.getAttribute('aria-busy');
+      return {
+        value: target.getAttribute('aria-busy'),
+        busyCueContent: globalThis.getComputedStyle(target, '::before').content,
+      };
     });
-    assert.equal(cleared, 'false');
-    details.busy.clearedValue = cleared;
+    assert.equal(cleared.value, 'false');
+    assert.doesNotMatch(cleared.busyCueContent, /Loading/);
+    details.busy.clearedValue = cleared.value;
+    details.busy.clearedCueContent = cleared.busyCueContent;
   }
 }
 

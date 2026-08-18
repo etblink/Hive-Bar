@@ -143,7 +143,20 @@ test('M18.2 foundation binds warm venue tokens, status semantics, and coordinate
   assert.match(css, /\.app-state--empty/);
   assert.match(css, /\.app-state--ambiguous/);
   assert.match(css, /\.app-state--error/);
-  assert.match(css, /\.transaction-review\s*\{[^}]*max-height:\s*calc\(100dvh - 2rem\)/s);
+  assert.match(
+    css,
+    /\.transaction-review\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0;[^}]*max-height:\s*calc\(100dvh - 2rem\);[^}]*margin:\s*auto;/s,
+  );
+  assert.match(
+    css,
+    /\.transaction-review \[data-social-summary\]\s*\{[^}]*overflow-x:\s*hidden;[^}]*white-space:\s*pre-wrap;/s,
+  );
+  assert.match(css, /\[aria-busy="true"\]::before\s*\{[^}]*content:\s*"Loading…";/s);
+  assert.match(css, /@media\s*\(max-width:\s*1199px\)\s*\{[\s\S]*?\.app-footer\s*\{/);
+  assert.match(
+    css,
+    /@media\s*\(min-width:\s*1200px\)[\s\S]*?\.app-brand__wordmark strong\s*\{[^}]*text-overflow:\s*clip;[^}]*white-space:\s*normal;/,
+  );
   assert.match(css, /\.button-primary:disabled/);
   assert.ok(FIRST_PARTY_ASSETS.includes('/css/m15-wallet-pay.css'));
 });

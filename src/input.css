@@ -670,12 +670,34 @@
   }
 
   [aria-busy="true"] {
+    position: relative;
     cursor: progress;
   }
 
+  [aria-busy="true"]::before {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--venue-info);
+    border-left-width: 4px;
+    border-radius: var(--hb-radius-control);
+    padding: 0.5rem 0.75rem;
+    background: var(--hb-surface-raised);
+    color: var(--hb-text);
+    content: "Loading…";
+    font-size: 0.8rem;
+    font-weight: 750;
+    line-height: 1.4;
+  }
+
   .transaction-review {
+    position: fixed;
+    inset: 0;
     width: min(42rem, calc(100vw - 2rem));
     max-height: calc(100dvh - 2rem);
+    margin: auto;
     overflow-y: auto;
     border: 1px solid var(--hb-border);
     border-radius: var(--hb-radius-panel);
@@ -683,6 +705,13 @@
     background: var(--hb-surface);
     color: var(--hb-text);
     box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 0.7);
+  }
+
+  .transaction-review [data-social-summary] {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
   }
 
   .transaction-review::backdrop {
@@ -922,6 +951,12 @@
   }
 }
 
+@media (max-width: 1199px) {
+  .app-footer {
+    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 @media (min-width: 1200px) {
   html {
     scroll-padding-top: 2rem;
@@ -968,8 +1003,12 @@
   }
 
   .app-brand__wordmark strong {
-    max-width: 8rem;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
     font-size: 1rem;
+    line-height: 1.2;
   }
 
   .app-brand__wordmark > span {
