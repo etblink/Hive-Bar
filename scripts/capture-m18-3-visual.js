@@ -226,10 +226,43 @@ async function evidence(page, scenario, width) {
       const rect = node.getBoundingClientRect();
       return !node.hidden && style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
     };
+    const findHorizontalScrollAncestor = (node) => {
+      let ancestor = node.parentElement;
+      while (ancestor && ancestor !== globalThis.document.body) {
+        const style = globalThis.getComputedStyle(ancestor);
+        if (
+          ['auto', 'scroll'].includes(style.overflowX) &&
+          ancestor.scrollWidth > ancestor.clientWidth + 1
+        ) {
+          return {
+            tagName: ancestor.tagName.toLowerCase(),
+            id: ancestor.id || null,
+            className: typeof ancestor.className === 'string' ? ancestor.className : '',
+            overflowX: style.overflowX,
+            clientWidth: ancestor.clientWidth,
+            scrollWidth: ancestor.scrollWidth,
+          };
+        }
+        ancestor = ancestor.parentElement;
+      }
+      return null;
+    };
     const outsideFocusables = Array.from(globalThis.document.querySelectorAll('a[href],button,input,textarea,select,summary'))
       .filter(visible)
-      .map((node) => node.getBoundingClientRect())
-      .filter((rect) => rect.left < -1 || rect.right > globalThis.innerWidth + 1).length;
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        if (rect.left >= -1 && rect.right <= globalThis.innerWidth + 1) return null;
+        return {
+          tagName: node.tagName.toLowerCase(),
+          id: node.id || null,
+          className: typeof node.className === 'string' ? node.className : '',
+          text: node.textContent.trim().slice(0, 120),
+          rect: { left: rect.left, right: rect.right, width: rect.width },
+          scrollContainer: findHorizontalScrollAncestor(node),
+        };
+      })
+      .filter(Boolean);
+    const uncontainedOutsideFocusables = outsideFocusables.filter(({ scrollContainer }) => !scrollContainer);
     const undersizedButtonsAndSummaries = Array.from(globalThis.document.querySelectorAll('button,[data-m18-private-composer] > summary'))
       .filter(visible)
       .map((node) => ({ text: node.textContent.trim(), rect: node.getBoundingClientRect() }))
@@ -242,6 +275,7 @@ async function evidence(page, scenario, width) {
       width: widthValue,
       horizontalOverflow: Math.max(0, root.scrollWidth - root.clientWidth),
       outsideFocusables,
+      uncontainedOutsideFocusables,
       undersizedButtonsAndSummaries,
       receiptOverflow,
       home: Boolean(globalThis.document.querySelector('[data-m18-3-surface="home"]')),
@@ -258,7 +292,7 @@ async function evidence(page, scenario, width) {
   }, { scenarioId: scenario.id, widthValue: width });
 
   assert.ok(result.horizontalOverflow <= 1, JSON.stringify(result));
-  assert.equal(result.outsideFocusables, 0, JSON.stringify(result));
+  assert.deepEqual(result.uncontainedOutsideFocusables, [], JSON.stringify(result));
   assert.deepEqual(result.undersizedButtonsAndSummaries, [], JSON.stringify(result));
   assert.ok(result.receiptOverflow <= 1, JSON.stringify(result));
   assert.equal(result.keychainStub, true);
