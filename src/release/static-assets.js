@@ -13,6 +13,8 @@ const FIRST_PARTY_ASSETS = Object.freeze([
   '/js/social-actions.js',
   '/js/m4-actions.js',
   '/js/m16-beta-usability.js',
+  '/js/onboarding-customer.js',
+  '/js/onboarding-staff.js',
   '/js/main.js',
 ]);
 

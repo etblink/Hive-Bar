@@ -68,7 +68,7 @@ test('M17.4 last-good bookkeeping is atomic and does not weaken explicit rollbac
   assert.doesNotMatch(rollback, /commit=.*last_good/);
 });
 
-test('accepted M17 invariants coexist with current M19 living documentation and reconciled last-good state', () => {
+test('accepted M17 invariants coexist with deployed M19.1 beta and current M19.3 living documentation', () => {
   const readme = read('README.md');
   const roadmap = read('docs/ROADMAP.md');
   const operations = read('docs/PRODUCTION_OPERATIONS.md');
@@ -76,30 +76,19 @@ test('accepted M17 invariants coexist with current M19 living documentation and 
   const milestone = read('docs/M17_4_FUNCTIONAL_V1_BASELINE.md');
 
   assert.match(readme, /M17 is complete/);
-  assert.match(readme, /Production still runs the accepted M17\.3 deployed source with the beta self-signing runtime/);
+  assert.match(readme, /production are aligned on the accepted M19\.1 source/);
   assert.match(roadmap, /Persistent production runtime: accepted beta self-signing profile\./);
-  assert.match(
-    roadmap,
-    /### M17\.4 — Functional V1 baseline\r?\n\r?\n\*\*Accepted\.\*\*/,
-  );
-  assert.match(
-    roadmap,
-    /### M18\.1–M18\.3\r?\n\r?\n\*\*Accepted in source\.\*\*/,
-  );
-  assert.match(
-    roadmap,
-    /### M18\.4 — Beta-readiness closure\r?\n\r?\n\*\*Accepted in source\.\*\*/,
-  );
-  assert.match(
-    roadmap,
-    /### M19\.1 — Copy and onboarding readiness\r?\n\r?\n\*\*Current\.\*\*/,
-  );
-  assert.match(operations, /deployed source and operational wiring: accepted M17\.3/);
-  assert.match(operations, /canonical repository source: accepted M18\.4 commit `1aaef44c5b300810841f89044cf302aab789caf5`/);
+  assert.match(roadmap, /### M17\.4 — Functional V1 baseline\r?\n\r?\n\*\*Accepted\.\*\*/);
+  assert.match(roadmap, /### M18\.1–M18\.3\r?\n\r?\n\*\*Accepted in source\.\*\*/);
+  assert.match(roadmap, /### M18\.4 — Beta-readiness closure\r?\n\r?\n\*\*Accepted in source\.\*\*/);
+  assert.match(roadmap, /### M19\.3 — In-person Hive onboarding\r?\n\r?\n\*\*Current\.\*\*/);
+  assert.match(operations, /deployed source: accepted M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/);
+  assert.match(operations, /canonical repository source: accepted M19\.1 exact identity above/);
   assert.match(operations, /Production remains beta until a separately authorized transition/);
-  assert.match(operations, /last-good.*reconciled/);
+  assert.match(operations, /last-good.*M17\.3/i);
   assert.match(index, /M17_4_FUNCTIONAL_V1_BASELINE\.md/);
   assert.match(index, /M19_1_COPY_AND_ONBOARDING_READINESS\.md/);
+  assert.match(index, /M19_3_IN_PERSON_HIVE_ONBOARDING\.md/);
   assert.match(milestone, /No cosmetic redesign is required for M17\.4 acceptance/);
   assert.match(milestone, /canonicalization is not part of this source-qualification authorization/);
 });

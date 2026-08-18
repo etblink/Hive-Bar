@@ -14,9 +14,7 @@ Living documentation must be updated when its factual claims become stale.
 
 ## Current accepted source and production state
 
-Canonical `main` is the accepted M18.4 source at commit `1aaef44c5b300810841f89044cf302aab789caf5`, tree `ece4e565a514f01879761f2d5467dc7cc5323773`. Production remains on the accepted M17.3 deployed source with the beta self-signing runtime; accepted M18.4 source has not been deployed. The current source milestone is M19.1 copy and onboarding readiness before a separately authorized controlled beta deployment.
-
-The live `/opt/hive-bar/last-good` pointer remains governed by `PRODUCTION_OPERATIONS.md`; this source work does not alter host state.
+Canonical `main` and production are aligned on accepted M19.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`, tree `1a4bb993ad59ca67032997d8938696a079a71e1f`. M19.2 deployed that exact source under the accepted beta self-signing runtime and preserved exact M17.3 as `/opt/hive-bar/last-good`. V1, Pay, and Distriator remain inactive. M19.3 in-person Hive onboarding is the current source-only milestone and is not yet production-activated.
 
 ## Accepted M17 release-governance record
 
@@ -29,9 +27,12 @@ The live `/opt/hive-bar/last-good` pointer remains governed by `PRODUCTION_OPERA
 
 M18 milestone files, tests, CI runs, and visual evidence preserve the accepted visual/user-experience work through M18.4. They are historical evidence, not a substitute for the living current-state statements above.
 
-## Current M19 record
+## M19 records
 
-- `M19_1_COPY_AND_ONBOARDING_READINESS.md` — current copy/onboarding scope and beta-launch boundary.
+- `M19_1_COPY_AND_ONBOARDING_READINESS.md` — accepted copy/onboarding-readiness source boundary preceding controlled beta deployment.
+- `M19_3_IN_PERSON_HIVE_ONBOARDING.md` — current source qualification boundary for customer credential generation, one-time bartender QR handoff, claimed-account creation, starter HP delegation, and no-auto-retry observation.
+
+M19.2 is an accepted production deployment event recorded in the living roadmap and production operations document rather than a source implementation file.
 
 ## Historical milestone records
 

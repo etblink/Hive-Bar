@@ -1,6 +1,6 @@
 # Hive-Bar
 
-Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Canonical `main` is the accepted M18.4 source at commit `1aaef44c5b300810841f89044cf302aab789caf5` (tree `ece4e565a514f01879761f2d5467dc7cc5323773`). Production still runs the accepted M17.3 deployed source with the beta self-signing runtime; M18.4 has not been deployed.
+Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Canonical `main` and production are aligned on the accepted M19.1 source at commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4` (tree `1a4bb993ad59ca67032997d8938696a079a71e1f`). M19.2 deployed that exact source to `fourthstreetbar.com` under the already accepted beta self-signing runtime.
 
 ## Current functional boundary
 
@@ -8,13 +8,13 @@ The accepted beta write manifest remains exactly `post`, `comment`, `vote`, `wal
 
 M17.1 froze the intended patron-facing V1 functional set. V1 adds already implemented deterministic social/profile operations to the self-signing release boundary: `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `wall`, and `inbox`. Reward claiming, Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside the V1 release gate.
 
-M17 is complete. M18 is accepted in source through M18.4. M18.4 closed beta-readiness gaps in Followers/Following, patron copy, living release governance, read-only social-graph qualification, and targeted patron-surface visual coverage without changing accepted transaction semantics. The current source milestone is M19.1 copy and onboarding readiness for a separately authorized controlled beta deployment.
+M17 is complete. M18 is accepted through M18.4. M19.1 completed the final patron copy/onboarding-readiness pass and M19.2 deployed it exactly under beta. The current source milestone is M19.3 in-person Hive onboarding: customer-side credential generation/recovery, opaque one-time bartender QR requests, cash-first staff review, claimed-account creation plus fixed starter-HP delegation through staff Keychain, and read-only post-broadcast observation. M19.3 is disabled by default and source qualification does not authorize a live account creation or delegation.
 
 See `docs/ROADMAP.md` for the only living milestone roadmap and `docs/README.md` for the documentation index.
 
 ## Production topology
 
-Production is one Privex Debian 13 VPS behind Cloudflare and Caddy. Node listens only on `127.0.0.1:3000`. The pinned runtime is Node.js `24.19.0` with npm `11.17.0`. Exact-commit deployment is deliberately read-only gated before any separately authorized beta/V1 activation.
+Production is one Privex Debian 13 VPS behind Cloudflare and Caddy. Node listens only on `127.0.0.1:3000`. The pinned runtime is Node.js `24.19.0` with npm `11.17.0`. Exact-commit deployment is deliberately read-only gated before restoration of any separately accepted beta/V1 runtime environment.
 
 Current operations guidance lives in `docs/PRODUCTION_OPERATIONS.md`. Historical milestone documents remain preserved as evidence and should not be treated as current runbooks unless the documentation index says otherwise.
 
@@ -42,6 +42,7 @@ Useful release checks include `release:check:runtime`, `release:check:read-only`
 ## Primary surfaces
 
 - `/` — venue information and official updates
+- `/create-account` — in-person Hive account onboarding entry point (inactive until separately enabled)
 - `/community` — community information and posts
 - `/community/threads` — thread surface
 - `/post/:author/:permlink` — post and replies
@@ -59,14 +60,16 @@ Useful release checks include `release:check:runtime`, `release:check:read-only`
 - write operations are prepared deterministically and reviewed before signing;
 - the server stores no private Hive key and exposes no broadcast method;
 - private Inbox plaintext is encrypted client-side before the transfer memo reaches the server;
-- a Keychain-accepted operation is never automatically rebroadcast;
+- M19.3 customer account credentials are generated in-browser and only public keys may be submitted to Hive-Bar;
+- the M19.3 bartender transaction is separately gated, Active-authority Keychain-signed, and locked to one attempt before Keychain opens;
+- a Keychain-accepted or ambiguous operation is never automatically rebroadcast;
 - post-broadcast confirmation is read-only and can be rechecked without preparing a new operation;
 - first-party browser assets use runtime-byte SHA-256 versioning;
 - payments, Distriator, controlled/operator lanes, and delegated staff authority are not part of V1 self-signing.
 
 ## Repository governance
 
-Canonical `main` is the accepted M18.4 source identity above. Production remains separately pinned to accepted M17.3. M19.1 is a source-only copy and onboarding readiness milestone; it must not implicitly deploy source, activate V1, enable payments/Distriator, change infrastructure, or perform a Hive/Keychain operation.
+Canonical `main` and production are pinned to the accepted M19.1 source identity above. M19.2 is accepted. M19.3 is a source-only onboarding milestone until separately accepted, integrated, deployed, and activated. It does not implicitly consume an account-creation token, create an account, delegate HP, collect tester cash, activate V1, enable payments/Distriator, or change infrastructure.
 
 ## Licensing
 

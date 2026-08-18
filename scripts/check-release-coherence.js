@@ -48,9 +48,12 @@ function assertReleaseCoherence() {
   requireMatch(roadmap, /### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M17.4 as accepted');
   requireMatch(roadmap, /### M18\.1–M18\.3[\s\S]*?\*\*Accepted in source\.\*\*/, 'roadmap must identify M18.1–M18.3 as accepted in source');
   requireMatch(roadmap, /### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Accepted in source\.\*\*/, 'roadmap must identify M18.4 as accepted in source');
-  requireMatch(roadmap, /### M19\.1 — Copy and onboarding readiness[\s\S]*?\*\*Current\.\*\*/, 'roadmap must identify M19.1 as current');
-  requireMatch(operations, /deployed source and operational wiring: accepted M17\.3/, 'operations must identify the deployed M17.3 source boundary');
-  requireMatch(operations, /last-good.*reconciled/, 'operations must record the reconciled last-good host state');
+  requireMatch(roadmap, /### M19\.1 — Copy and onboarding readiness[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M19.1 as accepted');
+  requireMatch(roadmap, /### M19\.2 — Controlled beta deployment[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M19.2 as accepted');
+  requireMatch(roadmap, /### M19\.3 — In-person Hive onboarding[\s\S]*?\*\*Current\.\*\*/, 'roadmap must identify M19.3 as current');
+  requireMatch(operations, /deployed source: accepted M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/, 'operations must identify the deployed M19.1 source boundary');
+  requireMatch(operations, /last-good.*M17\.3/i, 'operations must retain M17.3 as the last-good boundary');
+  requireMatch(operations, /in-person onboarding: not production-activated/, 'operations must distinguish M19.3 source from onboarding activation');
   if (/\bMIT License\b/i.test(readme)) {
     throw new Error('README must not claim an open-source license that the repository does not provide');
   }
@@ -86,6 +89,7 @@ function assertReleaseCoherence() {
     'docs/M17_3_RUNTIME_V1_WIRING_AND_OPERATIONAL_ACCEPTANCE.md',
     'docs/M17_4_FUNCTIONAL_V1_BASELINE.md',
     'docs/M19_1_COPY_AND_ONBOARDING_READINESS.md',
+    'docs/M19_3_IN_PERSON_HIVE_ONBOARDING.md',
   ]) {
     if (!fs.existsSync(path.join(root, requiredPath))) {
       throw new Error(`required living/release document is missing: ${requiredPath}`);

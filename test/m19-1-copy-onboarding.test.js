@@ -74,19 +74,18 @@ test('M19.1 presents an ordinary-language 404 without exposing route implementat
   assert.doesNotMatch(missing.text, /No route matches|GET \/m19-1-missing-page/);
 });
 
-test('M19.1 living governance advances source truth without changing production truth', () => {
+test('M19.1 remains accepted historical source after the controlled beta deployment', () => {
   for (const relative of ['README.md', 'docs/README.md', 'docs/ROADMAP.md', 'docs/PRODUCTION_OPERATIONS.md']) {
     const content = read(relative);
-    assert.match(content, /1aaef44c5b300810841f89044cf302aab789caf5/);
-    assert.match(content, /ece4e565a514f01879761f2d5467dc7cc5323773/);
-    assert.match(content, /M17\.3/);
+    assert.match(content, /e01407f5f29e3d0a1d41fe33fca129399b4cd2d4/);
+    assert.match(content, /1a4bb993ad59ca67032997d8938696a079a71e1f/);
   }
 
   const roadmap = read('docs/ROADMAP.md');
   assert.match(roadmap, /### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Accepted in source\.\*\*/);
-  assert.match(roadmap, /### M19\.1 — Copy and onboarding readiness[\s\S]*?\*\*Current\.\*\*/);
-  assert.match(roadmap, /### M19\.2 — Controlled beta deployment[\s\S]*?\*\*Planned\.\*\*/);
-  assert.match(roadmap, /Do not repeat the already established full transaction demonstration solely for ceremony/);
+  assert.match(roadmap, /### M19\.1 — Copy and onboarding readiness[\s\S]*?\*\*Accepted\.\*\*/);
+  assert.match(roadmap, /### M19\.2 — Controlled beta deployment[\s\S]*?\*\*Accepted\.\*\*/);
+  assert.match(roadmap, /### M19\.3 — In-person Hive onboarding[\s\S]*?\*\*Current\.\*\*/);
 
   const milestone = read('docs/M19_1_COPY_AND_ONBOARDING_READINESS.md');
   assert.match(milestone, /M19\.1 is source-only/);

@@ -65,14 +65,14 @@ function assertFunctionalV1Baseline() {
   if (!/### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/.test(roadmap)) {
     throw new Error('living roadmap must identify M17.4 as accepted');
   }
-  if (!/deployed source and operational wiring: accepted M17\.3/.test(operations)) {
-    throw new Error('production operations must identify accepted M17.3 source as deployed');
+  if (!/deployed source: accepted M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/.test(operations)) {
+    throw new Error('production operations must identify accepted M19.1 source as deployed');
   }
   if (!/Production remains beta until a separately authorized transition/.test(operations)) {
-    throw new Error('production operations must keep V1 activation outside M17.4');
+    throw new Error('production operations must keep V1 activation outside later beta milestones');
   }
-  if (!/last-good.*reconciled/.test(operations)) {
-    throw new Error('production operations must record the reconciled last-good host state');
+  if (!/last-good.*M17\.3/i.test(operations)) {
+    throw new Error('production operations must retain exact M17.3 as the current last-good boundary');
   }
   for (const pattern of [
     /readonly last_good="\$app_root\/last-good"/,
@@ -98,9 +98,11 @@ function assertFunctionalV1Baseline() {
 
 if (require.main === module) {
   try {
-    process.stdout.write(`${JSON.stringify(assertFunctionalV1Baseline())}\n`);
+    process.stdout.write(`${JSON.stringify(assertFunctionalV1Baseline())}
+`);
   } catch (error) {
-    process.stderr.write(`Hive-Bar M17.4 functional baseline refused: ${error.message}\n`);
+    process.stderr.write(`Hive-Bar M17.4 functional baseline refused: ${error.message}
+`);
     process.exitCode = 1;
   }
 }

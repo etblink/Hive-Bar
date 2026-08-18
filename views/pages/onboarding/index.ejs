@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../../common/head') %>
+</head>
+<body class="flex min-h-screen flex-col">
+  <%- include('../../common/header') %>
+  <main id="main-content" class="app-content-frame flex-1 py-10 sm:py-14" data-m19-3-surface="customer-onboarding">
+    <header class="mx-auto max-w-3xl">
+      <p class="app-kicker">New to Hive?</p>
+      <h1 class="app-page-title mt-2">Create your Hive account at 4th Street Bar</h1>
+      <p class="mt-4 text-lg leading-8 text-gray-300">
+        Pick your Hive username here, save your recovery credentials, then show the one-time QR to the bartender.
+        The in-person account setup fee is <strong class="text-white">$<%= onboarding.cashFeeUsd %> cash</strong>.
+      </p>
+    </header>
+
+    <section class="mx-auto mt-8 max-w-3xl rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-7" aria-labelledby="onboarding-boundary-heading">
+      <h2 id="onboarding-boundary-heading" class="text-xl font-bold">What you receive</h2>
+      <ul class="mt-4 space-y-3 text-gray-300">
+        <li>A new Hive account whose private credentials are generated only in this browser.</li>
+        <li>A complimentary starter delegation of <strong class="text-white"><%= onboarding.starterHp %></strong> so the account has Resource Credits to participate right away.</li>
+        <li>No HIVE or HBD is transferred to you as part of the setup. The bar remains the owner of the delegated Hive Power.</li>
+      </ul>
+      <p class="mt-4 text-sm leading-6 text-gray-400">
+        The Hive account that creates your account becomes its initial recovery account. That recovery role does not give the bar your private keys.
+      </p>
+    </section>
+
+    <% if (!onboarding.active) { %>
+      <section class="mx-auto mt-8 max-w-3xl rounded-2xl border border-amber-700/70 bg-amber-950/30 p-5 sm:p-7" aria-labelledby="onboarding-not-active-heading">
+        <p class="app-kicker">Account creation</p>
+        <h2 id="onboarding-not-active-heading" class="mt-2 text-2xl font-bold">In-person account creation isn’t active yet</h2>
+        <p class="mt-3 text-gray-300">You can still browse 4th Street Bar and sign in if you already have a Hive account.</p>
+        <a class="button-primary mt-5" href="/community">Browse the community</a>
+      </section>
+    <% } else { %>
+      <section class="mx-auto mt-8 max-w-3xl" data-onboarding-customer>
+        <div class="rounded-2xl border border-gray-700 bg-black p-5 sm:p-7">
+          <div class="flex items-start gap-4">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bar-gold font-black text-black" aria-hidden="true">1</span>
+            <div class="min-w-0 flex-1">
+              <label class="block text-lg font-bold" for="onboarding-username">Choose your Hive username</label>
+              <p class="mt-1 text-sm text-gray-400">3–16 lowercase characters. Each dot-separated part must be at least 3 characters.</p>
+              <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+                <input
+                  id="onboarding-username"
+                  class="app-field-control flex-1"
+                  type="text"
+                  minlength="3"
+                  maxlength="16"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  placeholder="yourname"
+                  data-onboarding-username>
+                <button class="button-primary" type="button" data-onboarding-check>Check availability</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section class="mt-5 rounded-2xl border border-gray-700 bg-black p-5 sm:p-7" data-onboarding-recovery hidden aria-labelledby="onboarding-recovery-heading">
+          <div class="flex items-start gap-4">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bar-gold font-black text-black" aria-hidden="true">2</span>
+            <div class="min-w-0 flex-1">
+              <h2 id="onboarding-recovery-heading" class="text-lg font-bold">Save your recovery credentials</h2>
+              <p class="mt-2 text-sm leading-6 text-gray-300">
+                These credentials are generated in this browser. Hive-Bar receives only the four public keys needed to create your account.
+                Never give this recovery file to the bartender or anyone else.
+              </p>
+              <pre class="mt-4 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-red-900/60 bg-red-950/20 p-4 text-xs text-gray-200" data-onboarding-recovery-text></pre>
+              <a class="button-secondary mt-4 inline-flex" href="#" data-onboarding-download>Download recovery file</a>
+              <label class="mt-5 flex cursor-pointer items-start gap-3 text-sm text-gray-200">
+                <input class="mt-1 h-5 w-5" type="checkbox" data-onboarding-saved>
+                <span>I saved my recovery credentials somewhere private. I understand 4th Street Bar does not keep a copy for me.</span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-5 rounded-2xl border border-gray-700 bg-black p-5 sm:p-7" aria-labelledby="onboarding-qr-heading">
+          <div class="flex items-start gap-4">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-bar-gold font-black text-black" aria-hidden="true">3</span>
+            <div class="min-w-0 flex-1">
+              <h2 id="onboarding-qr-heading" class="text-lg font-bold">Create the bartender QR</h2>
+              <p class="mt-2 text-sm leading-6 text-gray-300">
+                Pay the bartender $<%= onboarding.cashFeeUsd %> cash, then show this one-time QR. The bartender will review one claimed-account creation and the <%= onboarding.starterHp %> starter delegation before approving them in Hive Keychain.
+              </p>
+              <button class="button-primary mt-4" type="button" disabled data-onboarding-create-qr>Create my one-time QR</button>
+              <div class="mt-5" data-onboarding-qr-panel hidden>
+                <div class="inline-block rounded-2xl bg-white p-4" data-onboarding-qr></div>
+                <p class="mt-3 text-sm text-gray-400">This request expires after <%= onboarding.requestTtlMinutes %> minutes. The QR contains only an opaque request link—not your private credentials.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-5 rounded-2xl border border-emerald-800/70 bg-emerald-950/20 p-5 sm:p-7" data-onboarding-ready hidden aria-labelledby="onboarding-ready-heading">
+          <p class="app-kicker">Account ready</p>
+          <h2 id="onboarding-ready-heading" class="mt-2 text-2xl font-bold"><span data-onboarding-ready-account></span> is live on Hive</h2>
+          <p class="mt-3 text-gray-300">Add the account to Hive Keychain using the recovery file you saved, then return here and sign in. Your starter Hive Power is delegated, not transferred, and is intended to provide Resource Credits for participating.</p>
+          <a class="button-primary mt-5" href="/#hive-sign-in">Sign in to 4th Street Bar</a>
+        </section>
+
+        <p class="mt-5 min-h-6 text-sm text-gray-300" role="status" aria-live="polite" data-onboarding-status>Choose a username to begin.</p>
+      </section>
+    <% } %>
+  </main>
+  <%- include('../../common/footer') %>
+  <% if (onboarding.active) { %>
+    <script src="/vendor/zxing/zxing-browser.min.js" defer></script>
+    <script type="module" src="<%= typeof assetUrl === 'function' ? assetUrl('/js/onboarding-customer.js') : '/js/onboarding-customer.js' %>"></script>
+  <% } %>
+</body>
+</html>

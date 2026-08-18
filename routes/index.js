@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { createOnboardingRouter } = require('./onboarding');
 
 const router = express.Router();
 
@@ -40,5 +41,7 @@ router.get('/pay', (req, res) => {
     distriator: req.app.locals.config.distriator,
   });
 });
+
+router.use(createOnboardingRouter());
 
 module.exports = router;
