@@ -8,7 +8,7 @@ The accepted beta write manifest remains exactly `post`, `comment`, `vote`, `wal
 
 M17.1 froze the intended patron-facing V1 functional set. V1 adds already implemented deterministic social/profile operations to the self-signing release boundary: `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `wall`, and `inbox`. Reward claiming, Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside the V1 release gate.
 
-M18.3 is accepted in source. It completed the current Home, Wall, and Pay experience redesign and deterministic visual qualification without changing transaction semantics. The next source milestone is M18.4 beta-readiness closure: repair the proven Followers/Following empty-state render defect, close bounded patron-copy and living-document gaps, and add targeted patron-surface qualification before any separate controlled beta deployment.
+M17 is complete. M18.3 is accepted in source. It completed the current Home, Wall, and Pay experience redesign and deterministic visual qualification without changing transaction semantics. The next source milestone is M18.4 beta-readiness closure: repair the proven Followers/Following empty-state render defect, close bounded patron-copy and living-document gaps, and add targeted patron-surface qualification before any separate controlled beta deployment.
 
 See `docs/ROADMAP.md` for the only living milestone roadmap and `docs/README.md` for the documentation index.
 
