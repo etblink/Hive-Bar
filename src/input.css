@@ -952,8 +952,8 @@
 }
 
 @media (max-width: 1199px) {
-  .app-footer {
-    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+  .profile-shell {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
