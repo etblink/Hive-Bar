@@ -45,11 +45,24 @@ test('legacy browser-side write and key modules are absent', () => {
 
 test('M3 identity and social clients never derive identity from browser storage', () => {
   const browserDirectory = path.join(__dirname, '..', 'public', 'js');
+  const onboardingCustomer = path.join(browserDirectory, 'onboarding-customer.js');
   for (const filename of filesUnder(browserDirectory).filter((file) => file.endsWith('.js'))) {
     const source = fs.readFileSync(filename, 'utf8');
     assert.doesNotMatch(source, /\blocalStorage\b|\bsessionStorage\b|document\.cookie/i, filename);
-    assert.doesNotMatch(source, /\bprivateKey\b|private_key|\bwif\b/i, filename);
+    if (filename !== onboardingCustomer) {
+      assert.doesNotMatch(source, /\bprivateKey\b|private_key|\bwif\b/i, filename);
+    }
   }
+
+  const onboardingSource = fs.readFileSync(onboardingCustomer, 'utf8');
+  assert.match(onboardingSource, /window\.crypto\.getRandomValues\(/);
+  assert.match(onboardingSource, /PrivateKey\.fromLogin\(username, masterPassword, role\)/);
+  assert.match(onboardingSource, /publicKeys:\s*publicKeys\(credentials\)/);
+  assert.doesNotMatch(
+    onboardingSource,
+    /\blocalStorage\b|\bsessionStorage\b|document\.cookie/i,
+    onboardingCustomer,
+  );
 });
 
 test('server sources contain no private-key or Hive broadcast implementation', () => {
