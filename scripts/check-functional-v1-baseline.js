@@ -65,8 +65,8 @@ function assertFunctionalV1Baseline() {
   if (!/### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/.test(roadmap)) {
     throw new Error('living roadmap must identify M17.4 as accepted');
   }
-  if (!/## M18 — Cosmetic and user-experience elevation[\s\S]*?\*\*Next\.\*\*/.test(roadmap)) {
-    throw new Error('living roadmap must identify M18 as next');
+  if (!/### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Current source-qualification lane\.\*\*/.test(roadmap)) {
+    throw new Error('living roadmap must identify M18.4 as the current source-qualification lane');
   }
   if (!/deployed source and operational wiring: accepted M17\.3/.test(operations)) {
     throw new Error('production operations must identify accepted M17.3 source as deployed');

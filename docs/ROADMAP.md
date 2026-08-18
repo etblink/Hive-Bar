@@ -10,9 +10,10 @@ This is the only living document that defines the current and next project miles
 - V1 release gate: operationally rehearsed and accepted without persistent V1 activation.
 - Payments/Distriator: disabled.
 - Controlled/operator/delegated lanes: inert.
-- Canonical repository baseline: accepted M17.4 functional V1 baseline on `main` and the accepted development lineage.
-- Production rollback bookkeeping: `/opt/hive-bar/last-good` reconciled to the exact currently deployed accepted M17.3 release; future distinct exact deployments update it atomically to the validated prior release.
-- Next milestone: M18 cosmetic and user-experience elevation.
+- Canonical repository baseline: accepted M18.3 source on `main` at commit `524732a18559858bf20d2976cb5b791d6eaa36c8` / tree `ea2c5742f65669f8e5842fc2b357da821e893325`.
+- Production remains on accepted M17.3 and has not received the M18 source.
+- Production rollback bookkeeping: `/opt/hive-bar/last-good` remains reconciled to the exact currently deployed accepted M17.3 release; future distinct exact deployments update it atomically to the validated prior release.
+- Current qualification lane: M18.4 beta-readiness closure.
 
 ## M17 — Beta closeout and functional V1 readiness
 
@@ -34,11 +35,29 @@ This is the only living document that defines the current and next project miles
 
 ## M18 — Cosmetic and user-experience elevation
 
-**Next.** Audit and improve visual identity, navigation, hierarchy, typography, spacing, responsive behavior, onboarding, empty states, composers, profile presentation, Wall/Inbox presentation, and interaction feedback without changing accepted Hive transaction semantics, release boundaries, review-before-Keychain behavior, or no-auto-retry behavior.
+### M18.1 — UX/cosmetic audit and design baseline
+
+**Accepted.** Froze the visual and interaction direction after the functional V1 baseline without changing transaction semantics.
+
+### M18.2 — Visual foundation and application shell
+
+**Accepted.** Qualified the shared shell, responsive geometry, dialog/busy presentation, and footer/navigation behavior across the accepted viewport matrix.
+
+### M18.3 — Home / Wall / Pay experience redesign
+
+**Accepted and canonical.** Elevated the venue home page, public Wall, private-message affordance, and Pay presentation while preserving exact Hive/Keychain/payment safety boundaries. Canonical `main` is `524732a18559858bf20d2976cb5b791d6eaa36c8` / tree `ea2c5742f65669f8e5842fc2b357da821e893325`.
+
+### M18.4 — Beta-readiness closure
+
+**Current source-qualification lane.** Repair the Followers/Following empty-state render failure, finish bounded patron-facing copy and living-document coherence, add read-only social-graph qualification, and capture targeted evidence for the remaining touched patron surfaces. M18.4 must not change accepted transaction construction, signing authority, no-auto-retry behavior, beta/V1 manifests, payment activation, or production state.
+
+## Controlled beta deployment
+
+After exact M18.4 source acceptance, a separate authorization may deploy one reviewed exact source to Privex while preserving the accepted beta runtime profile. Deployment is not part of M18.4 source qualification.
 
 ## Final V1 release
 
-After M18 acceptance, synchronize package/app identity to `1.0.0`, qualify and deploy one exact final candidate, activate the accepted V1 profile under separate authorization, verify production, then create the first `v1.0.0` Git tag/release.
+After controlled beta feedback is resolved and the final release candidate is accepted, synchronize package/app identity to `1.0.0`, qualify and deploy one exact final candidate, activate the accepted V1 profile under separate authorization, verify production, then create the first `v1.0.0` Git tag/release.
 
 ## Deferred/separate lanes
 

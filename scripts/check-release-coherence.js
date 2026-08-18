@@ -46,7 +46,11 @@ function assertReleaseCoherence() {
   requireMatch(readme, /Node\.js `24\.19\.0`/, 'README must state the pinned Node runtime');
   requireMatch(readme, /M17 is complete/, 'README must identify M17 as complete');
   requireMatch(roadmap, /### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M17.4 as accepted');
-  requireMatch(roadmap, /## M18 — Cosmetic and user-experience elevation[\s\S]*?\*\*Next\.\*\*/, 'roadmap must identify M18 as next');
+  requireMatch(
+    roadmap,
+    /### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Current source-qualification lane\.\*\*/,
+    'roadmap must identify M18.4 as the current source-qualification lane',
+  );
   requireMatch(operations, /deployed source and operational wiring: accepted M17\.3/, 'operations must identify the deployed M17.3 source boundary');
   requireMatch(operations, /last-good.*reconciled/, 'operations must record the reconciled last-good host state');
   if (/\bMIT License\b/i.test(readme)) {
@@ -83,6 +87,7 @@ function assertReleaseCoherence() {
     'docs/M17_2_SOURCE_OF_TRUTH_AND_V1_GATE.md',
     'docs/M17_3_RUNTIME_V1_WIRING_AND_OPERATIONAL_ACCEPTANCE.md',
     'docs/M17_4_FUNCTIONAL_V1_BASELINE.md',
+    'docs/M18_4_BETA_READINESS_CLOSURE.md',
   ]) {
     if (!fs.existsSync(path.join(root, requiredPath))) {
       throw new Error(`required living/release document is missing: ${requiredPath}`);

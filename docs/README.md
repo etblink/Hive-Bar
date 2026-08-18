@@ -19,7 +19,15 @@ Living documentation must be updated when its factual claims become stale.
 - `M17_3_RUNTIME_V1_WIRING_AND_OPERATIONAL_ACCEPTANCE.md` — accepted runtime V1 wiring and operational-acceptance record.
 - `M17_4_FUNCTIONAL_V1_BASELINE.md` — accepted pre-final functional V1 baseline qualification record.
 
-M17 is complete. Canonical `main` and the accepted development lineage are synchronized at the accepted M17.4 baseline, while production remains on the accepted M17.3 deployed source with the beta self-signing runtime. The next project milestone is M18 cosmetic/user-experience elevation. The live `/opt/hive-bar/last-good` pointer has been reconciled to the exact currently deployed accepted M17.3 release; present operating procedure is defined in `PRODUCTION_OPERATIONS.md`.
+M17 is complete. Production remains on the accepted M17.3 deployed source with the beta self-signing runtime. The live `/opt/hive-bar/last-good` pointer remains reconciled to that exact deployed release; present operating procedure is defined in `PRODUCTION_OPERATIONS.md`.
+
+## M18 user-experience state
+
+M18.3 is accepted and canonical in the repository at commit `524732a18559858bf20d2976cb5b791d6eaa36c8` / tree `ea2c5742f65669f8e5842fc2b357da821e893325`. That source has not been deployed to production.
+
+- `M18_4_BETA_READINESS_CLOSURE.md` — current source-qualification specification for the bounded pre-beta closure lane.
+
+M18.4 does not itself authorize integration, production deployment, V1 activation, Hive writes, Keychain requests, Pay/Distriator activation, or infrastructure mutation.
 
 ## Historical milestone records
 

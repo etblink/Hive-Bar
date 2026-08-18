@@ -47,7 +47,7 @@
     const bytes = new TextEncoder().encode(input.value).byteLength;
     const counter = input.parentElement?.querySelector('[data-byte-counter]');
     if (counter) {
-      counter.textContent = `${bytes.toLocaleString()} / ${maximum.toLocaleString()} byte limit`;
+      counter.textContent = `${bytes.toLocaleString()} / ${maximum.toLocaleString()} used`;
       counter.classList.toggle('text-red-300', bytes > maximum);
       counter.classList.toggle('text-gray-400', bytes <= maximum);
     }
