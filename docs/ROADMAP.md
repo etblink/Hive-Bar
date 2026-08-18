@@ -18,6 +18,10 @@ This is the only living document that defines the current and next project miles
 
 M17.1 through M17.4 are accepted historical milestones. They froze the V1 product boundary, reconciled source/release governance, rehearsed runtime V1 wiring without persistent activation, and established the functional V1 baseline while production remained beta.
 
+### M17.4 — Functional V1 baseline
+
+**Accepted.** M17.4 established the exact pre-final functional V1 baseline, synchronized the accepted development lineage with canonical `main`, and preserved production on the accepted beta runtime without activating V1.
+
 ## M18 — Cosmetic and user-experience elevation
 
 ### M18.1–M18.3
