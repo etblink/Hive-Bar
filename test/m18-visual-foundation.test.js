@@ -151,10 +151,21 @@ test('M18.2 foundation binds warm venue tokens, status semantics, and coordinate
     css,
     /\.transaction-review \[data-social-summary\]\s*\{[^}]*overflow-x:\s*hidden;[^}]*white-space:\s*pre-wrap;/s,
   );
-  assert.match(css, /\[aria-busy="true"\]::before\s*\{[^}]*content:\s*"Loading…";/s);
+  assert.match(
+    css,
+    /\[aria-busy="true"\]::before\s*\{[^}]*position:\s*absolute;[^}]*top:\s*0\.75rem;[^}]*right:\s*0\.75rem;[^}]*margin:\s*0;[^}]*content:\s*"Loading…";/s,
+  );
+  assert.match(
+    css,
+    /@media\s*\(max-width:\s*1199px\)\s*\{[\s\S]*?\.app-footer\s*\{[^}]*padding-inline:\s*0;/,
+  );
   assert.match(
     socialCss,
-    /@media\s*\(max-width:\s*1199px\)\s*\{[\s\S]*?\.profile-shell\s*\{[^}]*padding-bottom:\s*calc\(4\.75rem \+ env\(safe-area-inset-bottom,\s*0px\)\);/,
+    /\.community-shell,\s*\.profile-shell\s*\{[^}]*padding-block:\s*1\.25rem 2\.5rem;/s,
+  );
+  assert.doesNotMatch(
+    socialCss,
+    /@media\s*\(max-width:\s*1199px\)\s*\{[\s\S]*?\.profile-shell\s*\{[^}]*padding-bottom:/,
   );
   assert.match(
     css,

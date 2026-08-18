@@ -242,6 +242,7 @@ async function shellEvidence(page, { authenticated, width }) {
       keychainDisabled: globalThis.__M18_VISUAL_KEYCHAIN_DISABLED__ === true,
       nativeKeychainPresent: typeof globalThis.hive_keychain !== 'undefined',
       footerNavigationOverlap,
+      footerLineBottom: footerLineRect.bottom,
       wordmark: {
         text: wordmark.textContent.trim(),
         clipped:
@@ -275,6 +276,7 @@ async function shellEvidence(page, { authenticated, width }) {
     assert.ok(evidence.bodyPaddingBottom >= 75);
     assert.ok(evidence.bodyPaddingLeft <= 1);
     assert.ok(evidence.footerNavigationOverlap <= 1);
+    assert.ok(evidence.footerLineBottom <= evidence.navigationRect.top + 1);
   } else {
     assert.equal(evidence.navigationPosition, 'static');
     assert.equal(evidence.headerPosition, 'fixed');
@@ -425,11 +427,23 @@ async function prepareScenario(page, scenario) {
         new globalThis.CustomEvent('htmx:beforeRequest', { detail: { target } }),
       );
       const busyCue = globalThis.getComputedStyle(target, '::before');
+      const navigation = globalThis.document.querySelector('.app-primary-nav');
+      const footerLine = globalThis.document.querySelector('.app-footer p:last-child');
+      const navigationRect = navigation.getBoundingClientRect();
+      const footerLineRect = footerLine.getBoundingClientRect();
+      const footerNavigationOverlap = Math.max(
+        0,
+        Math.min(footerLineRect.bottom, navigationRect.bottom) -
+          Math.max(footerLineRect.top, navigationRect.top),
+      );
       return {
         value: target.getAttribute('aria-busy'),
         cursor: globalThis.getComputedStyle(target).cursor,
         busyCueContent: busyCue.content,
         busyCueDisplay: busyCue.display,
+        footerNavigationOverlap,
+        footerLineBottom: footerLineRect.bottom,
+        navigationTop: navigationRect.top,
       };
     });
     assert.equal(busy.value, 'true');
@@ -517,6 +531,10 @@ async function captureScenario({ browser, baseUrl, scenario, token, width }) {
       fullPage: false,
       animations: 'disabled',
     });
+    if (scenario.id === 'fixture-authenticated-busy' && width < 1200) {
+      assert.ok(details.busy.footerNavigationOverlap <= 1);
+      assert.ok(details.busy.footerLineBottom <= details.busy.navigationTop + 1);
+    }
     await completeScenario(page, scenario, details);
 
     assert.deepEqual(network.violations, []);

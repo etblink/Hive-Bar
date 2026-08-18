@@ -177,8 +177,21 @@ test('M18.2 CI retains dual-OS source qualification and one pinned Ubuntu visual
   assert.match(capture, /assertExpectedConsoleErrors\(\{/);
   assert.match(capture, /assert\.deepEqual\(pageErrors, \[\]\)/);
   assert.match(capture, /footerNavigationOverlap/);
+  assert.match(
+    capture,
+    /assert\.ok\(evidence\.footerLineBottom <= evidence\.navigationRect\.top \+ 1\)/,
+  );
   assert.match(capture, /wordmark\.clipped/);
   assert.match(capture, /horizontalCenterDelta/);
   assert.match(capture, /summaryHorizontalOverflow/);
   assert.match(capture, /busyCueContent/);
+  assert.match(capture, /details\.busy\.footerNavigationOverlap <= 1/);
+  assert.match(
+    capture,
+    /details\.busy\.footerLineBottom <= details\.busy\.navigationTop \+ 1/,
+  );
+  assert.match(
+    capture,
+    /const screenshot = await page\.screenshot\([\s\S]*?details\.busy\.footerNavigationOverlap <= 1/,
+  );
 });

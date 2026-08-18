@@ -675,11 +675,16 @@
   }
 
   [aria-busy="true"]::before {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+    pointer-events: none;
     display: flex;
     width: fit-content;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    margin: 0;
     border: 1px solid var(--venue-info);
     border-left-width: 4px;
     border-radius: var(--hb-radius-control);
@@ -948,6 +953,12 @@
   .comment-depth-3,
   .comment-depth-4 {
     margin-left: 4.5rem;
+  }
+}
+
+@media (max-width: 1199px) {
+  .app-footer {
+    padding-inline: 0;
   }
 }
 
