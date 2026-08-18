@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const request = require('supertest');
+const { HiveRpcPool } = require('../src/hive/rpc-pool');
 const {
   EXPECTED_BROWSER_MODULE_VERSIONS,
   ONBOARDING_IMPORT_MAP,
@@ -132,12 +133,26 @@ test('M19.3 refuses preparation when the creator has no claimed-account token', 
   await assert.rejects(service.prepare(created.id, { staffAccount: 'etblink', cashConfirmed: true }), /account-creation token/);
 });
 
-test('M19.3 observes exact account keys + exact delegation without rebroadcast', async () => {
+test('M19.3.2 observes exact account keys + delegation through the read-only RPC policy without rebroadcast', async () => {
   const publicKeys = await keys();
   let createdOnChain = false;
-  const pool = { getStatus: () => [], async call(api, method, params) {
-    return rpc(publicKeys, { created: createdOnChain }).call(api, method, params);
-  } };
+  const rpcMethods = [];
+  const pool = new HiveRpcPool({
+    nodes: ['https://one.example'],
+    fetchImpl: async (_url, options) => {
+      const body = JSON.parse(options.body);
+      rpcMethods.push(body.method);
+      const separator = body.method.indexOf('.');
+      const api = body.method.slice(0, separator);
+      const method = body.method.slice(separator + 1);
+      const result = await rpc(publicKeys, { created: createdOnChain }).call(api, method, body.params);
+      return new Response(JSON.stringify({ jsonrpc: '2.0', id: body.id, result }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    },
+    logger: { warn() {} },
+  });
   const service = new OnboardingService({ rpcPool: pool, config: enabledConfig() });
   const onboardRequest = await service.createRequest({ username: 'newhiver', publicKeys, recoveryAcknowledged: true });
   await service.prepare(onboardRequest.id, { staffAccount: 'etblink', cashConfirmed: true });
@@ -146,6 +161,7 @@ test('M19.3 observes exact account keys + exact delegation without rebroadcast',
   assert.equal((await service.status(onboardRequest.id)).status, 'observing');
   createdOnChain = true;
   assert.equal((await service.status(onboardRequest.id)).status, 'complete');
+  assert.ok(rpcMethods.includes('condenser_api.get_vesting_delegations'));
   assert.throws(() => service.beginBroadcast(onboardRequest.id, { staffAccount: 'etblink' }));
 });
 

@@ -17,6 +17,7 @@ const READ_ONLY_RPC_METHODS = new Set([
   'condenser_api.get_dynamic_global_properties',
   'condenser_api.get_followers',
   'condenser_api.get_following',
+  'condenser_api.get_vesting_delegations',
   'rc_api.find_rc_accounts',
 ]);
 

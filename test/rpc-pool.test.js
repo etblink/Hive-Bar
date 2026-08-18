@@ -188,6 +188,46 @@ test('queries one explicitly configured node without hidden failover', async () 
   );
 });
 
+test('allows the onboarding delegation read while preserving the write/unknown boundary', async () => {
+  const requests = [];
+  const pool = new HiveRpcPool({
+    nodes: ['https://one.example'],
+    fetchImpl: async (_url, options) => {
+      const body = JSON.parse(options.body);
+      requests.push(body);
+      return rpcResponse(body.id, [
+        {
+          delegator: 'etblink',
+          delegatee: 'newhiver',
+          vesting_shares: '10000.000000 VESTS',
+        },
+      ]);
+    },
+    logger: silentLogger,
+  });
+
+  const result = await pool.call(
+    'condenser_api',
+    'get_vesting_delegations',
+    ['etblink', 'newhiver', 1],
+  );
+
+  assert.equal(result[0].vesting_shares, '10000.000000 VESTS');
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].method, 'condenser_api.get_vesting_delegations');
+  assert.deepEqual(requests[0].params, ['etblink', 'newhiver', 1]);
+
+  await assert.rejects(
+    pool.call('network_broadcast_api', 'broadcast_transaction', {}),
+    (error) => error.code === 'READ_ONLY_RPC_POLICY',
+  );
+  await assert.rejects(
+    pool.call('condenser_api', 'unknown_read_method', []),
+    (error) => error.code === 'READ_ONLY_RPC_POLICY',
+  );
+  assert.equal(requests.length, 1);
+});
+
 test('blocks write and unknown RPC methods before making a network request', async () => {
   let fetchCalls = 0;
   const pool = new HiveRpcPool({
