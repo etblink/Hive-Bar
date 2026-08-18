@@ -2,46 +2,19 @@
   <p class="eyebrow">Your profile settings</p>
   <h2 id="settings-heading" class="mt-2 text-2xl font-bold">Profile and message settings</h2>
   <p class="mt-3 text-sm leading-6 text-gray-300">These settings are stored on Hive. Before saving, Hive-Bar reloads your current profile so unrelated settings from other apps stay intact. You’ll review the changes before Keychain asks you to approve them.</p>
-
-  <% if (!profileSettings.metadataValid) { %>
-    <div class="mt-5 rounded-lg border border-red-500/60 bg-red-950/40 p-4 text-sm text-red-100" role="alert">
-      Part of your current Hive profile data is malformed. Hive-Bar will not overwrite it because doing so could remove settings created by another app.
-    </div>
-  <% } %>
-
+  <% if (!profileSettings.metadataValid) { %><div class="mt-5 rounded-lg border border-red-500/60 bg-red-950/40 p-4 text-sm text-red-100" role="alert">Part of your current Hive profile data is malformed. Hive-Bar will not overwrite it because doing so could remove settings created by another app.</div><% } %>
   <form class="mt-6 space-y-5" data-m4-action="profile">
     <input type="hidden" name="baseRevision" value="<%= profileSettings.revision %>">
-    <div>
-      <label for="profile-display-name" class="block text-sm font-bold">Display name</label>
-      <input id="profile-display-name" name="displayName" type="text" value="<%= profileSettings.displayName %>" maxlength="128" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white">
-    </div>
+    <div><label for="profile-display-name" class="block text-sm font-bold">Display name</label><input id="profile-display-name" name="displayName" type="text" value="<%= profileSettings.displayName %>" maxlength="128" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"></div>
     <div>
       <label for="profile-about" class="block text-sm font-bold">About</label>
       <textarea id="profile-about" name="about" rows="5" data-max-bytes="512" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"><%= profileSettings.about %></textarea>
-      <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 512 byte limit</p>
+      <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 512 used</p>
     </div>
-    <div>
-      <label for="profile-image" class="block text-sm font-bold">Profile image URL</label>
-      <input id="profile-image" name="profileImage" type="url" value="<%= profileSettings.profileImage %>" placeholder="https://images.hive.blog/..." class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white">
-      <p class="mt-1 text-xs text-gray-400">Use an HTTPS image hosted on <code>images.hive.blog</code>.</p>
-    </div>
-    <div>
-      <label for="wall-fee" class="block text-sm font-bold">Minimum fee for wall and private messages</label>
-      <input id="wall-fee" name="wallFee" type="text" required pattern="[0-9]+\.[0-9]{3} HBD" value="<%= profileSettings.wallFee %>" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white">
-      <p class="mt-1 text-xs text-gray-400">Enter HBD with three decimal places, such as <code>1.000 HBD</code>.</p>
-    </div>
-    <div>
-      <label for="wall-blocklist" class="block text-sm font-bold">Hide messages from these accounts</label>
-      <textarea id="wall-blocklist" name="blocklist" rows="5" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 font-mono text-sm text-white"><%= profileSettings.blocklist.join('\n') %></textarea>
-      <p class="mt-1 text-xs text-gray-400">One Hive account per line, up to 100. Messages from these accounts won’t appear on your Wall or Inbox.</p>
-    </div>
-    <% if (canWriteAction('profile') && profileSettings.metadataValid) { %>
-      <button type="submit" class="button-primary">Review changes</button>
-    <% } else { %>
-      <button type="button" class="button-primary" disabled>Saving unavailable</button>
-    <% } %>
-    <p class="text-xs text-gray-300" aria-live="polite" data-m4-status>
-      <% if (!canWriteAction('profile')) { %>You can view these settings, but changes can’t be saved here yet.<% } %>
-    </p>
+    <div><label for="profile-image" class="block text-sm font-bold">Profile image URL</label><input id="profile-image" name="profileImage" type="url" value="<%= profileSettings.profileImage %>" placeholder="https://images.hive.blog/..." class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"><p class="mt-1 text-xs text-gray-400">Use an HTTPS image hosted on <code>images.hive.blog</code>.</p></div>
+    <div><label for="wall-fee" class="block text-sm font-bold">Minimum fee for wall and private messages</label><input id="wall-fee" name="wallFee" type="text" required pattern="[0-9]+\.[0-9]{3} HBD" value="<%= profileSettings.wallFee %>" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"><p class="mt-1 text-xs text-gray-400">Enter HBD with three decimal places, such as <code>1.000 HBD</code>.</p></div>
+    <div><label for="wall-blocklist" class="block text-sm font-bold">Hide messages from these accounts</label><textarea id="wall-blocklist" name="blocklist" rows="5" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 font-mono text-sm text-white"><%= profileSettings.blocklist.join('\n') %></textarea><p class="mt-1 text-xs text-gray-400">One Hive account per line, up to 100. Messages from these accounts won’t appear on your Wall or Inbox.</p></div>
+    <% if (canWriteAction('profile') && profileSettings.metadataValid) { %><button type="submit" class="button-primary">Review changes</button><% } else { %><button type="button" class="button-primary" disabled>Saving unavailable</button><% } %>
+    <p class="text-xs text-gray-300" aria-live="polite" data-m4-status><% if (!canWriteAction('profile')) { %>You can view these settings, but changes can’t be saved here yet.<% } %></p>
   </form>
 </section>

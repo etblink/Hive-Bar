@@ -1,6 +1,6 @@
 # Hive-Bar
 
-Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Production currently runs the accepted M17.3 deployed source and operational wiring at `fourthstreetbar.com`, while the persistent runtime remains the accepted beta self-signing profile. The deterministic M17 functional V1 baseline is accepted and canonical in the repository, but the V1 production profile was qualified only in a temporary M17.3 rehearsal and is not activated.
+Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Canonical `main` is the accepted M18.3 source at commit `524732a18559858bf20d2976cb5b791d6eaa36c8` (tree `ea2c5742f65669f8e5842fc2b357da821e893325`). Production still runs the accepted M17.3 deployed source with the beta self-signing runtime; M18.3 has not been deployed.
 
 ## Current functional boundary
 
@@ -8,7 +8,7 @@ The accepted beta write manifest remains exactly `post`, `comment`, `vote`, `wal
 
 M17.1 froze the intended patron-facing V1 functional set. V1 adds already implemented deterministic social/profile operations to the self-signing release boundary: `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `wall`, and `inbox`. Reward claiming, Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside the V1 release gate.
 
-M17 is complete. M17.4 froze and qualified the exact pre-final functional V1 baseline, reconciled the accepted development lineage with canonical `main`, and retired the superseded M2 pull request without activating V1 in production or changing the pre-final package identity from `0.1.0`. M18 is the next milestone and is reserved for cosmetic and user-experience elevation without changing accepted transaction semantics.
+M18.3 is accepted in source. It completed the current Home, Wall, and Pay experience redesign and deterministic visual qualification without changing transaction semantics. The next source milestone is M18.4 beta-readiness closure: repair the proven Followers/Following empty-state render defect, close bounded patron-copy and living-document gaps, and add targeted patron-surface qualification before any separate controlled beta deployment.
 
 See `docs/ROADMAP.md` for the only living milestone roadmap and `docs/README.md` for the documentation index.
 
@@ -20,10 +20,7 @@ Current operations guidance lives in `docs/PRODUCTION_OPERATIONS.md`. Historical
 
 ## Local development
 
-Prerequisites:
-
-- Node.js `24.19.0`
-- npm `11.17.0`
+Prerequisites: Node.js `24.19.0` and npm `11.17.0`.
 
 ```sh
 git clone https://github.com/etblink/Hive-Bar.git
@@ -34,32 +31,13 @@ npm run build
 npm start
 ```
 
-Development mode rebuilds CSS and watches the Node process:
-
-```sh
-npm run dev
-```
+Development mode rebuilds CSS and watches the Node process with `npm run dev`.
 
 ## Deterministic quality gates
 
-```sh
-npm run check
-```
+Run `npm run check` for the credential scan, release/documentation coherence checks, M17 functional-baseline check, ESLint, production CSS build, deterministic tests, and high-severity production dependency audit. Visual acceptance remains separately qualified by the pinned-Chromium M18.2, M18.3, and M18.4 jobs.
 
-The complete gate runs the credential scan, release/documentation coherence checks, the M17 functional-baseline check, ESLint, production CSS build, deterministic tests, and high-severity production dependency audit.
-
-Useful release checks include:
-
-```sh
-npm run release:check:runtime
-npm run release:check:read-only
-npm run release:check:privex
-npm run release:check:beta
-npm run release:check:v1
-npm run release:check:functional-v1
-```
-
-`release:check:v1` is a non-network gate over a real `HIVE_WRITE_MODE=production` configuration. Direct/unqualified production startup remains refused; only the reviewed Privex startup path may parse production mode and it must pass `privex-v1-self-signing` before the server can start. `release:check:functional-v1` freezes the accepted pre-final M17.4 source boundary. Production activation still requires a separate explicit authorization.
+Useful release checks include `release:check:runtime`, `release:check:read-only`, `release:check:privex`, `release:check:beta`, `release:check:v1`, and `release:check:functional-v1`. Production activation still requires separate explicit authorization.
 
 ## Primary surfaces
 
@@ -88,8 +66,8 @@ npm run release:check:functional-v1
 
 ## Repository governance
 
-Canonical `main` and the accepted development lineage are synchronized at the accepted M17.4 functional V1 baseline. PR #1 is closed without merge as superseded, and the M17.4 candidate branch has been deleted. M18 work should branch from this exact accepted baseline and must not implicitly activate V1 or alter production runtime state.
+Canonical `main` is the accepted M18.3 source identity above. Production remains separately pinned to accepted M17.3. M18.4 work must be a child of the accepted M18.3 source and must not implicitly deploy source, activate V1, enable payments/Distriator, change infrastructure, or perform a Hive/Keychain operation.
 
 ## Licensing
 
-No open-source license is granted for this repository. All rights are reserved by the copyright holder. The absence of an open-source license is intentional while Hive-Bar is developed toward future venue/brand deployments.
+No open-source license is granted for this repository. All rights are reserved by the copyright holder.

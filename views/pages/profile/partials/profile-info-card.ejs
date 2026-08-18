@@ -35,6 +35,10 @@
       </form>
     <% } else if (hiveSession && hiveSession.account === userProfile.name) { %>
       <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">This is your profile.</p>
+    <% } else if (!hiveSession && canWriteAction('follow')) { %>
+      <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
+        Sign in with Hive Keychain to follow this account.
+      </p>
     <% } else { %>
       <p class="rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">
         Following isn’t available here yet.

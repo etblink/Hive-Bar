@@ -2,102 +2,35 @@
   <header class="py-3">
     <p class="app-kicker">Public wall</p>
     <div class="mt-2 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 id="wall-heading" class="app-section-title">@<%= userProfile.name %>’s Wall</h2>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-300">
-          Posting a wall message costs at least <strong class="text-white"><%= profileSettings.wallFee %></strong>.
-          Public wall messages and payment details are permanently visible on Hive.
-        </p>
-      </div>
-      <p class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs font-bold text-gray-300">
-        <strong class="text-white"><%= profileSettings.wallFee %></strong> minimum · Public on Hive
-      </p>
+      <div><h2 id="wall-heading" class="app-section-title">@<%= userProfile.name %>’s Wall</h2><p class="mt-3 max-w-2xl text-sm leading-6 text-gray-300">Posting a wall message costs at least <strong class="text-white"><%= profileSettings.wallFee %></strong>. Public wall messages and payment details are permanently visible on Hive.</p></div>
+      <p class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs font-bold text-gray-300"><strong class="text-white"><%= profileSettings.wallFee %></strong> minimum · Public on Hive</p>
     </div>
   </header>
-
   <% const messagingEnabled = canWriteAction('wall') && canWriteAction('inbox'); %>
   <% if (hiveSession && messagingEnabled) { %>
     <form class="mt-5 rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-7" data-m4-action="wall">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p class="app-kicker">Write on the wall</p>
-          <h3 class="mt-2 text-xl font-bold">Post a public message</h3>
-        </div>
-        <span class="text-xs font-bold text-gray-400"><%= profileSettings.wallFee %> · Public on Hive</span>
-      </div>
-      <input type="hidden" name="recipient" value="<%= userProfile.name %>">
-      <input type="hidden" name="expectedFee" value="<%= profileSettings.wallFee %>">
-      <input type="hidden" name="amount" value="<%= profileSettings.wallFee %>">
-      <label for="wall-message" class="mt-5 block text-sm font-bold">Message</label>
-      <textarea id="wall-message" name="message" required rows="4" data-max-bytes="2000" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"></textarea>
-      <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 2,000 byte limit</p>
+      <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="app-kicker">Write on the wall</p><h3 class="mt-2 text-xl font-bold">Post a public message</h3></div><span class="text-xs font-bold text-gray-400"><%= profileSettings.wallFee %> · Public on Hive</span></div>
+      <input type="hidden" name="recipient" value="<%= userProfile.name %>"><input type="hidden" name="expectedFee" value="<%= profileSettings.wallFee %>"><input type="hidden" name="amount" value="<%= profileSettings.wallFee %>">
+      <label for="wall-message" class="mt-5 block text-sm font-bold">Message</label><textarea id="wall-message" name="message" required rows="4" data-max-bytes="2000" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"></textarea>
+      <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 2,000 used</p>
       <p class="mt-3 text-xs leading-5 text-gray-400">The message, sender, recipient, payment, and transaction are permanently public on Hive.</p>
       <button type="submit" class="button-primary mt-4">Review message and <%= profileSettings.wallFee %> payment</button>
       <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-m4-status>You’ll review the recipient, message, fee, and payment before Keychain asks for approval.</p>
     </form>
-
     <details class="mt-4 border-y border-gray-700 py-2" data-m18-private-composer>
-      <summary class="cursor-pointer py-3 font-bold text-gray-200">
-        Send a private message
-        <span class="ml-2 text-xs font-normal text-gray-400">Encrypted text · same <%= profileSettings.wallFee %> minimum fee</span>
-      </summary>
+      <summary class="cursor-pointer py-3 font-bold text-gray-200">Send a private message <span class="ml-2 text-xs font-normal text-gray-400">Encrypted text · same <%= profileSettings.wallFee %> minimum fee</span></summary>
       <form class="pb-5 pt-2" data-m4-action="inbox">
-        <input type="hidden" name="recipient" value="<%= userProfile.name %>">
-        <input type="hidden" name="expectedFee" value="<%= profileSettings.wallFee %>">
-        <input type="hidden" name="amount" value="<%= profileSettings.wallFee %>">
-        <label for="inbox-message" class="block text-sm font-bold">Private message for @<%= userProfile.name %></label>
-        <textarea id="inbox-message" name="message" required rows="4" data-max-bytes="1500" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"></textarea>
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 1,500 byte limit</p>
+        <input type="hidden" name="recipient" value="<%= userProfile.name %>"><input type="hidden" name="expectedFee" value="<%= profileSettings.wallFee %>"><input type="hidden" name="amount" value="<%= profileSettings.wallFee %>">
+        <label for="inbox-message" class="block text-sm font-bold">Private message for @<%= userProfile.name %></label><textarea id="inbox-message" name="message" required rows="4" data-max-bytes="1500" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 text-white"></textarea>
+        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 1,500 used</p>
         <p class="mt-3 text-xs leading-5 text-gray-400">Keychain encrypts the message in this browser. The message text stays private, but who sent it, who received it, the HBD amount, time, and transaction remain public on Hive.</p>
-        <button type="submit" class="button-secondary mt-4">Encrypt &amp; review payment</button>
-        <p class="mt-2 text-xs text-gray-300" aria-live="polite" data-m4-status></p>
+        <button type="submit" class="button-secondary mt-4">Encrypt &amp; review payment</button><p class="mt-2 text-xs text-gray-300" aria-live="polite" data-m4-status></p>
       </form>
     </details>
-  <% } else if (hiveSession) { %>
-    <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and private messaging aren’t available here yet.</p>
-  <% } else { %>
-    <p class="mt-5 border-l-4 border-gray-700 py-2 pl-4 text-sm leading-6 text-gray-300">
-      Sign in with Hive Keychain to write on this wall or send a private message.
-      Reading public wall messages never requires signing in.
-    </p>
-  <% } %>
-
+  <% } else if (hiveSession) { %><p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and private messaging aren’t available here yet.</p><% } else { %><p class="mt-5 border-l-4 border-gray-700 py-2 pl-4 text-sm leading-6 text-gray-300">Sign in with Hive Keychain to write on this wall or send a private message. Reading public wall messages never requires signing in.</p><% } %>
   <section class="mt-8" aria-labelledby="public-wall-messages-heading">
-    <div class="flex flex-wrap items-end justify-between gap-3 border-b border-gray-700 pb-3">
-      <div>
-        <p class="app-kicker">On the wall</p>
-        <h3 id="public-wall-messages-heading" class="mt-2 text-xl font-bold">Public messages</h3>
-      </div>
-      <span class="text-xs text-gray-400">Permanent on Hive</span>
-    </div>
-
-    <% if (wallPage.items.length > 0) { %>
-      <div class="social-feed">
-        <% wallPage.items.forEach((item) => { %>
-          <article class="social-feed-item">
-            <div class="social-update">
-              <header class="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <a class="font-bold text-bar-gold hover:underline" href="/profile/<%= item.sender %>">@<%= item.sender %></a>
-                <span class="text-gray-400"><%= item.amount %></span>
-              </header>
-              <p class="mt-3 whitespace-pre-wrap break-words text-gray-100"><%= item.message %></p>
-              <footer class="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                <time datetime="<%= item.timestamp %>"><%= formatHiveDate(item.timestamp) %></time>
-                <details>
-                  <summary class="cursor-pointer">Transaction details</summary>
-                  <p class="mt-2 max-w-full break-all">Block <%= item.blockNumber || 'pending' %> · transaction <code><%= item.transactionId %></code></p>
-                </details>
-              </footer>
-            </div>
-          </article>
-        <% }); %>
-      </div>
-    <% } else { %>
-      <p class="py-6 text-gray-300">No public wall messages yet.</p>
-    <% } %>
+    <div class="flex flex-wrap items-end justify-between gap-3 border-b border-gray-700 pb-3"><div><p class="app-kicker">On the wall</p><h3 id="public-wall-messages-heading" class="mt-2 text-xl font-bold">Public messages</h3></div><span class="text-xs text-gray-400">Permanent on Hive</span></div>
+    <% if (wallPage.items.length > 0) { %><div class="social-feed"><% wallPage.items.forEach((item) => { %><article class="social-feed-item"><div class="social-update"><header class="flex flex-wrap items-center justify-between gap-2 text-sm"><a class="font-bold text-bar-gold hover:underline" href="/profile/<%= item.sender %>">@<%= item.sender %></a><span class="text-gray-400"><%= item.amount %></span></header><p class="mt-3 whitespace-pre-wrap break-words text-gray-100"><%= item.message %></p><footer class="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500"><time datetime="<%= item.timestamp %>"><%= formatHiveDate(item.timestamp) %></time><details><summary class="cursor-pointer">Transaction details</summary><p class="mt-2 max-w-full break-all">Block <%= item.blockNumber || 'pending' %> · transaction <code><%= item.transactionId %></code></p></details></footer></div></article><% }); %></div><% } else { %><p class="py-6 text-gray-300">No public wall messages yet.</p><% } %>
   </section>
-
-  <% if (wallPage.nextCursor) { %>
-    <a class="button-secondary mt-6 inline-flex" href="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-get="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-target="#profile-content">Older wall messages</a>
-  <% } %>
+  <% if (wallPage.nextCursor) { %><a class="button-secondary mt-6 inline-flex" href="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-get="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-target="#profile-content">Older wall messages</a><% } %>
 </section>

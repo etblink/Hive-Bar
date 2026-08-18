@@ -4,10 +4,7 @@
   "description": "A focused Hive community experience for 4th Street Bar.",
   "private": true,
   "main": "src/server.js",
-  "engines": {
-    "node": ">=24.15 <25",
-    "npm": ">=11"
-  },
+  "engines": { "node": ">=24.15 <25", "npm": ">=11" },
   "scripts": {
     "start": "node src/server.js",
     "dev": "npm run build:css && node --watch src/server.js",
@@ -28,6 +25,7 @@
     "test": "node --test --test-concurrency=1 test/*.test.js",
     "test:visual:m18": "node scripts/capture-m18-visual.js",
     "test:visual:m18-3": "node scripts/capture-m18-3-visual.js",
+    "test:visual:m18-4": "node scripts/capture-m18-4-visual.js",
     "rehearse:m9": "node --test --test-concurrency=1 test/m9-bounded-bar-publishing.test.js",
     "test:coverage": "node --test --experimental-test-coverage --test-concurrency=1 test/*.test.js",
     "check:secrets": "node scripts/check-secrets.js",
@@ -36,31 +34,10 @@
     "check": "npm run check:secrets && npm run check:release-coherence && npm run release:check:functional-v1 && npm run lint && npm run build && npm test && npm run audit:prod"
   },
   "dependencies": {
-    "@zxing/browser": "0.2.1",
-    "compression": "1.8.1",
-    "dotenv": "17.4.2",
-    "ejs": "6.0.1",
-    "express": "5.2.1",
-    "express-rate-limit": "8.6.2",
-    "helmet": "8.3.0",
-    "hive-tx": "7.2.0",
-    "hive-uri": "0.2.8",
-    "htmx.org": "2.0.10",
-    "markdown-it": "15.0.0",
-    "patch-package": "8.0.1",
-    "pino": "10.3.1",
-    "sanitize-html": "2.17.6",
-    "zod": "4.4.3"
+    "@zxing/browser": "0.2.1", "compression": "1.8.1", "dotenv": "17.4.2", "ejs": "6.0.1", "express": "5.2.1", "express-rate-limit": "8.6.2", "helmet": "8.3.0", "hive-tx": "7.2.0", "hive-uri": "0.2.8", "htmx.org": "2.0.10", "markdown-it": "15.0.0", "patch-package": "8.0.1", "pino": "10.3.1", "sanitize-html": "2.17.6", "zod": "4.4.3"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "4.3.3",
-    "axe-core": "4.13.0",
-    "eslint": "10.0.0",
-    "html-validate": "11.6.2",
-    "jsdom": "29.1.1",
-    "playwright": "1.62.1",
-    "supertest": "7.2.2",
-    "tailwindcss": "4.3.3"
+    "@tailwindcss/cli": "4.3.3", "axe-core": "4.13.0", "eslint": "10.0.0", "html-validate": "11.6.2", "jsdom": "29.1.1", "playwright": "1.62.1", "supertest": "7.2.2", "tailwindcss": "4.3.3"
   },
   "packageManager": "npm@11.17.0"
 }

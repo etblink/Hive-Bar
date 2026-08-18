@@ -36,33 +36,36 @@ async function run() {
   let sampledProfile = null;
   let sampledDiscussion = null;
   let sampledWallet = null;
+  let sampledFollowers = null;
+  let sampledFollowing = null;
   if (postsPage.items[0]) {
     const first = postsPage.items[0];
-    [sampledProfile, sampledDiscussion, sampledWallet] = await Promise.all([
+    [sampledProfile, sampledDiscussion, sampledWallet, sampledFollowers, sampledFollowing] = await Promise.all([
       reads.getProfile(first.author),
       reads.getPostWithComments(first.author, first.permlink),
       reads.getWallet(first.author),
+      reads.getFollowers(first.author),
+      reads.getFollowing(first.author),
     ]);
     assert.equal(sampledProfile?.name, first.author, 'Sample author profile did not normalize');
     assert.equal(sampledDiscussion.post.author, first.author, 'Sample post discussion did not normalize');
     assert.equal(sampledWallet.account, first.author, 'Sample wallet did not normalize');
+    assert.ok(Array.isArray(sampledFollowers.items), 'Sample followers did not normalize');
+    assert.ok(Array.isArray(sampledFollowing.items), 'Sample following did not normalize');
   }
 
   const report = {
-    status: 'passed',
-    mode: 'read-only',
-    headBlock: Number(head.head_block_number),
-    community: community.name,
-    communityPostsObserved: postsPage.items.length,
+    status: 'passed', mode: 'read-only', headBlock: Number(head.head_block_number),
+    community: community.name, communityPostsObserved: postsPage.items.length,
     nextCommunityPageAvailable: Boolean(postsPage.nextCursor),
     threadsContainerAccount: config.hive.threadsContainerAccount,
-    threadContainerObserved: Boolean(threadsData.container),
-    threadsObserved: threadsData.threads.length,
+    threadContainerObserved: Boolean(threadsData.container), threadsObserved: threadsData.threads.length,
     sampledAuthor: sampledProfile?.name || null,
     sampledComments: sampledDiscussion?.comments.length ?? null,
     sampledWalletDisplayedAt: sampledWallet?.displayedAt || null,
+    sampledFollowers: sampledFollowers?.items.length ?? null,
+    sampledFollowing: sampledFollowing?.items.length ?? null,
   };
-
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 }
 

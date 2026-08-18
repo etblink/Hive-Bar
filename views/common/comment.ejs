@@ -1,26 +1,12 @@
 <article class="comment-card social-comment comment-depth-<%= Math.min(4, comment.depth || 0) %>">
   <header class="social-author">
-    <img
-      src="<%= userProfile?.profileImage || `https://images.hive.blog/u/${comment.author}/avatar` %>"
-      alt=""
-      class="h-10 w-10 shrink-0 rounded-full bg-gray-800"
-      width="40"
-      height="40"
-      loading="lazy">
+    <img src="<%= userProfile?.profileImage || `https://images.hive.blog/u/${comment.author}/avatar` %>" alt="" class="h-10 w-10 shrink-0 rounded-full bg-gray-800" width="40" height="40" loading="lazy">
     <div class="social-author__text">
-      <a href="/profile/<%= comment.author %>" class="social-author__name">
-        <%= userProfile?.displayName || `@${comment.author}` %>
-      </a>
-      <div class="social-author__meta">
-        <span>@<%= comment.author %></span>
-        <span aria-hidden="true">·</span>
-        <time datetime="<%= comment.created %>"><%= formatHiveDate(comment.created) %></time>
-      </div>
+      <a href="/profile/<%= comment.author %>" class="social-author__name"><%= userProfile?.displayName || `@${comment.author}` %></a>
+      <div class="social-author__meta"><span>@<%= comment.author %></span><span aria-hidden="true">·</span><time datetime="<%= comment.created %>"><%= formatHiveDate(comment.created) %></time></div>
     </div>
   </header>
-  <div class="prose max-w-none break-words text-gray-200">
-    <%- comment.bodyHtml %>
-  </div>
+  <div class="prose max-w-none break-words text-gray-200"><%- comment.bodyHtml %></div>
   <footer class="social-comment__stats" aria-label="Comment activity">
     <span><%= comment.positiveVotes.toLocaleString() %> upvotes</span>
     <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
@@ -36,14 +22,8 @@
         <input type="hidden" name="parentPermlink" value="<%= comment.permlink %>">
         <div>
           <label class="block text-sm font-bold text-gray-200" for="reply-<%= comment.author %>-<%= comment.permlink %>">Reply</label>
-          <textarea
-            id="reply-<%= comment.author %>-<%= comment.permlink %>"
-            name="body"
-            required
-            rows="4"
-            data-max-bytes="8192"
-            class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-          <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 byte limit</p>
+          <textarea id="reply-<%= comment.author %>-<%= comment.permlink %>" name="body" required rows="4" data-max-bytes="8192" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
+          <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 used</p>
         </div>
         <button type="submit" class="button-secondary">Review reply</button>
         <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>

@@ -10,35 +10,33 @@ This is the only living document that defines the current and next project miles
 - V1 release gate: operationally rehearsed and accepted without persistent V1 activation.
 - Payments/Distriator: disabled.
 - Controlled/operator/delegated lanes: inert.
-- Canonical repository baseline: accepted M17.4 functional V1 baseline on `main` and the accepted development lineage.
-- Production rollback bookkeeping: `/opt/hive-bar/last-good` reconciled to the exact currently deployed accepted M17.3 release; future distinct exact deployments update it atomically to the validated prior release.
-- Next milestone: M18 cosmetic and user-experience elevation.
+- Canonical repository source: accepted M18.3 commit `524732a18559858bf20d2976cb5b791d6eaa36c8`, tree `ea2c5742f65669f8e5842fc2b357da821e893325`.
+- Accepted M18.3 source is not deployed; production remains M17.3.
+- Next milestone: M18.4 beta-readiness closure and final targeted patron qualification.
 
 ## M17 — Beta closeout and functional V1 readiness
 
-### M17.1 — V1 product boundary
-
-**Accepted.** Freeze the deterministic patron-facing V1 scope and preserve payments/operator/delegated functions as separate lanes.
-
-### M17.2 — Source of truth and V1 gate
-
-**Accepted.** Reconciled living documentation, canonical V1 action identity, release version identity, Privex release architecture, CI immutability, and the fail-closed V1 release gate without production activation.
-
-### M17.3 — Runtime V1 wiring and operational acceptance
-
-**Accepted.** Wired the frozen V1 action manifest into explicit production self-signing runtime dispatch, retained fail-closed direct-start behavior, installed profile-neutral liveness monitoring, deployed the accepted source through the read-only gate, rehearsed the real V1 gate only in a temporary process environment, and restored production to the accepted beta profile without a Hive or Keychain write.
-
-### M17.4 — Functional V1 baseline
-
-**Accepted.** Froze one exact pre-final functional V1 baseline from accepted M17.3, kept package/app identity at `0.1.0`, hardened future exact-deployment `last-good` bookkeeping in source, passed Ubuntu/Windows CI and all deterministic release checks, exact-fast-forwarded the accepted development lineage and canonical `main` to the same baseline, retired PR #1 as superseded without merge, and preserved production in beta. The existing host-side `last-good` gap was subsequently reconciled to the exact deployed M17.3 release without a service restart or source deployment.
+M17.1 through M17.4 are accepted historical milestones. They froze the V1 product boundary, reconciled source/release governance, rehearsed runtime V1 wiring without persistent activation, and established the functional V1 baseline while production remained beta.
 
 ## M18 — Cosmetic and user-experience elevation
 
-**Next.** Audit and improve visual identity, navigation, hierarchy, typography, spacing, responsive behavior, onboarding, empty states, composers, profile presentation, Wall/Inbox presentation, and interaction feedback without changing accepted Hive transaction semantics, release boundaries, review-before-Keychain behavior, or no-auto-retry behavior.
+### M18.1–M18.3
+
+**Accepted in source.** The accepted M18 sequence modernized the application shell and patron experience, hardened deterministic visual qualification, and completed the Home, Wall, and Pay redesign through exact M18.3 without changing accepted transaction semantics.
+
+### M18.4 — Beta-readiness closure
+
+**Current.** Starting only from accepted M18.3, close the proven Followers/Following empty-state render defect; add empty/non-empty route and HTMX regressions; preserve pagination and existing read-only social-graph RPC semantics; add bounded read-only live social-graph qualification; replace patron-visible “byte limit” wording while preserving exact byte enforcement; distinguish sign-in-required follow copy from capability-unavailable copy; synchronize living documentation; and add a small targeted visual matrix for Followers, Following, Community/post composer, conversation/reply composer, Wallet, Inbox, and Settings.
+
+M18.4 must retain fail-closed local visual networking, no RPC writes, disabled Keychain signing in visual qualification, Ubuntu/Windows deterministic verification, the accepted M18.2 visual regression, and the accepted M18.3 42-capture regression.
+
+## Controlled beta deployment
+
+After exact M18.4 source acceptance, deployment is a separate authorization. No source milestone implicitly deploys to production or activates V1.
 
 ## Final V1 release
 
-After M18 acceptance, synchronize package/app identity to `1.0.0`, qualify and deploy one exact final candidate, activate the accepted V1 profile under separate authorization, verify production, then create the first `v1.0.0` Git tag/release.
+After controlled beta feedback and explicit release approval, synchronize package/app identity to `1.0.0`, qualify and deploy one exact final candidate, activate the accepted V1 profile under separate authorization, verify production, then create the first `v1.0.0` Git tag/release.
 
 ## Deferred/separate lanes
 
