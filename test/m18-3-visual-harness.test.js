@@ -43,6 +43,15 @@ test('M18.3 image readiness eagerly triggers lazy images and fails within a boun
   assert.match(capture, /Image readiness failed/);
 });
 
+test('M18.3 full-page capture scroll-walks the document before screenshotting', () => {
+  assert.match(capture, /async function paintFullDocument\(page\)/);
+  assert.match(capture, /Math\.floor\(globalThis\.innerHeight \* 0\.75\)/);
+  assert.match(capture, /await paintFullDocument\(page\)/);
+  assert.match(capture, /pageEvidence\.paintWalk = paintEvidence/);
+  assert.match(capture, /assert\.equal\(paintEvidence\.finalScrollY, 0/);
+  assert.match(capture, /page\.screenshot\(\{ path: filename, fullPage: true/);
+});
+
 test('M18.3 harness gates responsive geometry and long receipt proof', () => {
   assert.match(capture, /horizontalOverflow <= 1/);
   assert.match(capture, /outsideFocusables/);

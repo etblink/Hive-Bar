@@ -329,6 +329,38 @@ async function evidence(page, scenario, width) {
   return result;
 }
 
+async function paintFullDocument(page) {
+  const offsets = await page.evaluate(() => {
+    const root = globalThis.document.documentElement;
+    const maxScrollY = Math.max(0, root.scrollHeight - globalThis.innerHeight);
+    const step = Math.max(1, Math.floor(globalThis.innerHeight * 0.75));
+    const values = [0];
+    for (let y = step; y < maxScrollY; y += step) values.push(y);
+    if (values[values.length - 1] !== maxScrollY) values.push(maxScrollY);
+    return values;
+  });
+
+  for (const scrollY of offsets) {
+    await page.evaluate((nextScrollY) => globalThis.scrollTo(0, nextScrollY), scrollY);
+    await page.waitForTimeout(20);
+    await page.evaluate(() => new Promise((resolve) => {
+      globalThis.requestAnimationFrame(() => globalThis.requestAnimationFrame(resolve));
+    }));
+  }
+
+  await page.evaluate(() => globalThis.scrollTo(0, 0));
+  await page.waitForTimeout(20);
+  await page.evaluate(() => new Promise((resolve) => {
+    globalThis.requestAnimationFrame(() => globalThis.requestAnimationFrame(resolve));
+  }));
+
+  return {
+    steps: offsets.length,
+    maxScrollY: offsets[offsets.length - 1],
+    finalScrollY: await page.evaluate(() => globalThis.scrollY),
+  };
+}
+
 async function capture({ browser, baseUrl, scenario, token, width }) {
   const context = await browser.newContext({
     viewport: { width, height: HEIGHT },
@@ -365,6 +397,9 @@ async function capture({ browser, baseUrl, scenario, token, width }) {
   await settle(page);
   await prepare(page, scenario.id);
   const pageEvidence = await evidence(page, scenario, width);
+  const paintEvidence = await paintFullDocument(page);
+  pageEvidence.paintWalk = paintEvidence;
+  assert.equal(paintEvidence.finalScrollY, 0, JSON.stringify(paintEvidence));
   assert.deepEqual(violations, []);
   assert.deepEqual(consoleErrors, []);
   const filename = path.join(SHOTS, `${String(width).padStart(4, '0')}-${scenario.id}.png`);
