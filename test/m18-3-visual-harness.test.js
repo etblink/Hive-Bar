@@ -34,6 +34,15 @@ test('M18.3 harness is fail-closed for mutations, Hive RPC, outbound network, an
   assert.match(capture, /assert\.deepEqual\(current\.rpcPool\.calls, \[\]\)/);
 });
 
+test('M18.3 image readiness eagerly triggers lazy images and fails within a bounded wait', () => {
+  assert.match(capture, /const IMAGE_READY_TIMEOUT_MS = 5000;/);
+  assert.match(capture, /image\.loading = 'eager'/);
+  assert.match(capture, /Image readiness timed out/);
+  assert.match(capture, /Image failed to load/);
+  assert.match(capture, /image\.naturalWidth === 0/);
+  assert.match(capture, /Image readiness failed/);
+});
+
 test('M18.3 harness gates responsive geometry and long receipt proof', () => {
   assert.match(capture, /horizontalOverflow <= 1/);
   assert.match(capture, /outsideFocusables/);

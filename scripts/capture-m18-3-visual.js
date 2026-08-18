@@ -20,6 +20,7 @@ const ACCOUNT = 'etblink';
 const NOW = Date.parse('2026-08-18T02:15:00Z');
 const WIDTHS = Object.freeze([360, 390, 768, 1024, 1440, 1600]);
 const HEIGHT = 900;
+const IMAGE_READY_TIMEOUT_MS = 5000;
 const SCENARIOS = Object.freeze([
   { id: 'home-signed-out', path: '/', authenticated: false },
   { id: 'wall-signed-out', path: `/profile/${ACCOUNT}/wall-posts`, authenticated: false },
@@ -162,11 +163,36 @@ function listen(app) {
 
 async function settle(page) {
   await page.addStyleTag({ content: '*{animation-duration:0s!important;transition-duration:0s!important;caret-color:transparent!important}' });
-  await page.evaluate(async () => {
+  await page.evaluate(async (imageReadyTimeoutMs) => {
     await globalThis.document.fonts.ready;
-    await Promise.all(Array.from(globalThis.document.images, (image) => image.complete ? Promise.resolve() : image.decode()));
+    const images = Array.from(globalThis.document.images);
+    await Promise.all(images.map((image) => {
+      image.loading = 'eager';
+      if (image.complete) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const timer = globalThis.setTimeout(() => {
+          reject(new Error(`Image readiness timed out: ${image.currentSrc || image.src}`));
+        }, imageReadyTimeoutMs);
+        const onLoad = () => {
+          globalThis.clearTimeout(timer);
+          resolve();
+        };
+        const onError = () => {
+          globalThis.clearTimeout(timer);
+          reject(new Error(`Image failed to load: ${image.currentSrc || image.src}`));
+        };
+        image.addEventListener('load', onLoad, { once: true });
+        image.addEventListener('error', onError, { once: true });
+      });
+    }));
+    const failedImages = images
+      .filter((image) => !image.complete || image.naturalWidth === 0)
+      .map((image) => image.currentSrc || image.src);
+    if (failedImages.length > 0) {
+      throw new Error(`Image readiness failed: ${failedImages.join(', ')}`);
+    }
     await new Promise((resolve) => globalThis.requestAnimationFrame(resolve));
-  });
+  }, IMAGE_READY_TIMEOUT_MS);
 }
 
 async function prepare(page, id) {
