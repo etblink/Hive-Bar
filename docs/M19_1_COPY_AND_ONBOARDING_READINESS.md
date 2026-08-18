@@ -28,7 +28,7 @@ M19.1 may:
 
 ## Frozen boundaries
 
-M19.1 must not:
+M19.1 must not expand capabilities. In particular, it must not:
 
 - add or remove a Hive operation;
 - change operation construction, preflight, signing, observation, retry, pagination, RPC, or Keychain semantics;
