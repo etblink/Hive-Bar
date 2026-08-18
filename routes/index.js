@@ -29,6 +29,12 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+router.get('/faq', (req, res) => {
+  res.render('pages/faq/index', {
+    pageTitle: `FAQ — ${res.app.locals.siteName}`,
+  });
+});
+
 router.get('/pay', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.render('pages/pay/index', {

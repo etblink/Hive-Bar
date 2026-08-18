@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../../common/head') %>
+</head>
+<body class="flex min-h-screen flex-col">
+  <%- include('../../common/header') %>
+  <main id="main-content" class="app-content-frame flex-1 py-10 sm:py-14" data-m20-1-surface="faq">
+    <header class="mx-auto max-w-3xl">
+      <p class="app-kicker">Hive without the jargon</p>
+      <h1 class="app-page-title mt-2">Frequently asked questions</h1>
+      <p class="mt-4 text-lg leading-8 text-gray-300">
+        You do not need to understand blockchain to use 4th Street Bar. This page explains the Hive terms and safety boundaries you may run into along the way.
+      </p>
+    </header>
+
+    <nav class="mx-auto mt-8 max-w-3xl rounded-2xl border border-gray-700 bg-gray-900 p-5" aria-label="FAQ sections">
+      <p class="font-bold text-white">Jump to</p>
+      <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <a class="underline hover:text-bar-gold" href="#getting-started">Getting started</a>
+        <a class="underline hover:text-bar-gold" href="#wallet">Wallet &amp; balances</a>
+        <a class="underline hover:text-bar-gold" href="#account-safety">Account &amp; safety</a>
+        <a class="underline hover:text-bar-gold" href="#using-the-bar">Using the online bar</a>
+      </div>
+    </nav>
+
+    <div class="mx-auto mt-8 max-w-3xl space-y-10">
+      <section id="getting-started" aria-labelledby="getting-started-heading">
+        <p class="app-kicker">Getting started</p>
+        <h2 id="getting-started-heading" class="app-section-title mt-2">The basics</h2>
+        <div class="mt-5 space-y-3">
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5" open>
+            <summary class="cursor-pointer font-bold text-white">What is Hive?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Hive is the public blockchain behind the online part of 4th Street Bar. Your Hive account can hold balances and can also publish posts, comments, votes, and other account activity that compatible Hive apps can read.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">Do I need to know cryptocurrency to use 4th Street Bar?</summary>
+            <p class="mt-3 leading-7 text-gray-300">No. Anyone can browse without signing in. If you want to participate, Hive-Bar shows the human-readable action first and Hive Keychain asks you to approve anything that needs your account authority.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">Do I need to buy HIVE or HBD?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Not for browsing, and a new account with the bar’s starter Hive Power delegation is intended to have enough Resource Credits for ordinary social actions such as posting, commenting, and voting. Features that actually send HBD—such as a paid Wall message or encrypted private message—require enough HBD to cover the amount shown before you approve it.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What is Hive Keychain?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Hive Keychain is the wallet/signing tool that holds your private keys. Hive-Bar asks Keychain to sign or approve an action; Hive-Bar does not ask you to paste private keys into this site. Signing in verifies your account with a signed message and does not itself broadcast a Hive transaction.</p>
+          </details>
+        </div>
+      </section>
+
+      <section id="wallet" aria-labelledby="wallet-heading-faq">
+        <p class="app-kicker">Wallet &amp; balances</p>
+        <h2 id="wallet-heading-faq" class="app-section-title mt-2">What the numbers mean</h2>
+        <div class="mt-5 space-y-3">
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5" open>
+            <summary class="cursor-pointer font-bold text-white">What is my Hive wallet?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Your Hive wallet is part of your Hive account, not money held by Hive-Bar. The wallet page here is a read-only view of public blockchain data. Hive-Bar cannot move those funds or recover your private keys from the wallet page.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What is HIVE?</summary>
+            <p class="mt-3 leading-7 text-gray-300">HIVE is Hive’s liquid native token. Its market value can rise or fall. HIVE can be held or transferred, and it can also be powered up into Hive Power.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What is HBD?</summary>
+            <p class="mt-3 leading-7 text-gray-300">HBD means Hive Backed Dollar. It is Hive’s blockchain-native stablecoin, designed to track roughly one U.S. dollar. It is not a bank deposit or a guaranteed dollar peg, and its market price can move above or below $1.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What is Hive Power (HP)?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Hive Power is the powered-up, or vested, form of HIVE. It helps determine an account’s Resource Credit capacity and its influence when voting. HP is different from liquid HIVE that you can immediately transfer.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What are Resource Credits?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Resource Credits, usually called RC, are an account’s capacity to perform actions on Hive. Posts, comments, votes, and transfers consume some RC. RC is tied to Hive Power, is not a spendable token, and regenerates over time.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What is voting power?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Voting power is the renewable voting resource behind your upvotes and downvotes. A stronger vote uses more of that resource; it refills over time. Vote weight lets you choose how much voting strength to use on one vote.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What are claimable rewards?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Hive can assign rewards from eligible posting and voting activity. When rewards are ready, the wallet can show the claimable HIVE, HBD, or Hive Power. Claiming is an account action that you review before Keychain approves it.</p>
+          </details>
+        </div>
+      </section>
+
+      <section id="account-safety" aria-labelledby="account-safety-heading">
+        <p class="app-kicker">Account &amp; safety</p>
+        <h2 id="account-safety-heading" class="app-section-title mt-2">Your keys stay yours</h2>
+        <div class="mt-5 space-y-3">
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5" open>
+            <summary class="cursor-pointer font-bold text-white">What does the starter 5 HP delegation mean?</summary>
+            <p class="mt-3 leading-7 text-gray-300">The bar temporarily delegates Hive Power to the new account so it has Resource Credits to participate. That HP is not transferred to you as liquid HIVE, cannot be spent by you, and remains owned by the delegating account.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">Does 4th Street Bar own my Hive account?</summary>
+            <p class="mt-3 leading-7 text-gray-300">No. Your private credentials are generated in your browser and the bar receives only the public keys needed to create the account. The creating account becomes the initial Hive recovery account, but that recovery role does not give the bar your private keys.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">Why is the recovery file important?</summary>
+            <p class="mt-3 leading-7 text-gray-300">It contains the private credentials generated for your new account. Store it somewhere private and protected. Do not give it to the bartender, post it, email it casually, or paste it into Hive-Bar.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">What if I lose my recovery file?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Hive-Bar does not keep a copy. If you also lose every working copy of your account credentials, Hive-Bar cannot simply recreate those keys for you. Treat the recovery file as something you need before you leave account setup.</p>
+          </details>
+        </div>
+      </section>
+
+      <section id="using-the-bar" aria-labelledby="using-the-bar-heading">
+        <p class="app-kicker">Using the online bar</p>
+        <h2 id="using-the-bar-heading" class="app-section-title mt-2">What is public, private, and signed</h2>
+        <div class="mt-5 space-y-3">
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5" open>
+            <summary class="cursor-pointer font-bold text-white">Who can see my posts, comments, and votes?</summary>
+            <p class="mt-3 leading-7 text-gray-300">They are public Hive activity. Other Hive websites and blockchain tools can read them too. Think of a Hive post or comment as public publishing, not a private social-media draft.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">Are Wall messages public?</summary>
+            <p class="mt-3 leading-7 text-gray-300">Yes. The Wall message, sender, recipient, HBD payment, time, and transaction are public on Hive. The page shows the recipient’s minimum HBD amount before Keychain asks you to approve the transfer.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">Are private inbox messages actually private?</summary>
+            <p class="mt-3 leading-7 text-gray-300">The message text is encrypted by Keychain in your browser and decrypted locally for the recipient. The blockchain still exposes transaction metadata such as who sent it, who received it, the HBD amount, time, and transaction. Do not treat that metadata as private.</p>
+          </details>
+          <details class="rounded-xl border border-gray-700 bg-gray-900 p-5">
+            <summary class="cursor-pointer font-bold text-white">Why does Keychain ask me to approve actions?</summary>
+            <p class="mt-3 leading-7 text-gray-300">That is the safety boundary. Hive-Bar prepares the requested operation and shows you a review step; Keychain holds the signing authority. If the action or account shown in Keychain is not what you expected, cancel it.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-gray-700 bg-black p-5 sm:p-7" aria-labelledby="still-stuck-heading">
+        <p class="app-kicker">Still stuck?</p>
+        <h2 id="still-stuck-heading" class="mt-2 text-2xl font-bold">Start with the part you want to use</h2>
+        <p class="mt-3 leading-7 text-gray-300">You can browse first and learn the Hive details as you need them. If you already have a Hive account, sign in when you want to participate. If you are new to Hive, the in-person account page walks through account creation step by step.</p>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <a class="button-primary" href="/community">Browse the community</a>
+          <a class="button-secondary" href="/create-account">Create a Hive account</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <%- include('../../common/footer') %>
+</body>
+</html>
