@@ -169,11 +169,17 @@ test('M19.3.1 pins a same-origin browser module graph and exact import-map CSP h
   const template = read('views/pages/onboarding/index.ejs');
   const route = read('routes/onboarding.js');
   const packageSource = read('package.json');
+  const workflow = read('.github/workflows/ci.yml');
   assert.match(customer, /await import\('hive-tx'\)/);
   assert.doesNotMatch(customer, /\/vendor\/hive-tx\/index\.mjs/);
   assert.match(template, /<script type="importmap"><%- onboardingImportMap %><\/script>/);
   assert.doesNotMatch(route, /router\.get\('\/vendor\/hive-tx\/index\.mjs'/);
-  assert.match(packageSource, /"test:visual:m18": "npm run test:browser:m19-3-1 && node scripts\/capture-m18-visual\.js"/);
+  assert.match(packageSource, /"test:browser:m19-3-1": "node scripts\/check-m19-3-1-browser-modules\.js"/);
+  assert.match(packageSource, /"test:visual:m18": "node scripts\/capture-m18-visual\.js"/);
+  assert.match(
+    workflow,
+    /Install pinned Chromium runtime[\s\S]*?Qualify M19\.3\.1 onboarding browser modules\n\s+run: npm run test:browser:m19-3-1[\s\S]*?Build exact presentation assets[\s\S]*?Capture and qualify M18\.2 viewports/,
+  );
 
   const { app } = createFixtureApp({
     configOverrides: { HIVE_WRITE_MODE: 'beta', HIVE_SIGNER_MODE: 'keychain' },

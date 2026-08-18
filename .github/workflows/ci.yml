@@ -71,6 +71,8 @@ jobs:
         run: npx --no-install patch-package
       - name: Install pinned Chromium runtime
         run: npx --no-install playwright install --with-deps chromium
+      - name: Qualify M19.3.1 onboarding browser modules
+        run: npm run test:browser:m19-3-1
       - name: Build exact presentation assets
         run: npm run build
       - name: Capture and qualify M18.2 viewports

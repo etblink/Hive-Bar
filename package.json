@@ -24,7 +24,7 @@
     "lint": "eslint src routes public/js test scripts index.js eslint.config.js --max-warnings=0",
     "test": "node --test --test-concurrency=1 test/*.test.js",
     "test:browser:m19-3-1": "node scripts/check-m19-3-1-browser-modules.js",
-    "test:visual:m18": "npm run test:browser:m19-3-1 && node scripts/capture-m18-visual.js",
+    "test:visual:m18": "node scripts/capture-m18-visual.js",
     "test:visual:m18-3": "node scripts/capture-m18-3-visual.js",
     "test:visual:m18-4": "node scripts/capture-m18-4-visual.js",
     "rehearse:m9": "node --test --test-concurrency=1 test/m9-bounded-bar-publishing.test.js",
