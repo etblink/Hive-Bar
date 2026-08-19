@@ -49,7 +49,7 @@ function v1Source(overrides = {}) {
   };
 }
 
-test('freezes the exact M17.1 V1 self-signing manifest', () => {
+test('M20.2 supersedes the exact M17.1 V1 self-signing manifest', () => {
   assert.deepEqual(V1_POSTING_ACTIONS, [
     'post',
     'thread',
@@ -60,6 +60,7 @@ test('freezes the exact M17.1 V1 self-signing manifest', () => {
     'subscribe',
     'unsubscribe',
     'profile',
+    'claim-rewards',
   ]);
   assert.deepEqual(V1_ACTIVE_ACTIONS, ['wall', 'inbox']);
   assert.deepEqual(V1_ACTIONS, [...V1_POSTING_ACTIONS, ...V1_ACTIVE_ACTIONS]);
@@ -120,6 +121,6 @@ test('release and living-document sources are mechanically coherent', () => {
   assert.deepEqual(assertReleaseCoherence(), {
     packageVersion: '0.1.0',
     appTag: 'fourth-street-bar-app/0.1.0',
-    v1ActionCount: 11,
+    v1ActionCount: 12,
   });
 });

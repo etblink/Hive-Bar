@@ -4,6 +4,11 @@ const BETA_ACTIONS = Object.freeze([
   'post',
   'comment',
   'vote',
+  'follow',
+  'unfollow',
+  'subscribe',
+  'unsubscribe',
+  'claim-rewards',
   'wall',
   'inbox',
 ]);

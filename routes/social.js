@@ -12,7 +12,13 @@ const { isV1SocialAction } = require('../src/v1/actions');
 
 const TRANSACTION_ID_PATTERN = /^[0-9a-f]{40}$/i;
 const CONTENT_ACTIONS = new Set(['post', 'thread', 'comment']);
-const BETA_M16_3_ACTIONS = new Set(['vote']);
+const BETA_M16_3_ACTIONS = new Set([
+  'vote',
+  'follow',
+  'unfollow',
+  'subscribe',
+  'unsubscribe',
+]);
 
 function broadcastModeFor(config) {
   if (config.hive.writeMode === 'beta') return 'beta-self';

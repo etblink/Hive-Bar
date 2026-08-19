@@ -19,6 +19,7 @@ const EXPECTED_V1_ACTIONS = Object.freeze([
   'subscribe',
   'unsubscribe',
   'profile',
+  'claim-rewards',
   'wall',
   'inbox',
 ]);
@@ -42,7 +43,10 @@ function assertFunctionalV1Baseline() {
     throw new Error(`M17.4 app tag must remain exactly ${EXPECTED_APP_TAG}`);
   }
   if (JSON.stringify(V1_ACTIONS) !== JSON.stringify(EXPECTED_V1_ACTIONS)) {
-    throw new Error('M17.4 V1 action manifest drifted from the accepted eleven-action boundary');
+    throw new Error('V1 action manifest drifted from the accepted M20.2 twelve-action boundary');
+  }
+  if (JSON.stringify(manifest.v1?.selfSignedActions) !== JSON.stringify(EXPECTED_V1_ACTIONS)) {
+    throw new Error('Privex manifest drifted from the accepted M20.2 twelve-action V1 boundary');
   }
   if (manifest.runtimeProfiles?.acceptedBeta !== 'privex-beta-self-signing') {
     throw new Error('M17.4 must retain the accepted beta production profile');
@@ -98,11 +102,9 @@ function assertFunctionalV1Baseline() {
 
 if (require.main === module) {
   try {
-    process.stdout.write(`${JSON.stringify(assertFunctionalV1Baseline())}
-`);
+    process.stdout.write(`${JSON.stringify(assertFunctionalV1Baseline())}\n`);
   } catch (error) {
-    process.stderr.write(`Hive-Bar M17.4 functional baseline refused: ${error.message}
-`);
+    process.stderr.write(`Hive-Bar M17.4 functional baseline refused: ${error.message}\n`);
     process.exitCode = 1;
   }
 }

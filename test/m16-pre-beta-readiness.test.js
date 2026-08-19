@@ -92,11 +92,22 @@ function messageSummary(report) {
     .join('\n');
 }
 
-test('M16.6 freezes one exact five-action beta manifest matching all accepted route lanes', () => {
-  assert.deepEqual(BETA_ACTIONS, ['post', 'comment', 'vote', 'wall', 'inbox']);
+test('M20.2 freezes one exact ten-action beta manifest matching all accepted route lanes', () => {
+  assert.deepEqual(BETA_ACTIONS, [
+    'post',
+    'comment',
+    'vote',
+    'follow',
+    'unfollow',
+    'subscribe',
+    'unsubscribe',
+    'claim-rewards',
+    'wall',
+    'inbox',
+  ]);
   assert.equal(Object.isFrozen(BETA_ACTIONS), true);
   for (const action of BETA_ACTIONS) assert.equal(isBetaAction(action), true);
-  for (const action of ['thread', 'follow', 'subscribe', 'profile', 'claim-rewards', 'payment']) {
+  for (const action of ['thread', 'profile', 'payment']) {
     assert.equal(isBetaAction(action), false, action);
   }
 
@@ -155,6 +166,7 @@ test('signed-in beta desktop/mobile documents pass structural and serious access
   const routes = [
     '/community',
     '/post/etblink/welcome-fourth-street-bar',
+    '/profile/etblink/wallet',
     '/profile/barfriend/wall-posts',
     '/profile/etblink/inbox',
     '/pay',
@@ -207,7 +219,7 @@ test('signed-in beta desktop/mobile documents pass structural and serious access
     .expect(200);
   assert.match(community.text, /data-social-action="post" data-signer-mode="keychain"/);
   assert.match(community.text, /data-social-action="vote"\s+data-signer-mode="keychain"/);
-  assert.doesNotMatch(community.text, /data-social-action="subscribe"/);
+  assert.match(community.text, /data-social-action="(?:subscribe|unsubscribe)"/);
   assert.doesNotMatch(community.text, /data-social-action="thread"/);
 
   const post = await request(fixture.app)
@@ -216,6 +228,12 @@ test('signed-in beta desktop/mobile documents pass structural and serious access
     .expect(200);
   assert.match(post.text, /data-social-action="comment" data-signer-mode="keychain"/);
   assert.match(post.text, /data-social-action="vote"\s+data-signer-mode="keychain"/);
+
+  const wallet = await request(fixture.app)
+    .get('/profile/etblink/wallet')
+    .set('cookie', `hive_bar_session=${fixture.token}`)
+    .expect(200);
+  assert.match(wallet.text, /data-m4-action="claim-rewards"/);
 
   const wallFixture = betaFixture({ account: 'barfriend' });
   const wall = await request(wallFixture.app)

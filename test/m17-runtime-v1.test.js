@@ -139,16 +139,19 @@ test('M17.3 keeps unqualified production mode fail-closed and parses real produc
   assert.equal(qualifyPrivexRuntime(production, source).profile, 'privex-v1-self-signing');
 });
 
-test('M17.3 freezes exact route subsets beneath the eleven-action V1 manifest', () => {
+test('M20.2 supersedes the route subsets with the twelve-action V1 and ten-action beta manifests', () => {
   assert.deepEqual(V1_SOCIAL_ACTIONS, [
     'post', 'thread', 'comment', 'vote', 'follow', 'unfollow', 'subscribe', 'unsubscribe',
   ]);
-  assert.deepEqual(V1_M4_ACTIONS, ['profile', 'wall', 'inbox']);
+  assert.deepEqual(V1_M4_ACTIONS, ['profile', 'claim-rewards', 'wall', 'inbox']);
   assert.deepEqual(V1_ACTIONS, [
     'post', 'thread', 'comment', 'vote', 'follow', 'unfollow', 'subscribe', 'unsubscribe',
-    'profile', 'wall', 'inbox',
+    'profile', 'claim-rewards', 'wall', 'inbox',
   ]);
-  assert.deepEqual(BETA_ACTIONS, ['post', 'comment', 'vote', 'wall', 'inbox']);
+  assert.deepEqual(BETA_ACTIONS, [
+    'post', 'comment', 'vote', 'follow', 'unfollow', 'subscribe', 'unsubscribe',
+    'claim-rewards', 'wall', 'inbox',
+  ]);
 });
 
 test('M17.3 V1 social preflights are session-owned, Keychain self-signing, and never controlled-mode fallthrough', async () => {
@@ -207,7 +210,7 @@ test('M17.3 V1 social preflights are session-owned, Keychain self-signing, and n
     .expect(({ body }) => assert.equal(body.error.code, 'V1_ACTION_NOT_ALLOWED'));
 });
 
-test('M17.3 V1 M4 preflights expose only profile, Wall, and Inbox while reward claiming stays excluded', async () => {
+test('M20.2 V1 M4 preflights include profile, reward claim, Wall, and Inbox while Pay stays excluded', async () => {
   const fixtureApp = v1Fixture();
   const account = fixture.accounts.find((item) => item.name === 'barfriend');
   const profile = await authorized(
@@ -262,19 +265,24 @@ test('M17.3 V1 M4 preflights expose only profile, Wall, and Inbox while reward c
   assert.equal(inbox.body.broadcastMode, 'v1-self');
   assert.equal(inbox.body.operations[0][1].from, 'barfriend');
 
-  await authorized(
-    request(fixtureApp.app).post('/api/m4/preflight/claim-rewards'),
-    fixtureApp,
+  const rewardFixture = v1Fixture('etblink');
+  const claim = await authorized(
+    request(rewardFixture.app).post('/api/m4/preflight/claim-rewards'),
+    rewardFixture,
   )
     .send({})
-    .expect(503)
-    .expect(({ body }) => assert.equal(body.error.code, 'V1_ACTION_NOT_ALLOWED'));
+    .expect(201);
+  assert.equal(claim.body.account, 'etblink');
+  assert.equal(claim.body.authority, 'Posting');
+  assert.equal(claim.body.broadcastMode, 'v1-self');
+  assert.equal(claim.body.operations[0][0], 'claim_reward_balance');
+  assert.equal(claim.body.operations[0][1].account, 'etblink');
 
   assert.equal(fixtureApp.app.locals.paymentsEnabled, false);
   assert.equal(fixtureApp.app.locals.canWriteAction('profile'), true);
   assert.equal(fixtureApp.app.locals.canWriteAction('wall'), true);
   assert.equal(fixtureApp.app.locals.canWriteAction('inbox'), true);
-  assert.equal(fixtureApp.app.locals.canWriteAction('claim-rewards'), false);
+  assert.equal(fixtureApp.app.locals.canWriteAction('claim-rewards'), true);
   assert.equal(fixtureApp.app.locals.canWriteAction('payment'), false);
 });
 

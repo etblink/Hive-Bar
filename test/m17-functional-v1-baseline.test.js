@@ -19,7 +19,7 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
-test('M17.4 freezes one exact pre-final functional V1 baseline', () => {
+test('M20.2 supersedes the action manifests while preserving the pre-final functional V1 baseline', () => {
   const summary = assertFunctionalV1Baseline();
 
   assert.equal(EXPECTED_VERSION, '0.1.0');
@@ -34,16 +34,28 @@ test('M17.4 freezes one exact pre-final functional V1 baseline', () => {
     'subscribe',
     'unsubscribe',
     'profile',
+    'claim-rewards',
     'wall',
     'inbox',
   ]);
   assert.deepEqual(V1_ACTIONS, EXPECTED_V1_ACTIONS);
-  assert.deepEqual(BETA_ACTIONS, ['post', 'comment', 'vote', 'wall', 'inbox']);
+  assert.deepEqual(BETA_ACTIONS, [
+    'post',
+    'comment',
+    'vote',
+    'follow',
+    'unfollow',
+    'subscribe',
+    'unsubscribe',
+    'claim-rewards',
+    'wall',
+    'inbox',
+  ]);
   assert.deepEqual(summary, {
     profile: 'm17-functional-v1-baseline',
     packageVersion: '0.1.0',
     appTag: 'fourth-street-bar-app/0.1.0',
-    v1ActionCount: 11,
+    v1ActionCount: 12,
     productionProfile: 'privex-beta-self-signing',
     v1ProductionActivated: false,
     finalRelease: false,

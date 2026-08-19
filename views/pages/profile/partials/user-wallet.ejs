@@ -97,7 +97,7 @@
           <div><dt>HBD</dt><dd><%= formatNumber(wallet.rewards.hbd) %></dd></div>
           <div><dt>Hive Power</dt><dd><%= formatNumber(wallet.rewards.hivePower) %></dd></div>
         </dl>
-        <% if (canManageProfile && writesEnabled) { %>
+        <% if (canManageProfile && (writesEnabled || canWriteAction('claim-rewards'))) { %>
           <form class="wallet-reward-action" data-m4-action="claim-rewards">
             <button type="submit" class="button-primary">Review reward claim</button>
             <p aria-live="polite" data-m4-status>

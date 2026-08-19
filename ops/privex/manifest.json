@@ -79,6 +79,7 @@
       "subscribe",
       "unsubscribe",
       "profile",
+      "claim-rewards",
       "wall",
       "inbox"
     ],

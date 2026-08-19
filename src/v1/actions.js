@@ -11,7 +11,7 @@ const V1_SOCIAL_ACTIONS = Object.freeze([
   'unsubscribe',
 ]);
 
-const V1_M4_POSTING_ACTIONS = Object.freeze(['profile']);
+const V1_M4_POSTING_ACTIONS = Object.freeze(['profile', 'claim-rewards']);
 const V1_ACTIVE_ACTIONS = Object.freeze(['wall', 'inbox']);
 const V1_POSTING_ACTIONS = Object.freeze([...V1_SOCIAL_ACTIONS, ...V1_M4_POSTING_ACTIONS]);
 const V1_M4_ACTIONS = Object.freeze([...V1_M4_POSTING_ACTIONS, ...V1_ACTIVE_ACTIONS]);
