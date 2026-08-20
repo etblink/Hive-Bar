@@ -52,6 +52,191 @@ test('paginates Bridge posts, removes an inclusive anchor, and batches profiles'
   assert.deepEqual(calls[1].params.accounts, ['alice']);
 });
 
+test('suppresses only one exact content identity without consuming the visible page or sentinel', async () => {
+  const activeContainer = {
+    ...rawPost(9),
+    author: 'fourthst.threads',
+    permlink: 'threads-active',
+    title: 'Technical Threads container',
+  };
+  const legitimateSameAuthor = {
+    ...rawPost(8),
+    author: 'fourthst.threads',
+    permlink: 'community-update',
+    title: 'Legitimate community update',
+  };
+  const samePermlinkDifferentAuthor = {
+    ...rawPost(7),
+    author: 'alice',
+    permlink: 'threads-active',
+  };
+  const calls = [];
+  const rpcPool = {
+    async call(api, method, params) {
+      calls.push({ api, method, params });
+      if (method === 'get_ranked_posts') {
+        return [
+          activeContainer,
+          rawPost(1),
+          legitimateSameAuthor,
+          samePermlinkDifferentAuthor,
+          rawPost(2),
+        ];
+      }
+      if (method === 'get_profiles') {
+        return params.accounts.map((name) => ({ name, metadata: {}, stats: {} }));
+      }
+      throw new Error('unexpected test RPC call');
+    },
+  };
+  const service = new HiveReadService(rpcPool, { pageSize: 3 });
+  const page = await service.getCommunityPosts({
+    name: 'hive-108590',
+    excludeContent: activeContainer,
+  });
+
+  assert.deepEqual(
+    page.items.map((item) => `${item.author}/${item.permlink}`),
+    [
+      'alice/post-1',
+      'fourthst.threads/community-update',
+      'alice/threads-active',
+    ],
+  );
+  assert.ok(page.nextCursor);
+  assert.equal(calls[0].params.limit, 5);
+  assert.deepEqual(calls[1].params.accounts, ['alice', 'fourthst.threads']);
+});
+
+test('returns a correct empty page when the exact excluded container is the only result', async () => {
+  const container = {
+    ...rawPost(9),
+    author: 'fourthst.threads',
+    permlink: 'threads-active',
+  };
+  const calls = [];
+  const service = new HiveReadService({
+    async call(api, method, params) {
+      calls.push({ api, method, params });
+      if (method === 'get_ranked_posts') return [container];
+      throw new Error('unexpected test RPC call');
+    },
+  });
+  const page = await service.getCommunityPosts({
+    name: 'hive-108590',
+    excludeContent: container,
+  });
+
+  assert.deepEqual(page.items, []);
+  assert.deepEqual(page.profiles, {});
+  assert.equal(page.nextCursor, null);
+  assert.equal(calls.length, 1);
+});
+
+test('preserves cursor pagination when both the inclusive anchor and container are removed', async () => {
+  const anchor = rawPost(1);
+  const container = {
+    ...rawPost(9),
+    author: 'fourthst.threads',
+    permlink: 'threads-active',
+  };
+  const calls = [];
+  const service = new HiveReadService({
+    async call(api, method, params) {
+      calls.push({ api, method, params });
+      if (method === 'get_ranked_posts') {
+        return [anchor, container, rawPost(2), rawPost(3), rawPost(4)];
+      }
+      if (method === 'get_profiles') {
+        return [{ name: 'alice', metadata: {}, stats: {} }];
+      }
+      throw new Error('unexpected test RPC call');
+    },
+  }, { pageSize: 2 });
+  const page = await service.getCommunityPosts({
+    name: 'hive-108590',
+    cursor: encodePageCursor(anchor),
+    excludeContent: container,
+  });
+
+  assert.deepEqual(page.items.map((item) => item.permlink), ['post-2', 'post-3']);
+  assert.equal(page.nextCursor, encodePageCursor(rawPost(3)));
+  assert.equal(calls[0].params.limit, 5);
+  assert.equal(calls[0].params.start_author, 'alice');
+  assert.equal(calls[0].params.start_permlink, 'post-1');
+});
+
+test('resolves the active top-level Threads container once and reads its discussion', async () => {
+  const container = {
+    ...rawPost(9),
+    author: 'fourthst.threads',
+    permlink: 'threads-active',
+    title: 'Technical Threads container',
+  };
+  const thread = {
+    ...rawPost(10),
+    author: 'alice',
+    permlink: 'thread-one',
+    parent_author: container.author,
+    parent_permlink: container.permlink,
+    title: '',
+    body: 'A normal Thread.',
+  };
+  const calls = [];
+  const service = new HiveReadService({
+    async call(api, method, params) {
+      calls.push({ api, method, params });
+      if (method === 'get_account_posts') return [container];
+      if (method === 'get_discussion') {
+        return {
+          [`${container.author}/${container.permlink}`]: container,
+          [`${thread.author}/${thread.permlink}`]: thread,
+        };
+      }
+      if (method === 'get_profiles') return [{ name: 'alice', metadata: {}, stats: {} }];
+      throw new Error('unexpected test RPC call');
+    },
+  });
+  const result = await service.getLatestThreads('fourthst.threads');
+
+  assert.equal(result.container.author, 'fourthst.threads');
+  assert.equal(result.container.permlink, 'threads-active');
+  assert.deepEqual(result.threads.map((item) => item.permlink), ['thread-one']);
+  assert.equal(result.profiles.alice.name, 'alice');
+  assert.deepEqual(calls[0], {
+    api: 'bridge',
+    method: 'get_account_posts',
+    params: { sort: 'posts', account: 'fourthst.threads', limit: 1 },
+  });
+  assert.deepEqual(calls[1].params, {
+    author: 'fourthst.threads',
+    permlink: 'threads-active',
+  });
+});
+
+test('does not treat a latest reply as a Threads container', async () => {
+  const reply = {
+    ...rawPost(9),
+    author: 'fourthst.threads',
+    permlink: 'not-a-container',
+    parent_author: 'alice',
+    parent_permlink: 'post-1',
+  };
+  const service = new HiveReadService({
+    async call(_api, method) {
+      if (method === 'get_account_posts') return [reply];
+      throw new Error('unexpected test RPC call');
+    },
+  });
+
+  assert.equal(await service.getLatestThreadContainer('fourthst.threads'), null);
+  assert.deepEqual(await service.getLatestThreads('fourthst.threads'), {
+    container: null,
+    threads: [],
+    profiles: {},
+  });
+});
+
 test('reads a bounded official community feed without profile lookups', async () => {
   const calls = [];
   const rpcPool = {

@@ -11,6 +11,7 @@ const BETA_ACTIONS = Object.freeze([
   'claim-rewards',
   'wall',
   'inbox',
+  'thread',
 ]);
 
 function isBetaAction(action) {

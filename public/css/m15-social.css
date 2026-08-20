@@ -339,6 +339,73 @@
   font-weight: 800;
 }
 
+.thread-composer {
+  margin-bottom: 1.25rem;
+  padding: clamp(1rem, 3vw, 1.35rem);
+  background:
+    linear-gradient(145deg, rgb(244 164 96 / 8%), transparent 48%),
+    var(--hb-surface);
+}
+
+.thread-composer__intro h2 {
+  margin-top: 0.2rem;
+  color: var(--hb-text);
+  font-size: 1.2rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.thread-composer__intro > p:last-child,
+.thread-composer__help {
+  color: var(--hb-text-muted);
+  line-height: 1.55;
+}
+
+.thread-composer__intro > p:last-child {
+  margin-top: 0.35rem;
+}
+
+.thread-composer__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--hb-text);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.thread-composer__input {
+  width: 100%;
+  min-height: 7.5rem;
+  resize: vertical;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius-control);
+  background: var(--hb-bg);
+  padding: 0.9rem 1rem;
+  color: var(--hb-text);
+  line-height: 1.55;
+}
+
+.thread-composer__input::placeholder {
+  color: var(--hb-text-subtle);
+}
+
+.thread-composer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.thread-composer__help {
+  font-size: 0.76rem;
+}
+
+.thread-feed {
+  margin-top: 1rem;
+}
+
 .community-sort {
   display: flex;
   flex-direction: column;

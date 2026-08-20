@@ -8,19 +8,18 @@ const { SessionStore } = require('../src/auth/session-store');
 const { BETA_M16_4_ACTIONS } = require('../routes/m4');
 const { BETA_M16_3_ACTIONS } = require('../routes/social');
 const { configFrom, logger } = require('./support/test-app');
-const { createFixtureRpc } = require('./support/fixture-rpc');
+const { createFixtureRpc, fixture } = require('./support/fixture-rpc');
 
 const ORIGIN = 'http://localhost:3000';
 const SESSION_SECRET = 'test-session-secret-that-is-at-least-32-bytes';
 
-function betaFixture({ account = 'barfriend' } = {}) {
+function betaFixture({ account = 'barfriend', rpcPool = createFixtureRpc() } = {}) {
   const config = configFrom({
     HIVE_WRITE_MODE: 'beta',
     HIVE_SIGNER_MODE: 'keychain',
     SESSION_SECRET,
     RATE_LIMIT_MAX: '1000',
   });
-  const rpcPool = createFixtureRpc();
   const sessionStore = new SessionStore({
     secret: config.auth.sessionSecret,
     ttlMs: config.auth.sessionTtlMs,
@@ -28,6 +27,33 @@ function betaFixture({ account = 'barfriend' } = {}) {
   const { session, token } = sessionStore.create(account);
   const app = createApp({ config, logger, rpcPool, sessionStore });
   return { app, config, rpcPool, session, token };
+}
+
+function activeThreadRpc({ permlink = 'threads-2026-08-20' } = {}) {
+  const baseRpc = createFixtureRpc();
+  const calls = [];
+  const container = {
+    ...structuredClone(fixture.communityPosts[0]),
+    author: 'fourthst.threads',
+    permlink,
+    parent_author: '',
+    parent_permlink: 'hive-108590',
+    title: 'Technical Threads container',
+  };
+  return {
+    calls,
+    getStatus: baseRpc.getStatus,
+    async call(api, method, params) {
+      calls.push({ api, method, params: structuredClone(params) });
+      if (
+        `${api}.${method}` === 'bridge.get_account_posts' &&
+        params.account === 'fourthst.threads'
+      ) {
+        return [structuredClone(container)];
+      }
+      return baseRpc.call(api, method, params);
+    },
+  };
 }
 
 function authorized(builder, fixture) {
@@ -49,7 +75,7 @@ test('beta mode remains Keychain-only while social, reward, and messaging lanes 
   });
   assert.equal(config.hive.writeMode, 'beta');
   assert.equal(config.hive.betaSelfSigningEnabled, true);
-  assert.deepEqual(config.hive.betaSelfActions, ['post', 'comment']);
+  assert.deepEqual(config.hive.betaSelfActions, ['post', 'comment', 'thread']);
   assert.deepEqual([...BETA_M16_3_ACTIONS], [
     'vote',
     'follow',
@@ -63,7 +89,7 @@ test('beta mode remains Keychain-only while social, reward, and messaging lanes 
   assert.equal(config.payments.enabled, false);
 });
 
-test('an arbitrary verified beta user can prepare only self-authored post and comment operations', async () => {
+test('an arbitrary verified beta user can prepare self-authored post and comment operations', async () => {
   const fixture = betaFixture();
 
   const post = await authorized(
@@ -213,12 +239,109 @@ test('M20.2 prepares follow and community membership actions as the verified bet
     assert.equal(response.body.broadcastMode, 'beta-self');
     assert.doesNotMatch(JSON.stringify(response.body.operations), /attacker/);
   }
+});
+
+test('UX-1A prepares a reviewed Thread against the active container as the local Keychain signer', async () => {
+  const rpcPool = activeThreadRpc();
+  const fixtureApp = betaFixture({ rpcPool });
+  const payload = {
+    body: 'Starting a short beta conversation.',
+    permlink: 'ux-1a-thread-fixture',
+    author: 'attacker',
+  };
+  const prepared = await authorized(
+    request(fixtureApp.app).post('/api/social/preflight/thread'),
+    fixtureApp,
+  )
+    .send(payload)
+    .expect(201);
+
+  assert.equal(prepared.body.action, 'thread');
+  assert.equal(prepared.body.broadcastMode, 'beta-self');
+  assert.equal(prepared.body.account, 'barfriend');
+  assert.equal(prepared.body.signer, 'barfriend');
+  assert.equal(prepared.body.authority, 'Posting');
+  assert.deepEqual(prepared.body.operations, [[
+    'comment',
+    {
+      parent_author: 'fourthst.threads',
+      parent_permlink: 'threads-2026-08-20',
+      author: 'barfriend',
+      permlink: 'ux-1a-thread-fixture',
+      title: '',
+      body: 'Starting a short beta conversation.',
+      json_metadata:
+        '{"tags":["hive-108590","threads"],"app":"fourth-street-bar-app/0.1.0","format":"markdown"}',
+    },
+  ]]);
+  assert.deepEqual(prepared.body.summary, {
+    kind: 'Thread',
+    author: 'barfriend',
+    parentAuthor: 'fourthst.threads',
+    parentPermlink: 'threads-2026-08-20',
+    permlink: 'ux-1a-thread-fixture',
+    bodyBytes: 35,
+  });
+  assert.equal(
+    rpcPool.calls.filter(({ method }) => method === 'get_account_posts').length,
+    1,
+  );
+  assert.equal(
+    rpcPool.calls.some(({ method }) => method === 'get_discussion'),
+    false,
+  );
 
   await authorized(
-    request(fixture.app).post('/api/social/preflight/thread'),
-    fixture,
+    request(fixtureApp.app).post('/api/social/preflight/thread'),
+    fixtureApp,
   )
-    .send({ body: 'Thread remains outside beta.' })
+    .send(payload)
+    .expect(409)
+    .expect(({ body }) => assert.equal(body.error.code, 'DUPLICATE_OPERATION'));
+
+  await authorized(
+    request(fixtureApp.app).post(`/api/social/preflight/${prepared.body.id}/cancel`),
+    fixtureApp,
+  ).expect(204);
+});
+
+test('UX-1A Thread preparation validates content and fails safely when the container is absent or malformed', async () => {
+  const missing = betaFixture();
+  await authorized(
+    request(missing.app).post('/api/social/preflight/thread'),
+    missing,
+  )
+    .send({ body: 'No container means no preparation.' })
+    .expect(503)
+    .expect(({ body }) => assert.match(body.error.message, /Threads aren’t available yet/));
+
+  const valid = betaFixture({ rpcPool: activeThreadRpc() });
+  for (const body of ['', 'x'.repeat(501)]) {
+    await authorized(
+      request(valid.app).post('/api/social/preflight/thread'),
+      valid,
+    )
+      .send({ body })
+      .expect(400)
+      .expect(({ body: responseBody }) => {
+        assert.equal(responseBody.error.code, 'VALIDATION_ERROR');
+      });
+  }
+
+  const malformed = betaFixture({ rpcPool: activeThreadRpc({ permlink: 'not valid!' }) });
+  await authorized(
+    request(malformed.app).post('/api/social/preflight/thread'),
+    malformed,
+  )
+    .send({ body: 'Malformed containers fail closed.' })
+    .expect(400)
+    .expect(({ body }) => assert.equal(body.error.code, 'VALIDATION_ERROR'));
+
+  await authorized(
+    request(valid.app).post('/api/social/preflight/profile'),
+    valid,
+  )
+    .send({})
     .expect(503)
     .expect(({ body }) => assert.equal(body.error.code, 'BETA_ACTION_NOT_ALLOWED'));
 });

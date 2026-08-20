@@ -1,25 +1,26 @@
 <% if (hiveSession && canWriteAction('thread') && container) { %>
-  <details class="mb-5 rounded-xl border border-gray-700 bg-gray-900 p-4">
-    <summary class="cursor-pointer font-bold text-bar-gold">Create a thread</summary>
-    <form class="mt-4 space-y-4" data-social-action="thread">
+  <section class="social-composer thread-composer mt-4" aria-labelledby="thread-composer-heading">
+    <div class="thread-composer__intro">
+      <p class="eyebrow">Start a conversation</p>
+      <h2 id="thread-composer-heading">Start a Thread</h2>
+      <p>Share a quick thought with the 4th Street Bar community.</p>
+    </div>
+    <form class="mt-4 space-y-3" data-social-action="thread" data-signer-mode="<%= signerMode %>">
       <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-thread-body">Thread</label>
-        <textarea id="new-thread-body" name="body" required rows="4" data-max-bytes="500" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 500 used</p>
+        <label class="thread-composer__label" for="new-thread-body">What do you want to share?</label>
+        <textarea id="new-thread-body" name="body" required rows="4" data-max-bytes="500" aria-describedby="new-thread-counter new-thread-help new-thread-status" placeholder="What’s happening?" class="thread-composer__input"></textarea>
+        <div class="thread-composer__actions">
+          <p id="new-thread-counter" class="text-xs text-gray-400" data-byte-counter>0 / 500 used</p>
+          <button type="submit" class="button-primary">Review Thread</button>
+        </div>
       </div>
-      <button type="submit" class="button-primary">Review thread</button>
-      <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
+      <p id="new-thread-help" class="thread-composer__help">You’ll review your Thread before Hive Keychain asks you to approve it.</p>
+      <p id="new-thread-status" class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
     </form>
-  </details>
+  </section>
 <% } %>
 <% if (threads.length > 0) { %>
-  <section class="mb-5 rounded-xl border border-gray-700 bg-gray-900 p-4" aria-labelledby="thread-container-heading">
-    <h2 id="thread-container-heading" class="font-bold text-bar-gold">Threads on Hive</h2>
-    <a href="/post/<%= container.author %>/<%= container.permlink %>" class="mt-1 block break-words text-gray-200 underline">
-      View the parent post
-    </a>
-  </section>
-  <div class="space-y-4">
+  <div class="thread-feed space-y-4" role="feed" aria-label="Community Threads">
     <% threads.forEach((thread) => { %>
       <%- include('../../../common/comment', { comment: thread, userProfile: profiles[thread.author] }) %>
     <% }); %>
@@ -29,7 +30,7 @@
     <p class="eyebrow">Short-form community</p>
     <h2>No threads yet</h2>
     <% if (container) { %>
-      <p>Short posts and replies will appear here as the conversation gets started.</p>
+      <p>Be the first to start a short conversation with the community.</p>
     <% } else { %>
       <p>Threads aren’t available yet.</p>
     <% } %>

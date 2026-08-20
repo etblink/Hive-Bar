@@ -2,7 +2,8 @@
 
 const express = require('express');
 const { FeatureUnavailableError, AuthorizationError, ValidationError } = require('../src/lib/errors');
-const { buildSocialOperation, createPermlink } = require('../src/hive/social-operations');
+const { isBetaAction } = require('../src/beta/actions');
+const { ACTIONS, buildSocialOperation, createPermlink } = require('../src/hive/social-operations');
 const { recordPilotTerminal } = require('../src/social/pilot-terminal-marker');
 const { appendOperatorAudit } = require('../src/social/operator-audit');
 const { assertM10OperatorArmActive } = require('../src/social/operator-posting-mode');
@@ -110,7 +111,7 @@ function assertControlledAction(config, action) {
 
 function assertSocialAction(config, action) {
   if (config.hive.writeMode === 'beta') {
-    if (!config.hive.betaSelfActions.includes(action) && !BETA_M16_3_ACTIONS.has(action)) {
+    if (!isBetaAction(action) || !ACTIONS.has(action)) {
       throw new FeatureUnavailableError(
         'This action isn’t available in beta yet.',
         { code: 'BETA_ACTION_NOT_ALLOWED' },
@@ -176,13 +177,12 @@ function createSocialRouter({ config }) {
       const payload = withGeneratedPermlink(action, req.body);
       let threadContainer;
       if (action === 'thread') {
-        const threads = await req.app.locals.services.hiveReads.getLatestThreads(
+        threadContainer = await req.app.locals.services.hiveReads.getLatestThreadContainer(
           config.hive.threadsContainerAccount,
         );
-        if (!threads.container) {
+        if (!threadContainer) {
           throw new FeatureUnavailableError('Threads aren’t available yet.');
         }
-        threadContainer = threads.container;
       }
       const envelope = buildSocialOperation(action, {
         account: req.hivePostingIdentity.author,

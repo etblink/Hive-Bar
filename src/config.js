@@ -22,7 +22,7 @@ const CONTROLLED_ACTIONS = Object.freeze([
   'inbox',
   'payment',
 ]);
-const BETA_SELF_ACTIONS = Object.freeze(['post', 'comment']);
+const BETA_SELF_ACTIONS = Object.freeze(['post', 'comment', 'thread']);
 const PRODUCTION_REQUIRED_SETTINGS = [
   'SITE_NAME',
   'BAR_ADDRESS',

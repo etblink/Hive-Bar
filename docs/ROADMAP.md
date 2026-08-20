@@ -7,7 +7,7 @@ This is the only living document that defines the current and next project miles
 - Last recorded accepted production transition: M19.2 deployed accepted M19.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`, tree `1a4bb993ad59ca67032997d8938696a079a71e1f`.
 - Runtime source identity: after R0 deployment, read the deployed `beta-<short-sha>` label and full commit/tree from `/healthz`; before that deployment, verify `/opt/hive-bar/current/.hive-bar-commit` and `.hive-bar-tree` operator-side rather than inferring from this document.
 - Persistent production runtime: accepted beta self-signing profile.
-- Canonical-source beta writes: post, comment, weighted vote, follow, unfollow, subscribe, unsubscribe, claim rewards, Wall, encrypted Inbox.
+- Canonical-source beta writes: post, comment, weighted vote, follow, unfollow, subscribe, unsubscribe, claim rewards, Wall, encrypted Inbox, Thread.
 - Production rollback pointer: prior accepted M17.3 release remains the last recorded `/opt/hive-bar/last-good` boundary from M19.2; verify the live symlink before any operation.
 - V1 release gate: operationally rehearsed and accepted without persistent V1 activation.
 - Payments/Distriator: disabled.

@@ -30,6 +30,19 @@ async function membershipForSession(req) {
   }
 }
 
+async function communityPostsForRequest(req, { name, sort, cursor }) {
+  const hiveReads = req.app.locals.services.hiveReads;
+  const container = await hiveReads.getLatestThreadContainer(
+    req.app.locals.config.hive.threadsContainerAccount,
+  );
+  return hiveReads.getCommunityPosts({
+    name,
+    sort,
+    cursor,
+    excludeContent: container,
+  });
+}
+
 router.get('/', async (req, res, next) => {
   try {
     const communityId = req.app.locals.config.hive.communityId;
@@ -42,7 +55,7 @@ router.get('/', async (req, res, next) => {
     let feedError = false;
 
     try {
-      postsPage = await req.app.locals.services.hiveReads.getCommunityPosts({
+      postsPage = await communityPostsForRequest(req, {
         name: communityId,
         sort,
         cursor: req.query.after,
@@ -105,7 +118,7 @@ router.get('/:communityName/community-posts', async (req, res, next) => {
       req.app.locals.config,
     );
     const sort = requireCommunitySort(req.query.sort || 'created');
-    const postsPage = await req.app.locals.services.hiveReads.getCommunityPosts({
+    const postsPage = await communityPostsForRequest(req, {
       name: communityName,
       sort,
       cursor: req.query.after,
@@ -152,11 +165,11 @@ router.get('/check-membership', async (req, res, next) => {
 
 router.get('/api/latest-thread-container', async (req, res, next) => {
   try {
-    const result = await req.app.locals.services.hiveReads.getLatestThreads(
+    const container = await req.app.locals.services.hiveReads.getLatestThreadContainer(
       req.app.locals.config.hive.threadsContainerAccount,
     );
-    if (!result.container) throw new NotFoundError('No thread container is available yet');
-    res.set('Cache-Control', 'public, max-age=30').json(result.container);
+    if (!container) throw new NotFoundError('No thread container is available yet');
+    res.set('Cache-Control', 'public, max-age=30').json(container);
   } catch (error) {
     next(error);
   }

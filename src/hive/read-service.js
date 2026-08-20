@@ -130,13 +130,24 @@ class HiveReadService {
     return raw?.name ? normalizeCommunity(raw) : null;
   }
 
-  async getCommunityPosts({ name, sort = 'created', cursor: cursorValue = null }) {
+  async getCommunityPosts({
+    name,
+    sort = 'created',
+    cursor: cursorValue = null,
+    excludeContent = null,
+  }) {
     const cursor = requirePageCursor(cursorValue);
     const activeSort = requireCommunitySort(sort);
+    const exclusion = excludeContent
+      ? {
+          author: requireHiveAccount(excludeContent.author, 'Excluded content author'),
+          permlink: requirePermlink(excludeContent.permlink),
+        }
+      : null;
     const params = {
       tag: name,
       sort: activeSort,
-      limit: this.pageSize + (cursor ? 2 : 1),
+      limit: this.pageSize + (cursor ? 2 : 1) + (exclusion ? 1 : 0),
     };
     if (cursor) {
       params.start_author = cursor.author;
@@ -144,7 +155,7 @@ class HiveReadService {
     }
 
     const raw = await this.rpcPool.call('bridge', 'get_ranked_posts', params);
-    return this.#contentPage(Array.isArray(raw) ? raw : [], cursor, activeSort);
+    return this.#contentPage(Array.isArray(raw) ? raw : [], cursor, activeSort, exclusion);
   }
 
   async getOfficialCommunityPosts({ account, community, limit = 3 }) {
@@ -182,13 +193,18 @@ class HiveReadService {
     return this.#contentPage(Array.isArray(raw) ? raw : [], cursor, 'posts');
   }
 
-  async #contentPage(rawItems, cursor, sort) {
+  async #contentPage(rawItems, cursor, sort, exclusion = null) {
     const withoutAnchor = cursor
       ? rawItems.filter(
           (item) => item.author !== cursor.author || item.permlink !== cursor.permlink,
         )
       : rawItems;
-    const normalized = withoutAnchor.map(normalizeContent);
+    const visibleItems = exclusion
+      ? withoutAnchor.filter(
+          (item) => item.author !== exclusion.author || item.permlink !== exclusion.permlink,
+        )
+      : withoutAnchor;
+    const normalized = visibleItems.map(normalizeContent);
     const hasNextPage = normalized.length > this.pageSize;
     const items = normalized.slice(0, this.pageSize);
     const profiles = await this.getProfiles([...new Set(items.map((item) => item.author))]);
@@ -238,7 +254,7 @@ class HiveReadService {
     return { ...discussion, profiles };
   }
 
-  async getLatestThreads(accountValue) {
+  async getLatestThreadContainer(accountValue) {
     const account = requireHiveAccount(accountValue, 'Threads container account');
     const rawPosts = await this.rpcPool.call('bridge', 'get_account_posts', {
       sort: 'posts',
@@ -248,9 +264,13 @@ class HiveReadService {
     const containerRaw = Array.isArray(rawPosts)
       ? rawPosts.find((item) => item?.author === account && !item?.parent_author)
       : null;
-    if (!containerRaw) return { container: null, threads: [], profiles: {} };
+    return containerRaw ? normalizeContent(containerRaw) : null;
+  }
 
-    const container = normalizeContent(containerRaw);
+  async getLatestThreads(accountValue) {
+    const container = await this.getLatestThreadContainer(accountValue);
+    if (!container) return { container: null, threads: [], profiles: {} };
+
     const rawDiscussion = await this.rpcPool.call('bridge', 'get_discussion', {
       author: container.author,
       permlink: container.permlink,

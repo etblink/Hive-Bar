@@ -12,7 +12,7 @@ This is the living production operations document. Historical M6/M14/M16/M17/M19
 - health: `/healthz`
 - readiness: `/readyz`
 - canonical repository source: moving branch `main`; resolve its exact commit/tree from GitHub at qualification time
-- canonical-source beta manifest: `post`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `claim-rewards`, `wall`, `inbox`
+- canonical-source beta manifest: `post`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `claim-rewards`, `wall`, `inbox`, `thread`
 - last recorded accepted production transition: M19.2 deployed M19.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`, tree `1a4bb993ad59ca67032997d8938696a079a71e1f`
 - Runtime source identity: `/healthz` publishes the exact deployed beta build label, commit, and tree after R0 deployment; the installed release files remain the operator-side source of truth
 - current accepted write mode: beta self-signing through local Hive Keychain

@@ -139,7 +139,7 @@ test('M17.3 keeps unqualified production mode fail-closed and parses real produc
   assert.equal(qualifyPrivexRuntime(production, source).profile, 'privex-v1-self-signing');
 });
 
-test('M20.2 supersedes the route subsets with the twelve-action V1 and ten-action beta manifests', () => {
+test('UX-1A preserves the twelve-action V1 manifest while beta accepts eleven actions', () => {
   assert.deepEqual(V1_SOCIAL_ACTIONS, [
     'post', 'thread', 'comment', 'vote', 'follow', 'unfollow', 'subscribe', 'unsubscribe',
   ]);
@@ -150,7 +150,7 @@ test('M20.2 supersedes the route subsets with the twelve-action V1 and ten-actio
   ]);
   assert.deepEqual(BETA_ACTIONS, [
     'post', 'comment', 'vote', 'follow', 'unfollow', 'subscribe', 'unsubscribe',
-    'claim-rewards', 'wall', 'inbox',
+    'claim-rewards', 'wall', 'inbox', 'thread',
   ]);
 });
 

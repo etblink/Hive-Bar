@@ -162,7 +162,7 @@ test('reports a failed readiness probe without exposing the RPC failure', async 
   assert.doesNotMatch(response.text, /internal node detail/);
 });
 
-test('renders the one-post production-shaped community without per-post RPC calls', async () => {
+test('renders the one-post community with one bounded container read and no per-post RPC calls', async () => {
   const { app, rpcPool } = createFixtureApp();
   const response = await request(app).get('/community').expect(200);
 
@@ -176,11 +176,17 @@ test('renders the one-post production-shaped community without per-post RPC call
   const methods = rpcPool.calls.map((call) => `${call.api}.${call.method}`);
   assert.deepEqual(methods, [
     'bridge.get_community',
+    'bridge.get_account_posts',
     'bridge.get_ranked_posts',
     'bridge.get_profiles',
   ]);
-  assert.equal(rpcPool.calls[1].params.tag, 'hive-108590');
-  assert.equal(rpcPool.calls[1].params.sort, 'created');
+  assert.deepEqual(rpcPool.calls[1].params, {
+    sort: 'posts',
+    account: 'fourthst.threads',
+    limit: 1,
+  });
+  assert.equal(rpcPool.calls[2].params.tag, 'hive-108590');
+  assert.equal(rpcPool.calls[2].params.sort, 'created');
 });
 
 test('keeps community information visible when only the post feed fails', async () => {

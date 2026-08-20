@@ -12,6 +12,7 @@ const { BETA_ACTIONS, isBetaAction } = require('../src/beta/actions');
 const { createApp } = require('../src/app');
 const { SessionStore } = require('../src/auth/session-store');
 const { BETA_SELF_ACTIONS, loadConfig } = require('../src/config');
+const { ACTIONS } = require('../src/hive/social-operations');
 const { assertPrivexBetaRelease } = require('../src/release/beta-readiness');
 const { BETA_M16_4_ACTIONS } = require('../routes/m4');
 const { BETA_M16_3_ACTIONS } = require('../routes/social');
@@ -92,7 +93,7 @@ function messageSummary(report) {
     .join('\n');
 }
 
-test('M20.2 freezes one exact ten-action beta manifest matching all accepted route lanes', () => {
+test('UX-1A freezes one exact eleven-action beta manifest without activating dormant V1 policy', () => {
   assert.deepEqual(BETA_ACTIONS, [
     'post',
     'comment',
@@ -104,19 +105,28 @@ test('M20.2 freezes one exact ten-action beta manifest matching all accepted rou
     'claim-rewards',
     'wall',
     'inbox',
+    'thread',
   ]);
   assert.equal(Object.isFrozen(BETA_ACTIONS), true);
   for (const action of BETA_ACTIONS) assert.equal(isBetaAction(action), true);
-  for (const action of ['thread', 'profile', 'payment']) {
+  for (const action of ['profile', 'payment']) {
     assert.equal(isBetaAction(action), false, action);
   }
 
+  const acceptedSocialActions = [...ACTIONS].filter((action) => isBetaAction(action));
   const acceptedLaneUnion = [...new Set([
-    ...BETA_SELF_ACTIONS,
-    ...BETA_M16_3_ACTIONS,
+    ...acceptedSocialActions,
     ...BETA_M16_4_ACTIONS,
   ])].sort();
   assert.deepEqual(acceptedLaneUnion, [...BETA_ACTIONS].sort());
+  assert.deepEqual(BETA_SELF_ACTIONS, ['post', 'comment', 'thread']);
+  assert.deepEqual([...BETA_M16_3_ACTIONS], [
+    'vote',
+    'follow',
+    'unfollow',
+    'subscribe',
+    'unsubscribe',
+  ]);
 });
 
 test('Privex beta release gate accepts only the reviewed production topology and inert legacy lanes', () => {
