@@ -49,7 +49,18 @@ test('UX-1B pinned-Chromium contract covers five composer contexts at desktop an
   assert.match(capture, /UX-1B visual qualification forbids Keychain signing/);
   assert.match(capture, /UX-1B visual qualification forbids Keychain encryption/);
   assert.match(capture, /assert\.deepEqual\(fixture\.mutationAttempts, \[\]\)/);
-  assert.match(capture, /window\.scrollTo\(0, 0\)/);
+
+  const settleStart = capture.indexOf('async function settleCaptureViewport(page)');
+  const settleEnd = capture.indexOf('function assertSafeOutputRoot', settleStart);
+  assert.ok(settleStart >= 0 && settleEnd > settleStart);
+  const settle = capture.slice(settleStart, settleEnd);
+  assert.match(settle, /scroll-behavior:auto!important/);
+  assert.match(settle, /overflow-anchor:none!important/);
+  const fontReadyIndex = settle.indexOf('document.fonts.ready');
+  const finalScrollIndex = settle.indexOf('window.scrollTo(0, 0)');
+  assert.ok(fontReadyIndex >= 0 && finalScrollIndex > fontReadyIndex);
+  assert.match(settle, /window\.requestAnimationFrame/);
+  assert.match(capture, /await settleCaptureViewport\(page\)/);
   assert.match(capture, /assert\.equal\(evidence\.scrollY, 0\)/);
   assert.match(capture, /counterOwnershipErrors/);
   assert.match(capture, /statusOwnershipErrors/);

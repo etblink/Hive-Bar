@@ -68,6 +68,22 @@ function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
 }
 
+async function settleCaptureViewport(page) {
+  await page.addStyleTag({
+    content: 'html{scroll-behavior:auto!important;overflow-anchor:none!important}*{animation-duration:0s!important;transition-duration:0s!important;caret-color:transparent!important}',
+  });
+  await page.evaluate(async () => document.fonts.ready);
+  await page.evaluate(() => new Promise((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      window.requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        resolve();
+      });
+    });
+  }));
+}
+
 function assertSafeOutputRoot() {
   const relative = path.relative(ROOT, OUTPUT);
   assert.ok(relative && !relative.startsWith('..') && !path.isAbsolute(relative));
@@ -130,11 +146,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
   if (scenario.open) await page.locator(scenario.open).click();
   await page.locator(scenario.input).fill(scenario.value);
   await page.locator(scenario.input).focus();
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.addStyleTag({
-    content: '*{animation-duration:0s!important;transition-duration:0s!important;caret-color:transparent!important}',
-  });
-  await page.evaluate(async () => document.fonts.ready);
+  await settleCaptureViewport(page);
 
   const evidence = await page.evaluate(({ action, inputSelector, scenarioId }) => {
     const target = document.querySelector(inputSelector);
