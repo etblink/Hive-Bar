@@ -1,13 +1,15 @@
-<section class="bg-gray-950 py-14 sm:py-20" aria-labelledby="photos-heading">
-  <div class="app-content-frame">
-    <p class="app-kicker">Inside 4th Street Bar</p>
-    <h2 id="photos-heading" class="app-section-title mt-2">A little of the place</h2>
-    <p class="mt-4 max-w-2xl text-gray-300">
-      Pool, a welcome from behind the bar, and the East 4th Street entrance.
-    </p>
+<section class="home-gallery" aria-labelledby="photos-heading">
+  <div class="app-content-frame home-section">
+    <header class="home-section-heading home-gallery__heading">
+      <div>
+        <p class="home-kicker">Inside 4th Street Bar</p>
+        <h2 id="photos-heading">A real look at the place</h2>
+      </div>
+      <p>Candid photographs from the pool table, the bar, and the East 4th Street entrance.</p>
+    </header>
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-3">
-      <figure class="venue-photo-card">
+    <div class="home-gallery__grid">
+      <figure class="home-gallery__item home-gallery__item--pool">
         <img
           src="/images/fourth-street-bar-pool-table.jpg"
           alt="Pool table and crossed cues inside 4th Street Bar"
@@ -15,23 +17,23 @@
           height="960"
           loading="lazy"
           decoding="async"
-          class="venue-photo venue-photo--portrait w-full">
-        <figcaption class="venue-photo-caption">Pool at the heart of the bar</figcaption>
+          class="home-gallery__image w-full">
+        <figcaption>Pool at the heart of the bar</figcaption>
       </figure>
 
-      <figure class="venue-photo-card">
+      <figure class="home-gallery__item home-gallery__item--bartender">
         <img
           src="/images/fourth-street-bar-bartender.jpg"
-          alt="A smiling bartender behind the bar holding a 4th Street Bar mug"
+          alt="A bartender behind the bar holding a 4th Street Bar mug"
           width="768"
           height="960"
           loading="lazy"
           decoding="async"
-          class="venue-photo venue-photo--portrait venue-photo--top w-full">
-        <figcaption class="venue-photo-caption">A welcome from behind the bar</figcaption>
+          class="home-gallery__image w-full">
+        <figcaption>A welcome from behind the bar</figcaption>
       </figure>
 
-      <figure class="venue-photo-card">
+      <figure class="home-gallery__item home-gallery__item--exterior">
         <img
           src="/images/fourth-street-bar-exterior.jpg"
           alt="The 4th Street Bar entrance and sign on East 4th Street in Reno"
@@ -39,8 +41,8 @@
           height="960"
           loading="lazy"
           decoding="async"
-          class="venue-photo venue-photo--portrait w-full">
-        <figcaption class="venue-photo-caption">1114 East 4th Street</figcaption>
+          class="home-gallery__image w-full">
+        <figcaption>1114 East 4th Street</figcaption>
       </figure>
     </div>
   </div>

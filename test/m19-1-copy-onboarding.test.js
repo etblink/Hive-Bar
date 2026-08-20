@@ -37,9 +37,11 @@ test('M19.1 explains participation and Keychain sign-in before a patron acts', a
   const { app } = createFixtureApp();
   const home = await request(app).get('/').expect(200);
 
-  assert.match(home.text, /Anyone can browse; sign in with Hive Keychain when you want to participate/);
-  assert.match(home.text, /Once signed in, you can post, vote, write on a Wall, and send encrypted private messages/);
-  assert.match(home.text, /You’ll review each Hive action here before Keychain asks you to approve it/);
+  assert.match(home.text, /Anyone can browse the public community/);
+  assert.match(home.text, /Post, reply, vote, and start a Thread/);
+  assert.match(home.text, /Write on public Walls or send an encrypted private message/);
+  assert.match(home.text, /You review each action before Keychain opens/);
+  assert.match(home.text, /Your private keys stay in Keychain/);
   assert.match(home.text, /signing a login message\. This does not send a transaction\. Never enter a private key here\./);
 });
 

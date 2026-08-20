@@ -57,43 +57,42 @@ function controlledApp({ payment = false } = {}) {
   };
 }
 
-test('M18.3 Home is venue-first while keeping activity before visit information', async () => {
+test('M18.3 Home remains venue-first while UX-1F supersedes its historical presentation', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/').expect(200);
   const document = documentFor(response.text);
   const main = document.querySelector('main[data-m18-3-surface="home"]');
 
   assert.ok(main);
-  const hero = main.querySelector('.social-home-hero');
+  const hero = main.querySelector('.home-hero');
   assert.equal(
     hero?.querySelector('img[src="/images/fourth-street-bar-patio.jpg"]')?.getAttribute('src'),
     '/images/fourth-street-bar-patio.jpg',
   );
-  assert.equal(
-    hero?.querySelector('.social-home-hero__logo')?.getAttribute('src'),
-    '/images/fourth-street-bar-logo.jpg',
-  );
+  assert.equal(hero?.querySelector('img[src="/images/fourth-street-bar-logo.jpg"]'), null);
+  assert.equal(main.querySelectorAll('h1').length, 1);
   assert.match(hero?.querySelector('h1')?.textContent || '', /4th Street Bar/);
   assert.equal(hero?.querySelector('a.button-primary')?.getAttribute('href'), '/community');
-  assert.equal(hero?.querySelector('a[href="#visit"]')?.textContent.trim(), 'Visit the bar');
+  assert.equal(hero?.querySelector('a[href="#visit"]')?.textContent.trim(), 'Plan your visit');
 
   const children = Array.from(main.children);
-  const feedIndex = children.findIndex((item) => item.classList.contains('social-home-feed'));
-  const visitIndex = children.findIndex((item) => item.id === 'visit');
-  assert.ok(feedIndex >= 0);
-  assert.ok(visitIndex > feedIndex);
+  assert.deepEqual(children.map((item) => item.classList[0]), [
+    'home-hero',
+    'home-updates',
+    'home-pathways',
+    'home-gallery',
+  ]);
 
   const visit = main.querySelector('#visit');
   assert.match(visit?.textContent || '', /Address/);
   assert.match(visit?.textContent || '', /Hours/);
   assert.match(visit?.textContent || '', /Phone/);
 
-  assert.match(main.textContent, /Anyone can browse; sign in with Hive Keychain when you want to participate/);
+  assert.match(main.textContent, /Anyone can browse the public community/);
   assert.match(main.textContent, /Your private keys stay in Keychain/);
 
   const approved = new Set([
     '/images/fourth-street-bar-patio.jpg',
-    '/images/fourth-street-bar-logo.jpg',
     '/images/fourth-street-bar-pool-table.jpg',
     '/images/fourth-street-bar-bartender.jpg',
     '/images/fourth-street-bar-exterior.jpg',
@@ -103,6 +102,7 @@ test('M18.3 Home is venue-first while keeping activity before visit information'
       .every((source) => approved.has(source)),
     true,
   );
+  assert.equal(main.querySelectorAll('img').length, 4);
   assert.doesNotMatch(main.textContent, /\bLive\b|\bEvents?\b|\bNearby\b|\bFor You\b/);
   assert.equal(main.querySelector('input[type="search"]'), null);
 });

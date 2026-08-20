@@ -28,26 +28,29 @@ function documentFor(html) {
   return new JSDOM(html).window.document;
 }
 
-test('M15.3 Home is feed-first, venue-led, and uses only current capabilities', async () => {
+test('M15.3 Home remains venue-led and uses only current capabilities after UX-1F', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/').expect(200);
   const document = documentFor(response.text);
 
   const main = document.querySelector('main[data-m15-surface="home"]');
   assert.ok(main);
-  assert.ok(main.querySelector('.social-home-hero'));
-  assert.ok(main.querySelector('.social-home-feed'));
-  assert.equal(main.querySelector('.social-home-hero__logo')?.getAttribute('src'), '/images/fourth-street-bar-logo.jpg');
+  assert.ok(main.querySelector('.home-hero'));
+  assert.ok(main.querySelector('.home-updates'));
+  assert.equal(main.querySelector('img[src="/images/fourth-street-bar-logo.jpg"]'), null);
   assert.match(main.querySelector('h1')?.textContent || '', /4th Street Bar/);
 
   const links = Array.from(document.querySelectorAll('head link[rel="stylesheet"]')).map((link) => link.getAttribute('href'));
-  assert.deepEqual(links, ['/css/style.css', '/css/m15-social.css']);
+  assert.deepEqual(links, ['/css/style.css', '/css/m15-social.css', '/css/ux-1f-home.css']);
 
   const children = Array.from(main.children);
-  const feedIndex = children.findIndex((element) => element.classList.contains('social-home-feed'));
-  const visitIndex = children.findIndex((element) => element.id === 'visit');
-  assert.ok(feedIndex >= 0);
-  assert.ok(visitIndex > feedIndex);
+  assert.deepEqual(children.map((element) => element.classList[0]), [
+    'home-hero',
+    'home-updates',
+    'home-pathways',
+    'home-gallery',
+  ]);
+  assert.ok(main.querySelector('.home-pathways #visit'));
 
   assert.doesNotMatch(main.textContent, /\bLive\b|\bEvents?\b|\bNearby\b|\bFor You\b/);
   assert.equal(main.querySelector('input[type="search"]'), null);

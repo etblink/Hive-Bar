@@ -1,54 +1,44 @@
-<section class="social-home-feed" aria-labelledby="latest-updates-heading">
-  <div class="app-content-frame">
-    <div class="app-social-column">
-      <div class="social-section-heading">
-        <div>
-          <p class="app-kicker">From 4th Street Bar</p>
-          <h2 id="latest-updates-heading" class="app-section-title">Latest from the bar</h2>
-        </div>
-        <a href="/community" class="button-secondary">See the community</a>
+<section
+  class="home-updates"
+  aria-labelledby="latest-updates-heading"
+  data-home-updates-state="<%= officialUpdates.status %>">
+  <div class="app-content-frame home-section">
+    <header class="home-section-heading home-updates__heading">
+      <div>
+        <p class="home-kicker">From 4th Street Bar</p>
+        <h2 id="latest-updates-heading">Latest from the bar</h2>
       </div>
+      <a href="/community" class="home-text-link">See the community <span aria-hidden="true">→</span></a>
+    </header>
 
-      <% if (officialUpdates.status === 'ready') { %>
-        <ul class="social-feed" aria-label="Latest official updates">
-          <% officialUpdates.items.forEach((post) => { %>
-            <li class="social-feed-item">
-              <article class="social-update">
-                <div class="social-update__identity">
-                  <span class="social-update__mark" aria-hidden="true">
-                    <img
-                      src="/images/fourth-street-bar-logo.jpg"
-                      alt=""
-                      width="720"
-                      height="720"
-                      class="max-w-full">
-                  </span>
-                  <span>4th Street Bar · Official update</span>
-                </div>
-                <h3>
-                  <a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a>
-                </h3>
-                <p class="social-update__excerpt"><%= post.excerpt || 'Read the full update in the community.' %></p>
-                <footer class="social-update__footer">
-                  <a href="/post/<%= post.author %>/<%= post.permlink %>">Read update<span class="sr-only">: <%= post.title %></span></a>
-                </footer>
-              </article>
-            </li>
-          <% }) %>
-        </ul>
-      <% } else if (officialUpdates.status === 'unavailable') { %>
-        <section class="state-card" role="status">
-          <p class="eyebrow">Latest updates</p>
-          <h2>Updates are temporarily unavailable</h2>
-          <p>We couldn’t load the bar’s latest updates. You can still browse the community.</p>
-        </section>
-      <% } else { %>
-        <section class="state-card">
-          <p class="eyebrow">Latest updates</p>
-          <h2>Nothing from the bar yet</h2>
-          <p>Official posts will appear here as they’re published.</p>
-        </section>
-      <% } %>
-    </div>
+    <% if (officialUpdates.status === 'ready') { %>
+      <ul class="home-update-list" aria-label="Latest official updates">
+        <% officialUpdates.items.forEach((post) => { %>
+          <li class="home-update-list__item">
+            <article class="home-update">
+              <p class="home-update__identity">Official update</p>
+              <h3>
+                <a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title || 'Update from 4th Street Bar' %></a>
+              </h3>
+              <p class="home-update__excerpt"><%= post.excerpt || 'Read the full update in the community.' %></p>
+              <a class="home-update__link" href="/post/<%= post.author %>/<%= post.permlink %>">
+                Read update<span class="sr-only">: <%= post.title || 'Update from 4th Street Bar' %></span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </article>
+          </li>
+        <% }) %>
+      </ul>
+    <% } else if (officialUpdates.status === 'unavailable') { %>
+      <div class="home-updates-note home-updates-note--unavailable" role="status">
+        <span class="home-updates-note__mark" aria-hidden="true"></span>
+        <p><strong>Latest updates are temporarily unavailable.</strong> The bar and community pages are still ready to explore.</p>
+      </div>
+    <% } else { %>
+      <div class="home-updates-note home-updates-note--empty">
+        <span class="home-updates-note__mark" aria-hidden="true"></span>
+        <p><strong>No official updates yet.</strong> New posts from the bar will appear here.</p>
+      </div>
+    <% } %>
   </div>
 </section>

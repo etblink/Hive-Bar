@@ -51,7 +51,7 @@ test('renders a truthful, complete home document with hardened response headers'
   assert.match(response.text, /1114 E\. 4th Street, Reno, NV 89512/);
   assert.match(response.text, /\(775\) 324-7827/);
   assert.match(response.text, /Daily, 12:00 p\.m.–2:00 a\.m\./);
-  assert.match(response.text, /Pool, a welcome from behind the bar, and the East 4th Street entrance/);
+  assert.match(response.text, /Candid photographs from the pool table, the bar, and the East 4th Street entrance/);
   assert.match(response.text, /\/images\/fourth-street-bar-patio\.jpg/);
   assert.match(response.text, /\/images\/fourth-street-bar-pool-table\.jpg/);
   assert.match(response.text, /\/images\/fourth-street-bar-bartender\.jpg/);
@@ -110,7 +110,7 @@ test('keeps the home page available when official updates cannot be read', async
     throw new Error('sensitive RPC outage detail');
   });
   const response = await request(app).get('/').expect(200);
-  assert.match(response.text, /Updates are temporarily unavailable/);
+  assert.match(response.text, /Latest updates are temporarily unavailable/);
   assert.doesNotMatch(response.text, /sensitive RPC outage detail/);
 });
 

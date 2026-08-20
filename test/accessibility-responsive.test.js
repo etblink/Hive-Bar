@@ -170,7 +170,9 @@ test('key routes satisfy the automated 360 CSS-pixel responsive contract', async
   }
 
   const home = (await renderKeyRoutes())[0].response.text;
-  assert.match(home, /grid[^"\n]*lg:grid-cols-2/);
+  assert.match(home, /class="home-pathways__grid"/);
+  const homeCss = fs.readFileSync(path.join(__dirname, '..', 'public', 'css', 'ux-1f-home.css'), 'utf8');
+  assert.match(homeCss, /@media\s*\(min-width:\s*960px\)[\s\S]*?\.home-pathways__grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,/);
   const community = (await renderKeyRoutes())[1].response.text;
   assert.match(community, /grid-cols-1[^"\n]*lg:grid-cols/);
   const wallet = (await renderKeyRoutes())[4].response.text;

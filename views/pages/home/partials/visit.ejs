@@ -1,34 +1,26 @@
-<section id="visit" class="bg-gray-900 py-14 sm:py-20" aria-labelledby="visit-heading">
-  <div class="app-content-frame">
-    <div class="social-section-heading">
-      <div>
-        <p class="app-kicker">Visit 4th Street Bar</p>
-        <h2 id="visit-heading" class="app-section-title">The essentials</h2>
-      </div>
-      <a href="<%= business.mapUrl %>" target="_blank" rel="noopener noreferrer" class="button-secondary">Get directions</a>
-    </div>
+<article id="visit" class="home-pathway home-pathway--visit" aria-labelledby="visit-heading">
+  <p class="home-kicker">At the bar</p>
+  <h3 id="visit-heading">Make your way to East 4th Street</h3>
+  <p class="home-pathway__lede">The essentials for finding 4th Street Bar and planning a visit.</p>
 
-    <div class="mt-4 rounded-2xl border border-gray-700 bg-black/40 p-5 sm:p-7">
-      <dl class="grid gap-6 md:grid-cols-3">
-        <div>
-          <dt class="text-xs font-bold text-gray-400">Address</dt>
-          <dd class="mt-2 text-gray-100"><%= business.address %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-bold text-gray-400">Hours</dt>
-          <dd class="mt-2 text-gray-100"><%= business.hours %></dd>
-        </div>
-        <div>
-          <dt class="text-xs font-bold text-gray-400">Phone</dt>
-          <dd class="mt-2 text-gray-100"><%= business.phone %></dd>
-        </div>
-      </dl>
-      <p class="mt-6 text-sm text-gray-400">
-        <a class="text-bar-gold hover:underline" href="<%= business.mapUrl %>" target="_blank" rel="noopener noreferrer">Open directions</a>
-        <span aria-hidden="true"> · </span>
-        <a class="text-bar-gold hover:underline" href="<%= business.websiteUrl %>" target="_blank" rel="noopener noreferrer">Official bar website</a>
-        <span> · Check the official site for holiday changes.</span>
-      </p>
+  <dl class="home-visit-facts">
+    <div>
+      <dt>Address</dt>
+      <dd><%= business.address %></dd>
     </div>
+    <div>
+      <dt>Hours</dt>
+      <dd><%= business.hours %></dd>
+    </div>
+    <div>
+      <dt>Phone</dt>
+      <dd><%= business.phone %></dd>
+    </div>
+  </dl>
+
+  <div class="home-pathway__actions">
+    <a href="<%= business.mapUrl %>" target="_blank" rel="noopener noreferrer" class="button-primary">Get directions</a>
+    <a href="<%= business.websiteUrl %>" target="_blank" rel="noopener noreferrer" class="home-text-link">Official bar website <span aria-hidden="true">↗</span></a>
   </div>
-</section>
+  <p class="home-pathway__note">Check the official bar website for holiday changes.</p>
+</article>

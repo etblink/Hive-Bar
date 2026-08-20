@@ -49,7 +49,8 @@ test('M16.5 public pages speak to visitors rather than operators', async () => {
   }
 
   const home = await request(app).get('/').expect(200);
-  assert.match(home.text, /Anyone can browse; sign in with Hive Keychain when you want to participate/);
+  assert.match(home.text, /Anyone can browse the public community/);
+  assert.match(home.text, /sign in with Hive Keychain when you want to join in/);
   assert.match(home.text, /Your private keys stay in Keychain/);
 
   const pay = await request(app).get('/pay').expect(200);

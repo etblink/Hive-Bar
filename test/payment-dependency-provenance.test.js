@@ -53,7 +53,7 @@ test('applies the pinned dependency patch explicitly after script-disabled CI in
   const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
   const attributes = canonicalLf(fs.readFileSync(path.join(root, '.gitattributes'), 'utf8'));
 
-  assert.equal(installAndPatchCount(workflow), 9);
+  assert.equal(installAndPatchCount(workflow), 10);
   assert.match(workflow, /ubuntu-latest/);
   assert.match(workflow, /windows-latest/);
   assert.match(attributes, /^patches\/\*\.patch text eol=lf$/m);
@@ -73,6 +73,6 @@ test('binds identical provenance under simulated LF and Windows CRLF checkouts',
 
   assert.equal(canonicalTextSha256(patch), patchSha256);
   assert.equal(canonicalTextSha256(windowsPatch), patchSha256);
-  assert.equal(installAndPatchCount(workflow), 9);
-  assert.equal(installAndPatchCount(windowsWorkflow), 9);
+  assert.equal(installAndPatchCount(workflow), 10);
+  assert.equal(installAndPatchCount(windowsWorkflow), 10);
 });
