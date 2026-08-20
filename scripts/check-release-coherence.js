@@ -23,6 +23,7 @@ function assertReleaseCoherence() {
   const privexEnv = read('ops/privex/hive-bar.env.example');
   const workflow = read('.github/workflows/ci.yml');
   const readme = read('README.md');
+  const docsReadme = read('docs/README.md');
   const roadmap = read('docs/ROADMAP.md');
   const operations = read('docs/PRODUCTION_OPERATIONS.md');
 
@@ -45,15 +46,21 @@ function assertReleaseCoherence() {
   requireMatch(workflow, /uses:\s+actions\/setup-node@[0-9a-f]{40}(?:\s+#.*)?$/m, 'setup-node must be pinned by full commit SHA');
   requireMatch(readme, /Node\.js `24\.19\.0`/, 'README must state the pinned Node runtime');
   requireMatch(readme, /M17 is complete/, 'README must identify M17 as complete');
+  requireMatch(readme, /Canonical integrated source is `main`/, 'README must identify main as the moving canonical integrated source');
+  requireMatch(docsReadme, /Canonical integrated source is `main`/, 'documentation index must identify main as the moving canonical integrated source');
+  requireMatch(roadmap, /Canonical repository source: `main`/, 'roadmap must identify main as the moving canonical integrated source');
+  requireMatch(operations, /Runtime source identity: `\/healthz` publishes the exact deployed beta build label, commit, and tree/, 'operations must define runtime source identity through healthz');
   requireMatch(roadmap, /### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M17.4 as accepted');
   requireMatch(roadmap, /### M18\.1–M18\.3[\s\S]*?\*\*Accepted in source\.\*\*/, 'roadmap must identify M18.1–M18.3 as accepted in source');
   requireMatch(roadmap, /### M18\.4 — Beta-readiness closure[\s\S]*?\*\*Accepted in source\.\*\*/, 'roadmap must identify M18.4 as accepted in source');
   requireMatch(roadmap, /### M19\.1 — Copy and onboarding readiness[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M19.1 as accepted');
   requireMatch(roadmap, /### M19\.2 — Controlled beta deployment[\s\S]*?\*\*Accepted\.\*\*/, 'roadmap must identify M19.2 as accepted');
   requireMatch(roadmap, /### M19\.3 — In-person Hive onboarding[\s\S]*?\*\*Current\.\*\*/, 'roadmap must identify M19.3 as current');
-  requireMatch(operations, /deployed source: accepted M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/, 'operations must identify the deployed M19.1 source boundary');
   requireMatch(operations, /last-good.*M17\.3/i, 'operations must retain M17.3 as the last-good boundary');
   requireMatch(operations, /in-person onboarding: not production-activated/, 'operations must distinguish M19.3 source from onboarding activation');
+  if (/Canonical `main` and production are aligned on accepted M19\.1/.test(readme + docsReadme)) {
+    throw new Error('living documentation must not pin moving main to the historical M19.1 production event');
+  }
   if (/\bMIT License\b/i.test(readme)) {
     throw new Error('README must not claim an open-source license that the repository does not provide');
   }

@@ -4,15 +4,17 @@ This is the only living document that defines the current and next project miles
 
 ## Current state
 
-- Production source: accepted M19.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`, tree `1a4bb993ad59ca67032997d8938696a079a71e1f`, deployed by accepted M19.2.
+- Last recorded accepted production transition: M19.2 deployed accepted M19.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`, tree `1a4bb993ad59ca67032997d8938696a079a71e1f`.
+- Runtime source identity: after R0 deployment, read the deployed `beta-<short-sha>` label and full commit/tree from `/healthz`; before that deployment, verify `/opt/hive-bar/current/.hive-bar-commit` and `.hive-bar-tree` operator-side rather than inferring from this document.
 - Persistent production runtime: accepted beta self-signing profile.
-- Accepted beta writes: post, comment, weighted vote, Wall, encrypted Inbox.
-- Production rollback pointer: prior accepted M17.3 release remains `/opt/hive-bar/last-good`.
+- Canonical-source beta writes: post, comment, weighted vote, follow, unfollow, subscribe, unsubscribe, claim rewards, Wall, encrypted Inbox.
+- Production rollback pointer: prior accepted M17.3 release remains the last recorded `/opt/hive-bar/last-good` boundary from M19.2; verify the live symlink before any operation.
 - V1 release gate: operationally rehearsed and accepted without persistent V1 activation.
 - Payments/Distriator: disabled.
 - Controlled/operator/delegated lanes: inert.
-- Canonical repository source: accepted M19.1 exact identity above; production and canonical source are currently aligned.
-- In-person account creation: not activated; M19.3 is the current source milestone.
+- Canonical repository source: `main`; resolve its exact commit/tree from GitHub at qualification time rather than pinning this moving branch to a historical production event.
+- In-person account creation: not activated; M19.3 remains the accepted source-only onboarding milestone.
+- Product lifecycle: beta. Tester feedback and remediation continue until an explicit graduation decision; integrated V1-capable code does not itself make the product V1.
 
 ## M17 — Beta closeout and functional V1 readiness
 
@@ -42,7 +44,7 @@ M18.4 was accepted and integrated on canonical `main` at commit `1aaef44c5b30081
 
 ### M19.2 — Controlled beta deployment
 
-**Accepted.** The exact accepted M19.1 source was deployed to `fourthstreetbar.com` through the read-only deployment gate and the previously accepted beta environment was restored byte-for-byte. Local health/readiness and public beta health passed; public first-party asset revisions matched the deployed release; the prior accepted M17.3 release remains the validated `last-good` rollback target. No V1 activation, Pay/Distriator activation, Keychain request, or Hive write was part of deployment.
+**Accepted.** The exact accepted M19.1 source was deployed to `fourthstreetbar.com` through the read-only deployment gate and the previously accepted beta environment was restored byte-for-byte. Local health/readiness and public beta health passed; public first-party asset revisions matched the deployed release; the prior accepted M17.3 release remained the validated `last-good` rollback target. No V1 activation, Pay/Distriator activation, Keychain request, or Hive write was part of deployment.
 
 ### M19.3 — In-person Hive onboarding
 
@@ -52,11 +54,11 @@ M19.3 is source-only until separately accepted and integrated. It must not consu
 
 ### M19.4 — Real closed beta
 
-**Planned.** After M19.3 source acceptance, separate onboarding activation, and one controlled live account-creation acceptance, invite about 5–10 people and have them pass through the same onboarding path intended for future patrons. Give lightweight guidance rather than a scripted functional test. Collect where people hesitate, misunderstand recovery/Keychain, fail to find capabilities, encounter mobile friction, or experience a genuine defect.
+**Planned.** Expand beta testing deliberately after the earliest independent testers and remediation cycles demonstrate that the next cohort can participate productively. Preserve build provenance for each report, collect where people hesitate or fail, and continue iterative remediation before broader customer exposure.
 
 ### M19.5 — Beta triage and release decision
 
-**Planned.** Classify findings as release blockers, pre-V1 UX issues, or post-V1 enhancements. Fix only demonstrated blockers and material pre-V1 usability problems. If the closed beta exposes no material release blocker, freeze the result and proceed to the final V1 release sequence rather than creating additional polish milestones by default.
+**Planned.** Classify findings as beta blockers, material pre-V1 usability problems, or later enhancements. Continue bounded remediation and cohort expansion until the product is demonstrably working. Only then make an explicit V1 graduation decision; do not infer V1 status from the existence of V1-capable source code.
 
 ## Final V1 release
 
@@ -68,7 +70,6 @@ After controlled beta feedback and explicit release approval, synchronize packag
 - Distriator;
 - controlled bar-operator posting;
 - delegated staff posting;
-- reward claiming;
-- additional wallet operations;
+- additional wallet operations beyond the accepted beta/V1 manifests;
 - future dedicated onboarding creator/recovery-account operationalization;
 - future multi-venue/brand productization and resale architecture.

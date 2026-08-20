@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { once } = require('node:events');
 const test = require('node:test');
 const { loadConfig } = require('../src/config');
-const { startServer } = require('../src/server');
+const { isInstalledPrivexRelease, startServer } = require('../src/server');
 
 const logger = {
   child() {
@@ -15,6 +15,20 @@ const logger = {
   info() {},
   warn() {},
 };
+
+const deploymentIdentity = Object.freeze({
+  build: 'beta-0123456',
+  commit: '0123456789abcdef0123456789abcdef01234567',
+  tree: '89abcdef0123456789abcdef0123456789abcdef',
+  exact: true,
+});
+
+test('distinguishes installed Privex release roots from ordinary production-mode workspaces', () => {
+  assert.equal(isInstalledPrivexRelease('/opt/hive-bar/current'), true);
+  assert.equal(isInstalledPrivexRelease('/opt/hive-bar/releases/0123456789abcdef'), true);
+  assert.equal(isInstalledPrivexRelease('/opt/hive-bar/repository.git'), false);
+  assert.equal(isInstalledPrivexRelease('/workspace/hive-bar'), false);
+});
 
 test('starts on a real TCP socket in production mode and shuts down cleanly', async () => {
   const validated = loadConfig(
@@ -51,7 +65,13 @@ test('starts on a real TCP socket in production mode and shuts down cleanly', as
     server: { ...validated.server, port: 0 },
   };
   const rpcPool = { call: async () => ({ head_block_number: 123 }), getStatus: () => [] };
-  const running = startServer({ config, logger, rpcPool, installSignalHandlers: false });
+  const running = startServer({
+    config,
+    deploymentIdentity,
+    logger,
+    rpcPool,
+    installSignalHandlers: false,
+  });
   await once(running.server, 'listening');
 
   try {
@@ -66,6 +86,9 @@ test('starts on a real TCP socket in production mode and shuts down cleanly', as
       service: 'hive-bar',
       environment: 'production',
       writeMode: 'disabled',
+      build: deploymentIdentity.build,
+      commit: deploymentIdentity.commit,
+      tree: deploymentIdentity.tree,
     });
   } finally {
     const closed = once(running.server, 'close');

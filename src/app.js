@@ -18,6 +18,7 @@ const { createLogger } = require('./lib/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errors');
 const { requestContext } = require('./middleware/request-context');
 const { sessionContext } = require('./middleware/session');
+const { readDeploymentIdentity } = require('./release/deployment-identity');
 const { PreflightStore } = require('./social/preflight-store');
 const { isM10OperatorArmActive } = require('./social/operator-posting-mode');
 const { createHealthRouter } = require('./routes/health');
@@ -59,6 +60,8 @@ function securityMiddleware(config) {
 function createApp(options = {}) {
   const config = options.config || loadConfig();
   const logger = options.logger || createLogger(config);
+  const deploymentIdentity =
+    options.deploymentIdentity || readDeploymentIdentity({ rootDir: options.releaseRoot });
   const rpcPool =
     options.rpcPool ||
     new HiveRpcPool({
@@ -123,6 +126,7 @@ function createApp(options = {}) {
   app.locals.threadsContainerAccount = config.hive.threadsContainerAccount;
   app.locals.writesEnabled = config.hive.writesEnabled;
   app.locals.signerMode = config.hive.signerMode;
+  app.locals.buildLabel = deploymentIdentity.build;
   app.locals.canWriteAction = (action) => {
     if (config.hive.betaSelfSigningEnabled) {
       return isBetaAction(action);
@@ -165,6 +169,7 @@ function createApp(options = {}) {
   app.locals.services = {
     authorityVerifier,
     challengeStore,
+    deploymentIdentity,
     hiveReads,
     keychainAuth,
     logger,
@@ -215,7 +220,7 @@ function createApp(options = {}) {
     express.static(path.join(path.dirname(require.resolve('@zxing/browser')), '..', 'umd'), staticOptions),
   );
 
-  app.use(createHealthRouter({ config, rpcPool }));
+  app.use(createHealthRouter({ config, rpcPool, deploymentIdentity }));
 
   app.use(
     '/auth',

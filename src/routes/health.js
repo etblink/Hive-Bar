@@ -2,24 +2,30 @@
 
 const express = require('express');
 
-function createHealthRouter({ config, rpcPool }) {
+function createHealthRouter({ config, rpcPool, deploymentIdentity }) {
   const router = express.Router();
 
   router.get('/healthz', (_req, res) => {
-    res.set('Cache-Control', 'no-store').json({
+    const body = {
       status: 'ok',
       service: 'hive-bar',
       environment: config.env,
       writeMode: config.hive.writeMode,
-    });
+    };
+    if (deploymentIdentity.exact) {
+      body.build = deploymentIdentity.build;
+      body.commit = deploymentIdentity.commit;
+      body.tree = deploymentIdentity.tree;
+    }
+    res.set('Cache-Control', 'no-store').json(body);
   });
 
   router.get('/readyz', async (_req, res) => {
     try {
-      await rpcPool.call('condenser_api', 'get_dynamic_global_properties', [], { timeoutMs: 3000 });
+      await rpcPool.call('condenser_api', 'get_dynamic_global_properties', []);
       res.set('Cache-Control', 'no-store').json({ status: 'ready' });
-    } catch {
-      res.status(503).set('Cache-Control', 'no-store').json({ status: 'not_ready' });
+    } catch (_error) {
+      res.set('Cache-Control', 'no-store').status(503).json({ status: 'not_ready' });
     }
   });
 

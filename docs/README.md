@@ -12,9 +12,11 @@ This index separates **living documentation** from **historical milestone eviden
 
 Living documentation must be updated when its factual claims become stale.
 
-## Current accepted source and production state
+## Current source and production identity
 
-Canonical `main` and production are aligned on accepted M19.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`, tree `1a4bb993ad59ca67032997d8938696a079a71e1f`. M19.2 deployed that exact source under the accepted beta self-signing runtime and preserved exact M17.3 as `/opt/hive-bar/last-good`. V1, Pay, and Distriator remain inactive. M19.3 in-person Hive onboarding is the current source-only milestone and is not yet production-activated.
+Canonical integrated source is `main`. Because that branch can advance independently of production, living documentation must not hard-code a historical deployment as the current identity of `main`. Resolve the exact canonical commit/tree from GitHub when qualifying source.
+
+Production identity is runtime evidence: each installed release carries `.hive-bar-commit` and `.hive-bar-tree`; after R0 deployment the shell exposes `beta-<short-sha>` and `/healthz` exposes the full deployed build, commit, and tree. M19.2 remains historical evidence that accepted M19.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`, tree `1a4bb993ad59ca67032997d8938696a079a71e1f`, was deployed under the accepted beta self-signing runtime and that exact M17.3 was preserved as `/opt/hive-bar/last-good`; it is not a substitute for reading the current runtime identity. V1, Pay, and Distriator remain inactive. M19.3 in-person Hive onboarding is not production-activated.
 
 ## Accepted M17 release-governance record
 
@@ -30,9 +32,9 @@ M18 milestone files, tests, CI runs, and visual evidence preserve the accepted v
 ## M19 records
 
 - `M19_1_COPY_AND_ONBOARDING_READINESS.md` — accepted copy/onboarding-readiness source boundary preceding controlled beta deployment.
-- `M19_3_IN_PERSON_HIVE_ONBOARDING.md` — current source qualification boundary for customer credential generation, one-time bartender QR handoff, claimed-account creation, starter HP delegation, and no-auto-retry observation.
+- `M19_3_IN_PERSON_HIVE_ONBOARDING.md` — source qualification record for customer credential generation, one-time bartender QR handoff, claimed-account creation, starter HP delegation, and no-auto-retry observation.
 
-M19.2 is an accepted production deployment event recorded in the living roadmap and production operations document rather than a source implementation file.
+M19.2 is an accepted historical production deployment event recorded in the living roadmap and production operations document rather than a source implementation file.
 
 ## Historical milestone records
 

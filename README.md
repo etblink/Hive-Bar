@@ -1,20 +1,20 @@
 # Hive-Bar
 
-Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Canonical `main` and production are aligned on the accepted M19.1 source at commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4` (tree `1a4bb993ad59ca67032997d8938696a079a71e1f`). M19.2 deployed that exact source to `fourthstreetbar.com` under the already accepted beta self-signing runtime.
+Hive-Bar is a focused Hive blockchain frontend for the 4th Street Bar. Canonical integrated source is `main`; because `main` advances independently of production, its exact commit/tree must be resolved from GitHub at the time of qualification or release. The deployed beta reports its own exact build label, commit, and tree through `/healthz` after R0 is deployed. M19.2 remains the historical deployment event that put accepted M19.1 source at commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4` (tree `1a4bb993ad59ca67032997d8938696a079a71e1f`) on `fourthstreetbar.com` under the accepted beta self-signing runtime; living documentation must not infer the current runtime identity from that historical event.
 
 ## Current functional boundary
 
-The accepted beta write manifest remains exactly `post`, `comment`, `vote`, `wall`, and `inbox`, with every user-owned write reviewed before one local Hive Keychain request and independently observed afterward. No server private key or broadcast RPC method exists, and automatic rebroadcast is prohibited.
+Canonical source currently defines the beta write manifest in `src/beta/actions.js` as exactly `post`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `claim-rewards`, `wall`, and `inbox`. Every user-owned write is reviewed before one local Hive Keychain request and independently observed afterward. No server private key or broadcast RPC method exists, and automatic rebroadcast is prohibited. The action set actually available to a tester is determined by the exact deployed beta build and runtime profile, so bind tester reports to the visible beta build label rather than inferring runtime behavior from this moving branch.
 
-M17.1 froze the intended patron-facing V1 functional set. V1 adds already implemented deterministic social/profile operations to the self-signing release boundary: `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `wall`, and `inbox`. Reward claiming, Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside the V1 release gate.
+The dormant V1 source manifest in `src/v1/actions.js` contains `post`, `thread`, `comment`, `vote`, `follow`, `unfollow`, `subscribe`, `unsubscribe`, `profile`, `claim-rewards`, `wall`, and `inbox`. Pay Tab activation, Distriator, controlled operator posting, delegated staff posting, and additional wallet operations remain outside that V1 self-signing gate. The product itself remains beta until iterative testing supports an explicit V1 graduation decision.
 
-M17 is complete. M18 is accepted through M18.4. M19.1 completed the final patron copy/onboarding-readiness pass and M19.2 deployed it exactly under beta. The current source milestone is M19.3 in-person Hive onboarding: customer-side credential generation/recovery, opaque one-time bartender QR requests, cash-first staff review, claimed-account creation plus fixed starter-HP delegation through staff Keychain, and read-only post-broadcast observation. M19.3 is disabled by default and source qualification does not authorize a live account creation or delegation.
+M17 is complete. M18 is accepted through M18.4. M19.1 completed the final patron copy/onboarding-readiness pass and M19.2 deployed it exactly under beta. Later integrated source has advanced beyond that historical deployment boundary; runtime identity must therefore be established from the deployed release rather than this narrative. M19.3 in-person Hive onboarding remains disabled by default and source qualification does not authorize a live account creation or delegation.
 
-See `docs/ROADMAP.md` for the only living milestone roadmap and `docs/README.md` for the documentation index.
+See `docs/ROADMAP.md` for the living milestone roadmap and `docs/README.md` for the documentation index.
 
 ## Production topology
 
-Production is one Privex Debian 13 VPS behind Cloudflare and Caddy. Node listens only on `127.0.0.1:3000`. The pinned runtime is Node.js `24.19.0` with npm `11.17.0`. Exact-commit deployment is deliberately read-only gated before restoration of any separately accepted beta/V1 runtime environment.
+Production is one Privex Debian 13 VPS behind Cloudflare and Caddy. Node listens only on `127.0.0.1:3000`. The pinned runtime is Node.js `24.19.0` with npm `11.17.0`. Exact-commit deployment is deliberately read-only gated before restoration of any separately accepted beta runtime environment.
 
 Current operations guidance lives in `docs/PRODUCTION_OPERATIONS.md`. Historical milestone documents remain preserved as evidence and should not be treated as current runbooks unless the documentation index says otherwise.
 
@@ -31,7 +31,7 @@ npm run build
 npm start
 ```
 
-Development mode rebuilds CSS and watches the Node process with `npm run dev`.
+Development mode rebuilds CSS and watches the Node process with `npm run dev`. Non-release development/test application construction reports the explicit non-production build label `beta-dev`; it never fabricates a production commit or tree.
 
 ## Deterministic quality gates
 
@@ -52,7 +52,7 @@ Useful release checks include `release:check:runtime`, `release:check:read-only`
 - `/profile/:username/wall-posts` — public fee-qualified wall messages
 - `/profile/:username/inbox` — verified-owner encrypted inbox
 - `/profile/:username/settings` — verified-owner profile/wall settings
-- `/healthz` and `/readyz` — liveness and Hive-backed readiness
+- `/healthz` and `/readyz` — liveness/build identity and Hive-backed readiness
 
 ## Safety invariants
 
@@ -69,7 +69,7 @@ Useful release checks include `release:check:runtime`, `release:check:read-only`
 
 ## Repository governance
 
-Canonical `main` and production are pinned to the accepted M19.1 source identity above. M19.2 is accepted. M19.3 is a source-only onboarding milestone until separately accepted, integrated, deployed, and activated. It does not implicitly consume an account-creation token, create an account, delegate HP, collect tester cash, activate V1, enable payments/Distriator, or change infrastructure.
+Canonical integrated source is `main`; never equate a moving branch with production by documentation assertion. Production identity is the exact commit/tree installed in `/opt/hive-bar/current`, surfaced as `beta-<short-sha>` in the application shell and as full build/commit/tree fields in `/healthz`. Historical deployment records remain evidence of past transitions, not substitutes for runtime identity. No source milestone implicitly consumes an account-creation token, creates an account, delegates HP, collects tester cash, graduates the product from beta to V1, enables payments/Distriator, or changes infrastructure.
 
 ## Licensing
 

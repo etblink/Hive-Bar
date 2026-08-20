@@ -6,11 +6,24 @@ const { loadConfig } = require('./config');
 const { applyReadConsistencyHardening } = require('./hive/read-consistency');
 const { HiveRpcPool } = require('./hive/rpc-pool');
 const { createLogger } = require('./lib/logger');
+const { readDeploymentIdentity } = require('./release/deployment-identity');
 const { createStaticAssetUrl } = require('./release/static-assets');
+
+function isInstalledPrivexRelease(rootDir) {
+  const normalized = path.posix.normalize(String(rootDir).replace(/\\/g, '/'));
+  return normalized === '/opt/hive-bar/current' || normalized.startsWith('/opt/hive-bar/releases/');
+}
 
 function startServer(options = {}) {
   const config = options.config || loadConfig();
   const logger = options.logger || createLogger(config);
+  const releaseRoot = options.releaseRoot || path.join(__dirname, '..');
+  const deploymentIdentity =
+    options.deploymentIdentity ||
+    readDeploymentIdentity({
+      rootDir: releaseRoot,
+      strict: config.isProduction && isInstalledPrivexRelease(releaseRoot),
+    });
   const rpcPool =
     options.rpcPool ||
     new HiveRpcPool({
@@ -26,6 +39,7 @@ function startServer(options = {}) {
       config,
       logger,
       rpcPool,
+      deploymentIdentity,
       now: options.now,
       paymentObserver: options.paymentObserver,
       receiptStore: options.receiptStore,
@@ -42,6 +56,9 @@ function startServer(options = {}) {
         communityId: config.hive.communityId,
         threadsContainerAccount: config.hive.threadsContainerAccount,
         writeMode: config.hive.writeMode,
+        build: deploymentIdentity.build,
+        commit: deploymentIdentity.commit,
+        tree: deploymentIdentity.tree,
       },
       'Hive-Bar server started',
     );
@@ -91,7 +108,7 @@ function startServer(options = {}) {
     process.once('SIGINT', () => shutdown('SIGINT'));
   }
 
-  return { app, config, logger, rpcPool, server, shutdown };
+  return { app, config, deploymentIdentity, logger, rpcPool, server, shutdown };
 }
 
 if (require.main === module) {
@@ -103,4 +120,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { startServer };
+module.exports = { isInstalledPrivexRelease, startServer };

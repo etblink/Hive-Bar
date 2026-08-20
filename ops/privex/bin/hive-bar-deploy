@@ -48,6 +48,8 @@ git --git-dir="$repository" cat-file -e "${commit}^{commit}" 2>/dev/null || fail
 resolved_commit="$(git --git-dir="$repository" rev-parse "${commit}^{commit}")"
 [[ "$resolved_commit" == "$commit" ]] || fail 'commit did not resolve exactly'
 tree="$(git --git-dir="$repository" rev-parse "${commit}^{tree}")"
+subject="$(git --git-dir="$repository" log -1 --format=%s "$commit")"
+build="beta-${commit:0:7}"
 release="$releases/$commit"
 
 if [[ ! -d "$release" ]]; then
@@ -131,8 +133,13 @@ mv -Tf "$next_link" "$current"
 
 systemctl restart "$service"
 for _attempt in {1..20}; do
-  if curl --fail --silent --show-error --max-time 5 "$health_url" | grep -Fq '"writeMode":"disabled"'; then
-    printf 'Hive-Bar deployed exact commit %s (tree %s).\n' "$commit" "$tree"
+  health="$(curl --fail --silent --show-error --max-time 5 "$health_url" 2>/dev/null || true)"
+  if [[ "$health" == *'"writeMode":"disabled"'* &&
+        "$health" == *"\"build\":\"$build\""* &&
+        "$health" == *"\"commit\":\"$commit\""* &&
+        "$health" == *"\"tree\":\"$tree\""* ]]; then
+    deployed_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    printf 'Hive-Bar deployed %s exact commit %s tree %s at %s subject: %s\n' "$build" "$commit" "$tree" "$deployed_at" "$subject"
     exit 0
   fi
   sleep 1

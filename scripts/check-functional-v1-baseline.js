@@ -69,14 +69,14 @@ function assertFunctionalV1Baseline() {
   if (!/### M17\.4 — Functional V1 baseline[\s\S]*?\*\*Accepted\.\*\*/.test(roadmap)) {
     throw new Error('living roadmap must identify M17.4 as accepted');
   }
-  if (!/deployed source: accepted M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/.test(operations)) {
-    throw new Error('production operations must identify accepted M19.1 source as deployed');
+  if (!/last recorded accepted production transition: M19\.2 deployed M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/.test(operations)) {
+    throw new Error('production operations must retain M19.2 as the historical accepted M19.1 deployment event');
   }
   if (!/Production remains beta until a separately authorized transition/.test(operations)) {
     throw new Error('production operations must keep V1 activation outside later beta milestones');
   }
   if (!/last-good.*M17\.3/i.test(operations)) {
-    throw new Error('production operations must retain exact M17.3 as the current last-good boundary');
+    throw new Error('production operations must retain exact M17.3 as the recorded last-good boundary');
   }
   for (const pattern of [
     /readonly last_good="\$app_root\/last-good"/,

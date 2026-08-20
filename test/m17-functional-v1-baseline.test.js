@@ -80,7 +80,7 @@ test('M17.4 last-good bookkeeping is atomic and does not weaken explicit rollbac
   assert.doesNotMatch(rollback, /commit=.*last_good/);
 });
 
-test('accepted M17 invariants coexist with deployed M19.1 beta and current M19.3 living documentation', () => {
+test('accepted M17 invariants coexist with historical M19.2 deployment evidence and current beta living documentation', () => {
   const readme = read('README.md');
   const roadmap = read('docs/ROADMAP.md');
   const operations = read('docs/PRODUCTION_OPERATIONS.md');
@@ -88,14 +88,18 @@ test('accepted M17 invariants coexist with deployed M19.1 beta and current M19.3
   const milestone = read('docs/M17_4_FUNCTIONAL_V1_BASELINE.md');
 
   assert.match(readme, /M17 is complete/);
-  assert.match(readme, /production are aligned on the accepted M19\.1 source/);
+  assert.match(readme, /M19\.2 remains the historical deployment event/);
+  assert.match(readme, /e01407f5f29e3d0a1d41fe33fca129399b4cd2d4/);
   assert.match(roadmap, /Persistent production runtime: accepted beta self-signing profile\./);
   assert.match(roadmap, /### M17\.4 — Functional V1 baseline\r?\n\r?\n\*\*Accepted\.\*\*/);
   assert.match(roadmap, /### M18\.1–M18\.3\r?\n\r?\n\*\*Accepted in source\.\*\*/);
   assert.match(roadmap, /### M18\.4 — Beta-readiness closure\r?\n\r?\n\*\*Accepted in source\.\*\*/);
   assert.match(roadmap, /### M19\.3 — In-person Hive onboarding\r?\n\r?\n\*\*Current\.\*\*/);
-  assert.match(operations, /deployed source: accepted M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/);
-  assert.match(operations, /canonical repository source: accepted M19\.1 exact identity above/);
+  assert.match(
+    operations,
+    /last recorded accepted production transition: M19\.2 deployed M19\.1 commit `e01407f5f29e3d0a1d41fe33fca129399b4cd2d4`/,
+  );
+  assert.match(operations, /canonical repository source: moving branch `main`/);
   assert.match(operations, /Production remains beta until a separately authorized transition/);
   assert.match(operations, /last-good.*M17\.3/i);
   assert.match(index, /M17_4_FUNCTIONAL_V1_BASELINE\.md/);
