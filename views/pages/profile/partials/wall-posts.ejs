@@ -2,10 +2,14 @@
   <header class="py-3">
     <p class="app-kicker">Public wall</p>
     <div class="mt-2 flex flex-wrap items-end justify-between gap-3">
-      <div><h2 id="wall-heading" class="app-section-title">@<%= userProfile.name %>’s Wall</h2><p class="mt-3 max-w-2xl text-sm leading-6 text-gray-300">Posting a wall message costs at least <strong class="text-white"><%= profileSettings.wallFee %></strong>. Public wall messages and payment details are permanently visible on Hive.</p></div>
-      <p class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-xs font-bold text-gray-300"><strong class="text-white"><%= profileSettings.wallFee %></strong> minimum · Public on Hive</p>
+      <div>
+        <h2 id="wall-heading" class="app-section-title">@<%= userProfile.name %>’s Wall</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-300">Posting a wall message costs at least <strong class="text-white"><%= profileSettings.wallFee %></strong>. Public wall messages and payment details are permanently visible on Hive.</p>
+      </div>
+      <p class="message-surface__context"><strong><%= profileSettings.wallFee %></strong> minimum · Public on Hive</p>
     </div>
   </header>
+
   <% const messagingEnabled = canWriteAction('wall') && canWriteAction('inbox'); %>
   <% if (hiveSession && messagingEnabled) { %>
     <%- include('../../../common/composer', { composer: {
@@ -51,10 +55,60 @@
       submitVariant: 'secondary',
       disclosure: 'Keychain encrypts the message in this browser. The message text stays private, but sender, recipient, HBD amount, time, and transaction remain public on Hive. Encryption happens before review.',
     } }) %>
-  <% } else if (hiveSession) { %><p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and private messaging aren’t available here yet.</p><% } else { %><p class="mt-5 border-l-4 border-gray-700 py-2 pl-4 text-sm leading-6 text-gray-300">Sign in with Hive Keychain to write on this wall or send a private message. Reading public wall messages never requires signing in.</p><% } %>
-  <section class="mt-8" aria-labelledby="public-wall-messages-heading">
-    <div class="flex flex-wrap items-end justify-between gap-3 border-b border-gray-700 pb-3"><div><p class="app-kicker">On the wall</p><h3 id="public-wall-messages-heading" class="mt-2 text-xl font-bold">Public messages</h3></div><span class="text-xs text-gray-400">Permanent on Hive</span></div>
-    <% if (wallPage.items.length > 0) { %><div class="social-feed"><% wallPage.items.forEach((item) => { %><article class="social-feed-item"><div class="social-update"><header class="flex flex-wrap items-center justify-between gap-2 text-sm"><a class="font-bold text-bar-gold hover:underline" href="/profile/<%= item.sender %>">@<%= item.sender %></a><span class="text-gray-400"><%= item.amount %></span></header><p class="mt-3 whitespace-pre-wrap break-words text-gray-100"><%= item.message %></p><footer class="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500"><time datetime="<%= item.timestamp %>"><%= formatHiveDate(item.timestamp) %></time><details><summary class="cursor-pointer">Transaction details</summary><p class="mt-2 max-w-full break-all">Block <%= item.blockNumber || 'pending' %> · transaction <code><%= item.transactionId %></code></p></details></footer></div></article><% }); %></div><% } else { %><p class="py-6 text-gray-300">No public wall messages yet.</p><% } %>
+  <% } else if (hiveSession) { %>
+    <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and private messaging aren’t available here yet.</p>
+  <% } else { %>
+    <p class="mt-5 border-l-4 border-gray-700 py-2 pl-4 text-sm leading-6 text-gray-300">Sign in with Hive Keychain to write on this wall or send a private message. Reading public wall messages never requires signing in.</p>
+  <% } %>
+
+  <section class="message-surface mt-8" aria-labelledby="public-wall-messages-heading">
+    <div class="message-surface__heading">
+      <div>
+        <p class="app-kicker">On the wall</p>
+        <h3 id="public-wall-messages-heading" class="mt-2 text-xl font-bold">Public messages</h3>
+      </div>
+      <span class="message-surface__context">Permanent on Hive</span>
+    </div>
+
+    <% if (wallPage.items.length > 0) { %>
+      <div class="message-list" data-message-list="wall">
+        <% wallPage.items.forEach((item) => { %>
+          <% const senderProfile = messageProfiles[item.sender] || {}; %>
+          <% const senderDisplayName = senderProfile.displayName || item.sender; %>
+          <article class="message-entry message-entry--wall" data-message-entry data-message-kind="wall">
+            <header class="message-entry__identity">
+              <div class="social-author">
+                <% if (senderProfile.profileImage) { %>
+                  <img class="message-entry__avatar" src="<%= senderProfile.profileImage %>" alt="" width="40" height="40" loading="lazy">
+                <% } else { %>
+                  <span class="message-entry__avatar message-entry__avatar--fallback" aria-hidden="true"><%= item.sender.slice(0, 1).toUpperCase() %></span>
+                <% } %>
+                <div class="social-author__text">
+                  <a class="social-author__name" href="/profile/<%= item.sender %>"><%= senderDisplayName %></a>
+                  <div class="social-author__meta">
+                    <span>@<%= item.sender %></span>
+                    <time datetime="<%= item.timestamp %>"><%= formatHiveDate(item.timestamp) %></time>
+                  </div>
+                </div>
+              </div>
+            </header>
+            <p class="message-entry__body"><%= item.message %></p>
+            <footer class="message-entry__activity">
+              <span class="message-entry__amount"><span class="sr-only">Payment: </span><%= item.amount %></span>
+              <details class="message-entry__details">
+                <summary>Transaction details</summary>
+                <p>Block <%= item.blockNumber || 'pending' %> · transaction <code><%= item.transactionId %></code></p>
+              </details>
+            </footer>
+          </article>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <p class="message-surface__empty">No public wall messages yet.</p>
+    <% } %>
   </section>
-  <% if (wallPage.nextCursor) { %><a class="button-secondary mt-6 inline-flex" href="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-get="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-target="#profile-content">Older wall messages</a><% } %>
+
+  <% if (wallPage.nextCursor) { %>
+    <a class="button-secondary mt-6 inline-flex" href="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-get="/profile/<%= userProfile.name %>/wall-posts?before=<%= wallPage.nextCursor %>" hx-target="#profile-content">Older wall messages</a>
+  <% } %>
 </section>

@@ -7,6 +7,7 @@ const path = require('node:path');
 const FIRST_PARTY_ASSETS = Object.freeze([
   '/css/style.css',
   '/css/m15-social.css',
+  '/css/ux-1e-messages.css',
   '/css/m15-wallet-pay.css',
   '/js/keychain-adapter.js',
   '/js/auth.js',

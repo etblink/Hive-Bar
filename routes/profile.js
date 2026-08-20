@@ -34,6 +34,7 @@ function pageModel(req, username, activeView, values = {}) {
     connectionPage: null,
     wallPage: null,
     inboxPage: null,
+    messageProfiles: {},
     profileSettings: null,
     followState: null,
     canManageProfile: isProfileOwner(req, username),
@@ -51,6 +52,24 @@ async function followStateForSession(req, target) {
   } catch (error) {
     req.log.warn({ err: error }, 'follow status read failed');
     return null;
+  }
+}
+
+async function messageProfilesForPage(req, page) {
+  const senders = [
+    ...new Set(
+      (Array.isArray(page?.items) ? page.items : [])
+        .map((item) => item?.sender)
+        .filter(Boolean),
+    ),
+  ];
+  if (senders.length === 0) return {};
+
+  try {
+    return await req.app.locals.services.hiveReads.getProfiles(senders);
+  } catch (error) {
+    req.log.warn({ err: error, senders }, 'message sender profile hydration failed');
+    return {};
   }
 }
 
@@ -165,7 +184,14 @@ router.get('/:username/wall-posts', async (req, res, next) => {
       globalExclusions: req.app.locals.config.hive.globalWallExclusions,
       profileExclusions: profileSettings.blocklist,
     });
-    const values = { userProfile, profileSettings, wallPage, followState };
+    const messageProfiles = await messageProfilesForPage(req, wallPage);
+    const values = {
+      userProfile,
+      profileSettings,
+      wallPage,
+      messageProfiles,
+      followState,
+    };
     if (req.get('HX-Request') === 'true') {
       return res.render('pages/profile/partials/wall-posts', {
         ...values,
@@ -248,7 +274,8 @@ router.get('/:username/inbox', async (req, res, next) => {
       globalExclusions: req.app.locals.config.hive.globalWallExclusions,
       profileExclusions: profileSettings.blocklist,
     });
-    const values = { userProfile, profileSettings, inboxPage };
+    const messageProfiles = await messageProfilesForPage(req, inboxPage);
+    const values = { userProfile, profileSettings, inboxPage, messageProfiles };
     if (req.get('HX-Request') === 'true') {
       return res.render('pages/profile/partials/inbox', values);
     }
@@ -306,3 +333,4 @@ router.get('/:username', async (req, res, next) => {
 module.exports = router;
 module.exports.isProfileOwner = isProfileOwner;
 module.exports.requireProfileOwner = requireProfileOwner;
+module.exports.messageProfilesForPage = messageProfilesForPage;
