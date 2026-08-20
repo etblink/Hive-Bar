@@ -15,6 +15,10 @@ const COMMUNITY_POSTS_SOURCE = fs.readFileSync(
   'utf8',
 );
 const FULL_POST_SOURCE = fs.readFileSync(path.join(ROOT, 'views', 'partials', 'full-post.ejs'), 'utf8');
+const COMPOSER_FORM_SOURCE = fs.readFileSync(
+  path.join(ROOT, 'views', 'common', 'composer', 'form.ejs'),
+  'utf8',
+);
 const PROFILE_INFO_SOURCE = fs.readFileSync(
   path.join(ROOT, 'views', 'pages', 'profile', 'partials', 'profile-info-card.ejs'),
   'utf8',
@@ -81,8 +85,10 @@ test('M15.3 Community prioritizes the feed while preserving exact current tabs a
   assert.doesNotMatch(surface.textContent, /\bLive\b|\bEvents?\b|Suggested users|Nearby/);
 
   assert.match(COMMUNITY_POSTS_SOURCE, /canWriteAction\('post'\)/);
-  assert.match(COMMUNITY_POSTS_SOURCE, /data-social-action="post"/);
-  assert.match(COMMUNITY_POSTS_SOURCE, /data-signer-mode="<%= signerMode %>"/);
+  assert.match(COMMUNITY_POSTS_SOURCE, /action: 'post'/);
+  assert.match(COMMUNITY_POSTS_SOURCE, /signerMode/);
+  assert.match(COMPOSER_FORM_SOURCE, /data-social-action="<%= composer\.action %>"/);
+  assert.match(COMPOSER_FORM_SOURCE, /data-signer-mode="<%= composer\.signerMode %>"/);
   assert.match(COMMUNITY_POSTS_SOURCE, /Review post/);
 });
 
@@ -106,9 +112,9 @@ test('M15.3 Conversation is content-first while preserving comment and vote gate
   assert.equal(surface.querySelector('svg'), null);
 
   assert.match(FULL_POST_SOURCE, /canWriteAction\('comment'\)/);
-  assert.match(FULL_POST_SOURCE, /data-social-action="comment"/);
-  assert.match(FULL_POST_SOURCE, /name="parentAuthor" value="<%= post\.author %>"/);
-  assert.match(FULL_POST_SOURCE, /name="parentPermlink" value="<%= post\.permlink %>"/);
+  assert.match(FULL_POST_SOURCE, /action: 'comment'/);
+  assert.match(FULL_POST_SOURCE, /\{ name: 'parentAuthor', value: post\.author \}/);
+  assert.match(FULL_POST_SOURCE, /\{ name: 'parentPermlink', value: post\.permlink \}/);
   assert.match(FULL_POST_SOURCE, /include\('\.\.\/common\/vote-form', \{ item: post \}\)/);
 });
 

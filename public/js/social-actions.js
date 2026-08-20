@@ -38,19 +38,6 @@
     element.classList.toggle('text-gray-300', !isError);
   }
 
-  function updateByteCounter(input) {
-    const maximum = Number(input.dataset.maxBytes);
-    if (!Number.isInteger(maximum)) return;
-    const bytes = new TextEncoder().encode(input.value).byteLength;
-    const counter = input.parentElement?.querySelector('[data-byte-counter]');
-    if (counter) {
-      counter.textContent = `${bytes.toLocaleString()} / ${maximum.toLocaleString()} used`;
-      counter.classList.toggle('text-red-300', bytes > maximum);
-      counter.classList.toggle('text-gray-400', bytes <= maximum);
-    }
-    input.setCustomValidity(bytes > maximum ? 'This text is too long. Shorten it and try again.' : '');
-  }
-
   function wait(ms) { return new Promise((resolve) => global.setTimeout(resolve, ms)); }
 
   class SocialActionController {
@@ -151,6 +138,4 @@
   global.HiveBarSocial = Object.freeze({ SocialActionController, formPayload });
   const controller = new SocialActionController();
   document.addEventListener('submit', (event) => { const form = event.target.closest('[data-social-action]'); if (form) { event.preventDefault(); controller.run(form); } });
-  document.addEventListener('input', (event) => { const input = event.target.closest('[data-max-bytes]'); if (input) updateByteCounter(input); });
-  for (const input of document.querySelectorAll('[data-max-bytes]')) updateByteCounter(input);
 })(window);

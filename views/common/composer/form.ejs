@@ -1,0 +1,17 @@
+<% const composerStatusId = `${composer.id}-status`; %>
+<% const composerDisclosureId = `${composer.id}-disclosure`; %>
+<form class="composer__form" data-composer-form="<%= composer.id %>" <% if (composer.controller === 'social') { %>data-social-action="<%= composer.action %>" data-signer-mode="<%= composer.signerMode %>"<% } else { %>data-m4-action="<%= composer.action %>"<% } %>>
+  <% for (const hidden of composer.hiddenFields || []) { %>
+    <input type="hidden" name="<%= hidden.name %>" value="<%= hidden.value %>">
+  <% } %>
+  <div class="composer__fields">
+    <% for (const field of composer.fields) { %>
+      <%- include('field', { composer, field }) %>
+    <% } %>
+  </div>
+  <div class="composer__actions">
+    <button type="submit" class="<%= composer.submitVariant === 'secondary' ? 'button-secondary' : 'button-primary' %> composer__submit" aria-describedby="<%= composer.disclosure ? `${composerDisclosureId} ` : '' %><%= composerStatusId %>"><%= composer.submitLabel %></button>
+  </div>
+  <% if (composer.disclosure) { %><p id="<%= composerDisclosureId %>" class="composer__disclosure"><%= composer.disclosure %></p><% } %>
+  <p id="<%= composerStatusId %>" class="composer__status text-gray-300" role="status" aria-live="polite" aria-atomic="true" <% if (composer.controller === 'social') { %>data-social-status<% } else { %>data-m4-status<% } %>><%= composer.status || '' %></p>
+</form>

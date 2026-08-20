@@ -1,0 +1,34 @@
+<% const composerHeadingId = `${composer.id}-heading`; %>
+<% const composerVariant = composer.variant ? ` composer--${composer.variant}` : ''; %>
+<% if (composer.collapsible) { %>
+  <details id="<%= composer.id %>" class="composer composer--collapsible<%= composerVariant %>" data-composer="<%= composer.id %>" <% if (composer.privateDisclosure) { %>data-m18-private-composer<% } %>>
+    <summary class="composer__summary">
+      <span class="composer__summary-copy">
+        <% if (composer.kicker) { %><span class="composer__kicker"><%= composer.kicker %></span><% } %>
+        <strong id="<%= composerHeadingId %>" class="composer__title"><%= composer.title %></strong>
+        <% if (composer.description) { %><span class="composer__description"><%= composer.description %></span><% } %>
+      </span>
+      <% if (composer.meta) { %><span class="composer__meta"><%= composer.meta %></span><% } %>
+      <span class="composer__chevron" aria-hidden="true"></span>
+    </summary>
+    <div class="composer__expanded">
+      <%- include('composer/form', { composer }) %>
+    </div>
+  </details>
+<% } else { %>
+  <section id="<%= composer.id %>" class="composer<%= composerVariant %>" aria-labelledby="<%= composerHeadingId %>" data-composer="<%= composer.id %>">
+    <header class="composer__header">
+      <div class="composer__context">
+        <% if (composer.kicker) { %><p class="composer__kicker"><%= composer.kicker %></p><% } %>
+        <% if ((composer.headingLevel || 2) === 3) { %>
+          <h3 id="<%= composerHeadingId %>" class="composer__title"><%= composer.title %></h3>
+        <% } else { %>
+          <h2 id="<%= composerHeadingId %>" class="composer__title"><%= composer.title %></h2>
+        <% } %>
+        <% if (composer.description) { %><p class="composer__description"><%= composer.description %></p><% } %>
+      </div>
+      <% if (composer.meta) { %><p class="composer__meta"><%= composer.meta %></p><% } %>
+    </header>
+    <%- include('composer/form', { composer }) %>
+  </section>
+<% } %>

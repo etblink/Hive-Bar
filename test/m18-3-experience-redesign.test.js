@@ -17,6 +17,10 @@ const WALL_SOURCE = fs.readFileSync(
   path.join(ROOT, 'views', 'pages', 'profile', 'partials', 'wall-posts.ejs'),
   'utf8',
 );
+const COMPOSER_FORM_SOURCE = fs.readFileSync(
+  path.join(ROOT, 'views', 'common', 'composer', 'form.ejs'),
+  'utf8',
+);
 const PAY_SOURCE = fs.readFileSync(path.join(ROOT, 'views', 'pages', 'pay', 'index.ejs'), 'utf8');
 const PAY_RECEIPT_SOURCE = fs.readFileSync(
   path.join(ROOT, 'views', 'pages', 'pay', 'partials', 'receipt.ejs'),
@@ -213,11 +217,12 @@ test('M18.3 signed-out Pay remains a sign-in gate with no payment form', async (
 test('M18.3 source contracts retain dynamic fees and every accepted write/payment hook', () => {
   for (const pattern of [
     /<%= profileSettings\.wallFee %>/,
-    /data-m4-action="wall"/,
-    /data-m4-action="inbox"/,
-    /data-max-bytes="2000"/,
-    /data-max-bytes="1500"/,
+    /action: 'wall'/,
+    /action: 'inbox'/,
+    /maxBytes: 2000/,
+    /maxBytes: 1500/,
   ]) assert.match(WALL_SOURCE, pattern);
+  assert.match(COMPOSER_FORM_SOURCE, /data-m4-action="<%= composer\.action %>"/);
 
   for (const pattern of [
     /data-pay-form/,

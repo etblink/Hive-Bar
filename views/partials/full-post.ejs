@@ -22,17 +22,25 @@
 <section class="conversation-comments" aria-labelledby="comments-heading">
   <h2 id="comments-heading" class="conversation-comments__heading">Replies <span class="text-gray-400">(<%= comments.length %>)</span></h2>
   <% if (hiveSession && canWriteAction('comment')) { %>
-    <form class="social-composer mt-4 space-y-4" data-social-action="comment" data-signer-mode="<%= signerMode %>">
-      <input type="hidden" name="parentAuthor" value="<%= post.author %>">
-      <input type="hidden" name="parentPermlink" value="<%= post.permlink %>">
-      <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-comment-body">Add a reply</label>
-        <textarea id="new-comment-body" name="body" required rows="5" data-max-bytes="8192" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 8,192 used</p>
-      </div>
-      <button type="submit" class="button-primary">Review reply</button>
-      <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
-    </form>
+    <%- include('../common/composer', { composer: {
+      id: 'post-reply-composer',
+      controller: 'social',
+      action: 'comment',
+      signerMode,
+      headingLevel: 3,
+      kicker: 'Join the conversation',
+      title: 'Add a reply',
+      description: `Reply to @${post.author}’s post.`,
+      hiddenFields: [
+        { name: 'parentAuthor', value: post.author },
+        { name: 'parentPermlink', value: post.permlink },
+      ],
+      fields: [
+        { id: 'new-comment-body', name: 'body', type: 'textarea', label: 'Your reply', required: true, maxBytes: 8192, rows: 5, size: 'medium', placeholder: 'Add something to the conversation' },
+      ],
+      submitLabel: 'Review reply',
+      disclosure: 'You’ll review this reply before Hive Keychain asks you to approve it.',
+    } }) %>
   <% } %>
   <% if (comments.length > 0) { %>
     <div class="mt-4" data-comment-thread>

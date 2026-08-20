@@ -1,26 +1,22 @@
 <% if (hiveSession && canWriteAction('post')) { %>
-  <details class="social-composer mt-4">
-    <summary>Create a community post</summary>
-    <form class="mt-4 space-y-4" data-social-action="post" data-signer-mode="<%= signerMode %>">
-      <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-post-title">Title</label>
-        <input id="new-post-title" name="title" type="text" required data-max-bytes="256" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white">
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 256 used</p>
-      </div>
-      <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-post-body">Post</label>
-        <textarea id="new-post-body" name="body" required rows="8" data-max-bytes="32768" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white"></textarea>
-        <p class="mt-1 text-xs text-gray-400" data-byte-counter>0 / 32,768 used</p>
-      </div>
-      <div>
-        <label class="block text-sm font-bold text-gray-200" for="new-post-tags">Tags</label>
-        <input id="new-post-tags" name="tags" type="text" placeholder="reno, nightlife" class="mt-2 w-full rounded-lg border border-gray-600 bg-black px-3 py-3 text-white">
-        <p class="mt-1 text-xs text-gray-400">Separate tags with commas. We’ll add the community tag for you.</p>
-      </div>
-      <button type="submit" class="button-primary">Review post</button>
-      <p class="text-sm text-gray-300" aria-live="polite" data-social-status></p>
-    </form>
-  </details>
+  <%- include('../../../common/composer', { composer: {
+    id: 'community-post-composer',
+    controller: 'social',
+    action: 'post',
+    signerMode,
+    collapsible: true,
+    kicker: 'Community post',
+    title: 'Create a community post',
+    description: 'Share news, a story, or something worth discussing with the community.',
+    meta: '4th Street Bar community',
+    fields: [
+      { id: 'new-post-title', name: 'title', type: 'text', label: 'Title', required: true, maxBytes: 256, placeholder: 'Give your post a clear title', autocomplete: 'off' },
+      { id: 'new-post-body', name: 'body', type: 'textarea', label: 'Post', required: true, maxBytes: 32768, rows: 8, size: 'large', placeholder: 'What do you want the community to know?' },
+      { id: 'new-post-tags', name: 'tags', type: 'text', label: 'Tags', placeholder: 'reno, nightlife', autocomplete: 'off', help: 'Separate tags with commas. We’ll add the community tag for you.' },
+    ],
+    submitLabel: 'Review post',
+    disclosure: 'You’ll review the post and its destination before Hive Keychain asks you to approve it.',
+  } }) %>
 <% } %>
 
 <form action="/community" method="get" hx-get="/community/<%= communityName %>/community-posts" hx-target="#community-feed" class="community-sort mt-4">

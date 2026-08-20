@@ -91,8 +91,14 @@ test('UX-1A empty Threads state exposes an accessible beta composer only to a si
     url: 'https://hive-bar.test/community/threads',
   });
   const threadInput = dom.window.document.querySelector('#new-thread-body');
-  const byteCounter = dom.window.document.querySelector('#new-thread-counter');
-  assert.ok(threadInput.parentElement.contains(byteCounter));
+  const byteCounter = dom.window.document.querySelector('#new-thread-body-counter');
+  const composerField = threadInput.closest('[data-composer-field]');
+  assert.ok(composerField);
+  assert.ok(composerField.contains(byteCounter));
+  assert.equal(
+    byteCounter.closest('[data-composer-form]'),
+    threadInput.closest('[data-composer-form]'),
+  );
   dom.window.eval(axe.source);
   const axeResult = await dom.window.axe.run(dom.window.document, {
     resultTypes: ['violations'],

@@ -158,7 +158,7 @@ async function capture({ browser, baseUrl, scenario, token, width }) {
       composer: Boolean(composer),
       signerMode: composer?.dataset.signerMode || null,
       composerValue: document.querySelector('#new-thread-body')?.value || '',
-      byteCounter: document.querySelector('#new-thread-counter')?.textContent.trim() || '',
+      byteCounter: document.querySelector('#new-thread-body-counter')?.textContent.trim() || '',
       emptyState: text.includes('No threads yet'),
       populatedThread: text.includes('Who is stopping by the bar tonight?'),
       populatedReply: text.includes('I will be there after work.'),

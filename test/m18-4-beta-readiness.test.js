@@ -67,19 +67,22 @@ test('M18.4 keeps exact byte enforcement while presenting friendly length feedba
     'views/pages/profile/partials/settings.ejs',
     'views/pages/profile/partials/wall-posts.ejs',
   ].map(read).join('\n');
-  assert.match(files, /data-max-bytes="256"/);
-  assert.match(files, /data-max-bytes="32768"/);
-  assert.match(files, /data-max-bytes="500"/);
-  assert.match(files, /data-max-bytes="8192"/);
+  assert.match(files, /maxBytes: 256/);
+  assert.match(files, /maxBytes: 32768/);
+  assert.match(files, /maxBytes: 500/);
+  assert.match(files, /maxBytes: 8192/);
   assert.match(files, /data-max-bytes="512"/);
-  assert.match(files, /data-max-bytes="2000"/);
-  assert.match(files, /data-max-bytes="1500"/);
+  assert.match(files, /maxBytes: 2000/);
+  assert.match(files, /maxBytes: 1500/);
   assert.doesNotMatch(files, /byte limit/);
 
-  const client = read('public/js/social-actions.js');
+  const client = read('public/js/composer-presentation.js');
   assert.match(client, /new TextEncoder\(\)\.encode\(input\.value\)\.byteLength/);
-  assert.match(client, /\$\{maximum\.toLocaleString\(\)\} used/);
+  assert.match(client, /\$\{bytes\.toLocaleString\(\)\} \/ \$\{maximum\.toLocaleString\(\)\} used/);
   assert.match(client, /This text is too long\. Shorten it and try again\./);
+  assert.match(client, /closest\('\[data-composer-field\]'\)/);
+  assert.match(client, /closest\('\[data-composer-form\]'\)/);
+  assert.doesNotMatch(read('public/js/social-actions.js'), /\[data-max-bytes\]/);
 });
 
 test('M18.4 distinguishes future sign-in-required follow copy from unavailable capability copy', () => {
