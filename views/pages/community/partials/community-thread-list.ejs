@@ -17,9 +17,9 @@
   } }) %>
 <% } %>
 <% if (threads.length > 0) { %>
-  <div class="thread-feed space-y-4" role="feed" aria-label="Community Threads">
+  <div class="thread-feed" role="feed" aria-label="Community Threads">
     <% threads.forEach((thread) => { %>
-      <%- include('../../../common/comment', { comment: thread, userProfile: profiles[thread.author] }) %>
+      <%- include('../../../common/comment', { comment: thread, userProfile: profiles[thread.author], commentContext: 'thread' }) %>
     <% }); %>
   </div>
 <% } else { %>

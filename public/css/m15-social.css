@@ -72,17 +72,17 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--hb-border);
+  border-top: 1px solid rgb(60 52 46 / 72%);
 }
 
 .social-feed-item {
-  border-bottom: 1px solid var(--hb-border);
+  border-bottom: 1px solid rgb(60 52 46 / 58%);
   background: transparent;
 }
 
 .social-update,
 .social-post {
-  padding: 1.1rem 0.15rem 1.2rem;
+  padding: 1.25rem 0.2rem 1.35rem;
 }
 
 .social-update__identity {
@@ -113,7 +113,7 @@
 
 .social-update h3,
 .social-post__title {
-  margin-top: 0.8rem;
+  margin-top: 0;
   color: var(--hb-text);
   font-size: clamp(1.08rem, 3vw, 1.3rem);
   font-weight: 800;
@@ -134,9 +134,21 @@
 
 .social-update__excerpt,
 .social-post__excerpt {
-  margin-top: 0.55rem;
+  margin-top: 0.5rem;
   color: var(--hb-text-muted);
-  line-height: 1.65;
+  font-size: 0.96rem;
+  line-height: 1.7;
+}
+
+.social-post__content {
+  max-width: 48rem;
+  margin-top: 0.75rem;
+}
+
+.social-post__activity,
+.social-comment__activity,
+.conversation-post__activity {
+  margin-top: 0.8rem;
 }
 
 .social-update__footer,
@@ -147,7 +159,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem 0.85rem;
-  margin-top: 0.8rem;
+  margin-top: 0;
   color: var(--hb-text-subtle);
   font-size: 0.78rem;
 }
@@ -166,6 +178,14 @@
   margin-top: 0.9rem;
   padding-top: 0.85rem;
   border-top: 1px solid var(--hb-border);
+}
+
+.social-post__activity .vote-control,
+.social-comment__activity .vote-control,
+.conversation-post__activity .vote-control {
+  margin-top: 0.55rem;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .vote-control__main {
@@ -414,6 +434,15 @@
   font-size: 0.78rem;
 }
 
+.social-post > .social-author {
+  gap: 0.65rem;
+}
+
+.social-post > .social-author img {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .community-shell,
 .profile-shell {
   flex: 1;
@@ -534,9 +563,9 @@
 }
 
 .community-sort {
-  border: 1px solid var(--hb-border);
-  border-radius: var(--hb-radius-panel);
-  background: var(--hb-surface);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .composer {
@@ -770,7 +799,8 @@
 }
 
 .thread-feed {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid rgb(60 52 46 / 72%);
 }
 
 @media (min-width: 640px) {
@@ -801,8 +831,36 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding: 0.85rem 1rem;
+  margin-bottom: 0.35rem;
+  padding: 0.35rem 0 0.7rem;
+}
+
+.community-sort__field {
+  min-width: 0;
+  flex: 1;
+}
+
+.community-sort__label {
+  display: block;
+  color: var(--hb-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.community-sort__select {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.35rem;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius-control);
+  background: var(--hb-surface-raised);
+  padding: 0.55rem 2.25rem 0.55rem 0.75rem;
+  color: var(--hb-text);
+  font-size: 0.88rem;
+}
+
+.community-sort__submit {
+  min-height: 44px;
 }
 
 .conversation-shell {
@@ -832,8 +890,12 @@
 }
 
 .conversation-post {
-  padding: 0.5rem 0 1.5rem;
+  padding: 0.65rem 0 1.6rem;
   border-bottom: 1px solid var(--hb-border);
+}
+
+.conversation-post__header .social-author {
+  gap: 0.7rem;
 }
 
 .conversation-post__title {
@@ -847,10 +909,17 @@
 
 .conversation-post__body {
   margin-top: 1.25rem;
+  color: var(--hb-text);
+  font-size: 1.02rem;
+  line-height: 1.75;
 }
 
 .conversation-comments {
-  margin-top: 1.25rem;
+  margin-top: 1.4rem;
+}
+
+.conversation-comments__header {
+  padding-bottom: 0.15rem;
 }
 
 .conversation-comments__heading {
@@ -863,21 +932,112 @@
 }
 
 .comment-card.social-comment {
+  --comment-indent: 0rem;
   position: relative;
-  margin: 0;
+  width: auto;
+  margin: 0 0 0 var(--comment-indent);
   border: 0;
-  border-left: 2px solid var(--hb-border);
+  border-left: 1px solid rgb(82 72 63 / 80%);
   border-radius: 0;
-  padding: 1rem 0.25rem 1rem 1rem;
+  padding: 1rem 0.2rem 1.05rem 0.9rem;
   background: transparent;
 }
 
 .social-comment + .social-comment {
-  border-top: 1px solid rgb(52 52 58 / 0.65);
+  border-top: 1px solid rgb(60 52 46 / 44%);
 }
 
-.social-comment .prose {
-  margin-top: 0.65rem;
+.social-comment__body {
+  margin-top: 0.6rem;
+  color: var(--hb-text);
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+.social-comment > .social-author {
+  gap: 0.6rem;
+}
+
+.social-comment > .social-author img {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.social-comment > .social-author .social-author__name {
+  font-size: 0.9rem;
+}
+
+.social-comment > .composer {
+  margin-top: 0.45rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.social-comment > .composer--collapsible > summary {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 44px;
+  padding: 0;
+}
+
+.social-comment > .composer--collapsible > summary:hover {
+  background: transparent;
+}
+
+.social-comment > .composer--collapsible > summary .composer__kicker,
+.social-comment > .composer--collapsible > summary .composer__description {
+  display: none;
+}
+
+.social-comment > .composer--collapsible > summary .composer__title {
+  margin: 0;
+  color: var(--hb-text-muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.social-comment > .composer--collapsible > summary:hover .composer__title {
+  color: var(--hb-accent);
+}
+
+.social-comment > .composer--collapsible[open] > summary {
+  border-bottom: 1px solid rgb(60 52 46 / 58%);
+}
+
+.social-comment > .composer .composer__form {
+  border-top: 0;
+  padding: 0.85rem 0 0;
+}
+
+.comment-card.social-comment.comment-depth-2 {
+  --comment-indent: 1.1rem;
+}
+
+.comment-card.social-comment.comment-depth-3 {
+  --comment-indent: 2.2rem;
+}
+
+.comment-card.social-comment.comment-depth-4 {
+  --comment-indent: 3.3rem;
+}
+
+.social-comment--thread.comment-depth-1 {
+  border-left-color: transparent;
+  padding-left: 0.2rem;
+}
+
+.social-comment--thread {
+  padding-block: 0.9rem 0.95rem;
+}
+
+.social-comment--thread .social-comment__body {
+  margin-top: 0.5rem;
+}
+
+.conversation-thread {
+  margin-top: 1rem;
+  border-top: 1px solid rgb(60 52 46 / 72%);
 }
 
 .profile-hero {
@@ -968,7 +1128,23 @@
 @media (min-width: 640px) {
   .community-sort {
     flex-direction: row;
-    align-items: end;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .community-sort__field {
+    display: flex;
+    flex: 0 1 18rem;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .community-sort__label {
+    flex: none;
+  }
+
+  .community-sort__select {
+    margin-top: 0;
   }
 
   .profile-hero {
@@ -1017,5 +1193,25 @@
   .profile-hero__avatar {
     width: 4.75rem;
     height: 4.75rem;
+  }
+
+  .comment-card.social-comment.comment-depth-2 {
+    --comment-indent: 0.55rem;
+  }
+
+  .comment-card.social-comment.comment-depth-3 {
+    --comment-indent: 1.1rem;
+  }
+
+  .comment-card.social-comment.comment-depth-4 {
+    --comment-indent: 1.65rem;
+  }
+
+  .comment-card.social-comment {
+    padding-left: 0.65rem;
+  }
+
+  .social-comment--thread.comment-depth-1 {
+    padding-left: 0.1rem;
   }
 }

@@ -20,15 +20,15 @@
 <% } %>
 
 <form action="/community" method="get" hx-get="/community/<%= communityName %>/community-posts" hx-target="#community-feed" class="community-sort mt-4">
-  <div class="flex-1">
-    <label for="community-sort" class="block text-sm font-semibold text-gray-200">Sort posts</label>
-    <select id="community-sort" name="sort" data-community-sort class="mt-2 w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white">
+  <div class="community-sort__field">
+    <label for="community-sort" class="community-sort__label">Sort posts</label>
+    <select id="community-sort" name="sort" data-community-sort class="community-sort__select">
       <% for (const sort of ['created', 'trending', 'hot', 'payout']) { %>
         <option value="<%= sort %>" <%= postsPage.sort === sort ? 'selected' : '' %>><%= sort[0].toUpperCase() + sort.slice(1) %></option>
       <% } %>
     </select>
   </div>
-  <button type="submit" class="button-secondary">Apply sort</button>
+  <button type="submit" class="button-secondary community-sort__submit">Apply sort</button>
 </form>
 
 <% if (postsPage.items.length > 0) { %>

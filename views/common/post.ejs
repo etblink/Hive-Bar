@@ -19,18 +19,22 @@
     </div>
   </header>
 
-  <h2 class="social-post__title break-words">
-    <a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a>
-  </h2>
-  <% if (post.excerpt) { %>
-    <p class="social-post__excerpt break-words"><%= post.excerpt %></p>
-  <% } %>
+  <div class="social-post__content">
+    <h2 class="social-post__title break-words">
+      <a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a>
+    </h2>
+    <% if (post.excerpt) { %>
+      <p class="social-post__excerpt break-words"><%= post.excerpt %></p>
+    <% } %>
+  </div>
 
-  <footer class="social-post__stats" aria-label="Post activity">
-    <span><%= post.positiveVotes.toLocaleString() %> upvotes</span>
-    <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
-    <span><%= post.replyCount.toLocaleString() %> replies</span>
-    <span class="text-bar-gold">$<%= formatPayout(post) %></span>
-  </footer>
-  <%- include('vote-form', { item: post }) %>
+  <div class="social-post__activity">
+    <footer class="social-post__stats" aria-label="Post activity">
+      <span><%= post.positiveVotes.toLocaleString() %> upvotes</span>
+      <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
+      <span><%= post.replyCount.toLocaleString() %> replies</span>
+      <span class="text-bar-gold">$<%= formatPayout(post) %></span>
+    </footer>
+    <%- include('vote-form', { item: post }) %>
+  </div>
 </article>

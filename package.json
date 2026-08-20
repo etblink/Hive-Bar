@@ -30,6 +30,7 @@
     "test:visual:ux-1a": "node scripts/capture-ux-1a-visual.js",
     "test:visual:ux-1b": "node scripts/capture-ux-1b-visual.js",
     "test:visual:ux-1c": "node scripts/capture-ux-1c-visual.js",
+    "test:visual:ux-1d": "node scripts/capture-ux-1d-visual.js",
     "rehearse:m9": "node --test --test-concurrency=1 test/m9-bounded-bar-publishing.test.js",
     "test:coverage": "node --test --experimental-test-coverage --test-concurrency=1 test/*.test.js",
     "check:secrets": "node scripts/check-secrets.js",

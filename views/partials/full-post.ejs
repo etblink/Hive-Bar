@@ -1,5 +1,5 @@
 <article class="conversation-post">
-  <header>
+  <header class="conversation-post__header">
     <div class="social-author">
       <img src="<%= profiles[post.author]?.profileImage || `https://images.hive.blog/u/${post.author}/avatar` %>" alt="" class="h-12 w-12 shrink-0 rounded-full bg-gray-800" width="48" height="48">
       <div class="social-author__text">
@@ -11,16 +11,20 @@
     <h1 class="conversation-post__title break-words"><%= post.title %></h1>
   </header>
   <div class="conversation-post__body prose max-w-none break-words text-gray-200"><%- post.bodyHtml %></div>
-  <footer class="conversation-post__stats" aria-label="Post activity">
-    <span><%= post.positiveVotes.toLocaleString() %> upvotes</span>
-    <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
-    <span class="text-bar-gold">$<%= formatPayout(post) %></span>
-  </footer>
-  <%- include('../common/vote-form', { item: post }) %>
+  <div class="conversation-post__activity">
+    <footer class="conversation-post__stats" aria-label="Post activity">
+      <span><%= post.positiveVotes.toLocaleString() %> upvotes</span>
+      <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
+      <span class="text-bar-gold">$<%= formatPayout(post) %></span>
+    </footer>
+    <%- include('../common/vote-form', { item: post }) %>
+  </div>
 </article>
 
 <section class="conversation-comments" aria-labelledby="comments-heading">
-  <h2 id="comments-heading" class="conversation-comments__heading">Replies <span class="text-gray-400">(<%= comments.length %>)</span></h2>
+  <header class="conversation-comments__header">
+    <h2 id="comments-heading" class="conversation-comments__heading">Replies <span class="text-gray-400">(<%= comments.length %>)</span></h2>
+  </header>
   <% if (hiveSession && canWriteAction('comment')) { %>
     <%- include('../common/composer', { composer: {
       id: 'post-reply-composer',
@@ -43,8 +47,8 @@
     } }) %>
   <% } %>
   <% if (comments.length > 0) { %>
-    <div class="mt-4" data-comment-thread>
-      <% comments.forEach((comment) => { %><%- include('../common/comment', { comment, userProfile: profiles[comment.author] }) %><% }); %>
+    <div class="conversation-thread" data-comment-thread>
+      <% comments.forEach((comment) => { %><%- include('../common/comment', { comment, userProfile: profiles[comment.author], commentContext: 'conversation' }) %><% }); %>
     </div>
   <% } else { %>
     <section class="state-card mt-4"><p class="eyebrow">Conversation</p><h2>No replies yet</h2><p>Replies will appear here as people join the conversation.</p></section>

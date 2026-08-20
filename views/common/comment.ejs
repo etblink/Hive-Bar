@@ -1,4 +1,12 @@
-<article class="comment-card social-comment comment-depth-<%= Math.min(4, comment.depth || 0) %>">
+<%
+  const commentPresentation = typeof commentContext === 'string' && commentContext === 'thread'
+    ? 'thread'
+    : 'conversation';
+  const visualDepth = Math.min(4, comment.depth || 0);
+%>
+<article
+  class="comment-card social-comment social-comment--<%= commentPresentation %> comment-depth-<%= visualDepth %>"
+  data-comment-depth="<%= visualDepth %>">
   <header class="social-author">
     <img src="<%= userProfile?.profileImage || `https://images.hive.blog/u/${comment.author}/avatar` %>" alt="" class="h-10 w-10 shrink-0 rounded-full bg-gray-800" width="40" height="40" loading="lazy">
     <div class="social-author__text">
@@ -6,13 +14,15 @@
       <div class="social-author__meta"><span>@<%= comment.author %></span><span aria-hidden="true">·</span><time datetime="<%= comment.created %>"><%= formatHiveDate(comment.created) %></time></div>
     </div>
   </header>
-  <div class="prose max-w-none break-words text-gray-200"><%- comment.bodyHtml %></div>
-  <footer class="social-comment__stats" aria-label="Comment activity">
-    <span><%= comment.positiveVotes.toLocaleString() %> upvotes</span>
-    <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
-    <span class="text-bar-gold">$<%= formatPayout(comment) %></span>
-  </footer>
-  <%- include('vote-form', { item: comment }) %>
+  <div class="social-comment__body prose max-w-none break-words text-gray-200"><%- comment.bodyHtml %></div>
+  <div class="social-comment__activity">
+    <footer class="social-comment__stats" aria-label="Comment activity">
+      <span><%= comment.positiveVotes.toLocaleString() %> upvotes</span>
+      <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
+      <span class="text-bar-gold">$<%= formatPayout(comment) %></span>
+    </footer>
+    <%- include('vote-form', { item: comment }) %>
+  </div>
 
   <% if (hiveSession && canWriteAction('comment')) { %>
     <%- include('composer', { composer: {
