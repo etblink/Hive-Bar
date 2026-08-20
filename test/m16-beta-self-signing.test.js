@@ -466,10 +466,9 @@ test('beta UI exposes posts, community membership, voting, messaging, and reward
     .expect(200);
   assert.match(community.text, /data-social-action="post" data-signer-mode="keychain"/);
   assert.match(community.text, /data-social-action="vote"\s+data-signer-mode="keychain"/);
-  assert.match(community.text, /name="direction"/);
-  assert.match(community.text, /value="upvote">Upvote/);
-  assert.match(community.text, /value="downvote">Downvote/);
-  assert.match(community.text, /name="percent"/);
+  assert.match(community.text, /type="radio"\s+name="direction"\s+value="upvote"/);
+  assert.match(community.text, /type="radio"\s+name="direction"\s+value="downvote"/);
+  assert.match(community.text, /type="range"\s+name="percent"\s+value="100"/);
   assert.match(community.text, /data-social-action="(?:subscribe|unsubscribe)"/);
 
   const post = await request(fixture.app)
@@ -483,7 +482,7 @@ test('beta UI exposes posts, community membership, voting, messaging, and reward
   assert.match(post.text, /name="parentPermlink" value="re-welcome-fourth-street-bar"/);
   const voteForms = post.text.match(/data-social-action="vote"\s+data-signer-mode="keychain"/g) || [];
   assert.equal(voteForms.length, 2);
-  assert.match(post.text, /Choose an upvote or downvote and how strongly you want to vote/);
+  assert.match(post.text, /Choose up or down, set the strength/);
 
   const messenger = betaFixture({ account: 'barfriend' });
   const wall = await request(messenger.app)

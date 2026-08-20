@@ -1,40 +1,86 @@
 <% const betaVoteEnabled = Boolean(config?.hive?.betaSelfSigningEnabled); %>
 <% if (hiveSession && (canWriteAction('vote') || betaVoteEnabled)) { %>
+  <% const voteControlId = `vote-${item.author}-${item.permlink}`; %>
+  <% const voteHelpId = `${voteControlId}-help`; %>
+  <% const voteStatusId = `${voteControlId}-status`; %>
   <form
-    class="mt-4 flex flex-wrap items-end gap-3"
+    class="vote-control"
     data-social-action="vote"
-    data-signer-mode="<%= signerMode %>">
+    data-signer-mode="<%= signerMode %>"
+    data-vote-control
+    data-vote-direction-state="neutral">
     <input type="hidden" name="author" value="<%= item.author %>">
     <input type="hidden" name="permlink" value="<%= item.permlink %>">
-    <div>
-      <label class="block text-xs font-bold text-gray-300" for="vote-direction-<%= item.author %>-<%= item.permlink %>">Vote</label>
-      <select
-        id="vote-direction-<%= item.author %>-<%= item.permlink %>"
-        name="direction"
-        required
-        class="mt-1 rounded border border-gray-600 bg-black px-3 py-2 text-white">
-        <option value="upvote">Upvote</option>
-        <option value="downvote">Downvote</option>
-      </select>
-    </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-300" for="vote-<%= item.author %>-<%= item.permlink %>">Strength</label>
-      <div class="mt-1 flex items-center gap-2">
+    <div class="vote-control__main">
+      <fieldset class="vote-control__direction" aria-describedby="<%= voteHelpId %> <%= voteStatusId %>">
+        <legend class="vote-control__label">Vote</legend>
+        <div class="vote-direction-group">
+          <label class="vote-direction-option">
+            <input
+              id="<%= voteControlId %>-upvote"
+              class="vote-direction-option__input"
+              type="radio"
+              name="direction"
+              value="upvote"
+              required
+              data-vote-direction>
+            <span class="vote-direction-option__surface">
+              <svg class="vote-direction-option__icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 10v11H3V10h4Zm0 0 5-7c.8 0 1.5.7 1.5 1.5V9H19a2 2 0 0 1 1.9 2.6l-2.2 7a2 2 0 0 1-1.9 1.4H7"></path>
+              </svg>
+              <span>Upvote</span>
+              <span class="vote-direction-option__selected" aria-hidden="true">✓</span>
+            </span>
+          </label>
+          <label class="vote-direction-option">
+            <input
+              id="<%= voteControlId %>-downvote"
+              class="vote-direction-option__input"
+              type="radio"
+              name="direction"
+              value="downvote"
+              required
+              data-vote-direction>
+            <span class="vote-direction-option__surface">
+              <svg class="vote-direction-option__icon vote-direction-option__icon--down" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 10v11H3V10h4Zm0 0 5-7c.8 0 1.5.7 1.5 1.5V9H19a2 2 0 0 1 1.9 2.6l-2.2 7a2 2 0 0 1-1.9 1.4H7"></path>
+              </svg>
+              <span>Downvote</span>
+              <span class="vote-direction-option__selected" aria-hidden="true">✓</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+      <div class="vote-control__strength">
+        <div class="vote-control__strength-heading">
+          <label class="vote-control__label" for="<%= voteControlId %>-percent">Strength</label>
+          <output
+            id="<%= voteControlId %>-percent-value"
+            class="vote-control__percent"
+            for="<%= voteControlId %>-percent"
+            aria-live="polite"
+            data-vote-percent>100%</output>
+        </div>
         <input
-          id="vote-<%= item.author %>-<%= item.permlink %>"
-          type="number"
+          id="<%= voteControlId %>-percent"
+          class="vote-control__range"
+          type="range"
           name="percent"
           value="100"
           min="1"
           max="100"
           step="1"
-          required
-          class="w-24 rounded border border-gray-600 bg-black px-3 py-2 text-white">
-        <span class="text-sm text-gray-300" aria-hidden="true">%</span>
+          aria-valuetext="100 percent"
+          aria-describedby="<%= voteHelpId %> <%= voteStatusId %>"
+          data-vote-strength>
       </div>
+      <button
+        type="submit"
+        class="button-secondary vote-control__review"
+        aria-describedby="<%= voteHelpId %> <%= voteStatusId %>"
+        data-vote-review>Review vote</button>
     </div>
-    <button type="submit" class="button-secondary">Review vote</button>
-    <p class="w-full text-xs text-gray-400">Choose an upvote or downvote and how strongly you want to vote. You’ll review it before Keychain asks for approval.</p>
-    <p class="w-full text-xs text-gray-300" aria-live="polite" data-social-status></p>
+    <p id="<%= voteHelpId %>" class="vote-control__help">Choose up or down, set the strength, then review the exact vote before Keychain opens.</p>
+    <p id="<%= voteStatusId %>" class="vote-control__status text-gray-300" role="status" aria-live="polite" aria-atomic="true" data-social-status></p>
   </form>
 <% } %>
