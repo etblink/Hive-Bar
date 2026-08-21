@@ -39,6 +39,7 @@
       kicker: 'Reply',
       title: `Reply to @${comment.author}`,
       description: 'Add to this conversation.',
+      imageAttachment: true,
       hiddenFields: [
         { name: 'parentAuthor', value: comment.author },
         { name: 'parentPermlink', value: comment.permlink },
@@ -48,7 +49,7 @@
       ],
       submitLabel: 'Review reply',
       submitVariant: 'secondary',
-      disclosure: 'You’ll review this reply before Hive Keychain asks you to approve it.',
+      disclosure: 'You’ll review this reply and attached image URL before Hive Keychain asks you to approve it.',
     } }) %>
   <% } %>
 </article>

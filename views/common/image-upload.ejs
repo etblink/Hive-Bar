@@ -1,0 +1,55 @@
+<%
+  const uploadId = imageUpload.id;
+  const statusId = `${uploadId}-status`;
+  const fileId = `${uploadId}-file`;
+  const altId = `${uploadId}-alt`;
+  const profileMode = imageUpload.mode === 'profile';
+%>
+<div
+  class="image-upload"
+  data-image-upload
+  data-image-mode="<%= profileMode ? 'profile' : 'social' %>"
+  <% if (profileMode) { %>data-image-output="#profile-image"<% } %>>
+  <p class="image-upload__heading"><%= profileMode ? 'Upload a new profile image' : 'Add one image' %></p>
+  <p class="image-upload__help">
+    PNG, JPEG, WebP, or GIF · up to 10 MB. Choosing a file stays local until you press Upload image.
+  </p>
+  <div class="image-upload__picker">
+    <label class="image-upload__file-label" for="<%= fileId %>">Choose image</label>
+    <input
+      id="<%= fileId %>"
+      class="sr-only"
+      type="file"
+      accept="image/png,image/jpeg,image/webp,image/gif"
+      data-image-file
+      aria-describedby="<%= statusId %>">
+  </div>
+  <% if (!profileMode) { %>
+    <input type="hidden" name="imageUrl" value="" data-image-url>
+  <% } %>
+  <div class="image-upload__preview" data-image-preview-shell hidden>
+    <img
+      src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+      data-image-preview
+      alt="Selected image preview">
+    <div class="image-upload__alt">
+      <p class="image-upload__meta" data-image-meta></p>
+      <% if (!profileMode) { %>
+        <label for="<%= altId %>">Image description</label>
+        <input
+          id="<%= altId %>"
+          name="imageAlt"
+          type="text"
+          maxlength="160"
+          placeholder="Describe the image for people who cannot see it"
+          autocomplete="off"
+          data-image-alt>
+      <% } %>
+    </div>
+  </div>
+  <div class="image-upload__actions">
+    <button type="button" class="button-secondary" data-image-upload-button disabled>Upload image</button>
+    <button type="button" class="button-secondary" data-image-remove hidden>Remove image</button>
+  </div>
+  <p id="<%= statusId %>" class="image-upload__status" data-image-status aria-live="polite">No image selected.</p>
+</div>

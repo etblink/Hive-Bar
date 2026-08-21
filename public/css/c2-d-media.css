@@ -1,0 +1,132 @@
+.image-upload {
+  margin-top: 1rem;
+  border-top: 1px solid var(--hb-border, #374151);
+  padding-top: 1rem;
+}
+
+.image-upload__heading {
+  margin: 0;
+  color: var(--hb-text, #fff);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.image-upload__help,
+.image-upload__status,
+.image-upload__meta {
+  margin: 0.45rem 0 0;
+  color: var(--hb-text-muted, #d1d5db);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.image-upload__status--error {
+  color: #fca5a5;
+}
+
+.image-upload__picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+  margin-top: 0.8rem;
+}
+
+.image-upload__file-label {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hb-border, #4b5563);
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  color: var(--hb-text, #fff);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.image-upload__file-label:focus-within {
+  outline: 2px solid var(--hb-accent, #d89219);
+  outline-offset: 2px;
+}
+
+.image-upload__preview {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: center;
+  margin-top: 0.9rem;
+}
+
+.image-upload__preview[hidden] {
+  display: none;
+}
+
+.image-upload__preview img {
+  width: 7rem;
+  height: 5rem;
+  border-radius: 0.65rem;
+  object-fit: cover;
+  background: #111827;
+}
+
+.image-upload__alt {
+  min-width: 0;
+}
+
+.image-upload__alt label {
+  display: block;
+  color: var(--hb-text, #fff);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.image-upload__alt input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 0.4rem;
+  border: 1px solid var(--hb-border, #4b5563);
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  background: #050505;
+  color: #fff;
+}
+
+.image-upload__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+
+.image-upload__actions button {
+  min-height: 44px;
+}
+
+.social-post__media {
+  display: block;
+  margin-top: 0.9rem;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  background: #111827;
+}
+
+.social-post__media img {
+  display: block;
+  width: 100%;
+  max-height: 28rem;
+  object-fit: cover;
+}
+
+@media (max-width: 520px) {
+  .image-upload__preview {
+    grid-template-columns: 1fr;
+  }
+
+  .image-upload__preview img {
+    width: 100%;
+    height: auto;
+    max-height: 15rem;
+  }
+}

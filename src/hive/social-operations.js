@@ -13,6 +13,8 @@ const LIMITS = Object.freeze({
   metadataBytes: 8 * 1024,
   tagBytes: 24,
   tags: 10,
+  imageUrlBytes: 2048,
+  imageAltBytes: 160,
 });
 const TAG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const POST_DESTINATIONS = new Set(['community', 'profile']);
@@ -78,12 +80,59 @@ function normalizeTags(values, requiredTag) {
   return unique;
 }
 
+function requireHostedImageUrl(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  if (utf8Bytes(raw) > LIMITS.imageUrlBytes) {
+    throw new ValidationError(`Image URL must be ${LIMITS.imageUrlBytes.toLocaleString('en-US')} UTF-8 bytes or fewer`);
+  }
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new ValidationError('Image URL must be a valid HTTPS images.hive.blog URL');
+  }
+  if (parsed.protocol !== 'https:' || parsed.hostname !== 'images.hive.blog' || parsed.username || parsed.password) {
+    throw new ValidationError('Image URL must use HTTPS on images.hive.blog');
+  }
+  return parsed.toString();
+}
+
+function normalizeImageAlt(value) {
+  const alt = String(value ?? '').replace(/[\r\n]+/g, ' ').trim();
+  if (utf8Bytes(alt) > LIMITS.imageAltBytes) {
+    throw new ValidationError(`Image description must be ${LIMITS.imageAltBytes} UTF-8 bytes or fewer`);
+  }
+  return alt.replace(/([\\\[\]])/g, '\\$1');
+}
+
+function contentWithOptionalImage(payload, label, maxBytes) {
+  const baseBody = requireText(payload?.body, label, maxBytes);
+  const imageUrl = requireHostedImageUrl(payload?.imageUrl);
+  const imageAlt = normalizeImageAlt(payload?.imageAlt);
+  if (!imageUrl && imageAlt) {
+    throw new ValidationError('Image description requires an uploaded image');
+  }
+  if (!imageUrl) return { body: baseBody, imageUrl: '', imageAlt: '' };
+  const body = `${baseBody}\n\n![${imageAlt || 'Attached image'}](${imageUrl})`;
+  if (utf8Bytes(body) > maxBytes) {
+    throw new ValidationError(
+      `${label} with its image reference must be ${maxBytes.toLocaleString('en-US')} UTF-8 bytes or fewer`,
+    );
+  }
+  return { body, imageUrl, imageAlt };
+}
+
 function metadata(value) {
   const encoded = JSON.stringify(value);
   if (utf8Bytes(encoded) > LIMITS.metadataBytes) {
     throw new ValidationError(`JSON metadata must be ${LIMITS.metadataBytes} UTF-8 bytes or fewer`);
   }
   return encoded;
+}
+
+function metadataWithImage(base, imageUrl) {
+  return metadata(imageUrl ? { ...base, image: [imageUrl] } : base);
 }
 
 function fingerprint(operations) {
@@ -101,17 +150,24 @@ function operationEnvelope(action, account, operations, summary) {
   });
 }
 
+function imageSummary(imageUrl) {
+  return imageUrl ? { image: imageUrl } : {};
+}
+
 function buildPost({ account: accountValue, payload, config }) {
   const account = requireHiveAccount(accountValue);
   const title = requireOptionalTitle(payload?.title);
-  const body = requireText(payload?.body, 'Post body', LIMITS.postBodyBytes);
+  const { body, imageUrl } = contentWithOptionalImage(payload, 'Post body', LIMITS.postBodyBytes);
   const permlink = requireOperationPermlink(payload?.permlink);
   const destination = requirePostDestination(payload?.destination);
   const communityPost = destination === 'community';
   const normalizedTags = normalizeTags(payload?.tags, communityPost ? config.hive.communityId : null);
   const tags = communityPost || normalizedTags.length > 0 ? normalizedTags : ['blog'];
   const parentPermlink = communityPost ? config.hive.communityId : tags[0];
-  const jsonMetadata = metadata({ tags, app: config.hive.appTag, format: 'markdown' });
+  const jsonMetadata = metadataWithImage(
+    { tags, app: config.hive.appTag, format: 'markdown' },
+    imageUrl,
+  );
   const operation = [
     'comment',
     {
@@ -134,6 +190,7 @@ function buildPost({ account: accountValue, payload, config }) {
       title,
       tags,
       bodyBytes: utf8Bytes(body),
+      ...imageSummary(imageUrl),
     });
   }
 
@@ -146,23 +203,24 @@ function buildPost({ account: accountValue, payload, config }) {
     title,
     tags,
     bodyBytes: utf8Bytes(body),
+    ...imageSummary(imageUrl),
   });
 }
 
 function buildThread({ account: accountValue, payload, config, threadContainer }) {
   const account = requireHiveAccount(accountValue);
-  const body = requireText(payload?.body, 'Thread body', LIMITS.threadBodyBytes);
+  const { body, imageUrl } = contentWithOptionalImage(payload, 'Thread body', LIMITS.threadBodyBytes);
   const permlink = requireOperationPermlink(payload?.permlink);
   const parentAuthor = requireHiveAccount(threadContainer?.author, 'Thread container author');
   const parentPermlink = requireOperationPermlink(threadContainer?.permlink);
   if (parentAuthor !== config.hive.threadsContainerAccount) {
     throw new ValidationError('The resolved thread container does not match this deployment');
   }
-  const jsonMetadata = metadata({
+  const jsonMetadata = metadataWithImage({
     tags: [config.hive.communityId, 'threads'],
     app: config.hive.appTag,
     format: 'markdown',
-  });
+  }, imageUrl);
   const operation = [
     'comment',
     {
@@ -182,16 +240,17 @@ function buildThread({ account: accountValue, payload, config, threadContainer }
     parentPermlink,
     permlink,
     bodyBytes: utf8Bytes(body),
+    ...imageSummary(imageUrl),
   });
 }
 
 function buildComment({ account: accountValue, payload, config }) {
   const account = requireHiveAccount(accountValue);
-  const body = requireText(payload?.body, 'Comment body', LIMITS.commentBodyBytes);
+  const { body, imageUrl } = contentWithOptionalImage(payload, 'Comment body', LIMITS.commentBodyBytes);
   const permlink = requireOperationPermlink(payload?.permlink);
   const parentAuthor = requireHiveAccount(payload?.parentAuthor, 'Parent author');
   const parentPermlink = requireOperationPermlink(payload?.parentPermlink);
-  const jsonMetadata = metadata({ app: config.hive.appTag, format: 'markdown' });
+  const jsonMetadata = metadataWithImage({ app: config.hive.appTag, format: 'markdown' }, imageUrl);
   const operation = [
     'comment',
     {
@@ -211,6 +270,7 @@ function buildComment({ account: accountValue, payload, config }) {
     parentPermlink,
     permlink,
     bodyBytes: utf8Bytes(body),
+    ...imageSummary(imageUrl),
   });
 }
 
@@ -320,9 +380,11 @@ module.exports = {
   buildSubscription,
   buildThread,
   buildVote,
+  contentWithOptionalImage,
   createPermlink,
   fingerprint,
   normalizeTags,
+  requireHostedImageUrl,
   requirePostDestination,
   utf8Bytes,
 };

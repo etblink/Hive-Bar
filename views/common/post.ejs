@@ -23,6 +23,11 @@
     <h2 class="social-post__title break-words">
       <a href="/post/<%= post.author %>/<%= post.permlink %>"><%= post.title %></a>
     </h2>
+    <% if (post.primaryImage) { %>
+      <a class="social-post__media" href="/post/<%= post.author %>/<%= post.permlink %>" aria-label="Open <%= post.title %>">
+        <img src="<%= post.primaryImage %>" alt="" loading="lazy" decoding="async">
+      </a>
+    <% } %>
     <% if (post.excerpt) { %>
       <p class="social-post__excerpt break-words"><%= post.excerpt %></p>
     <% } %>

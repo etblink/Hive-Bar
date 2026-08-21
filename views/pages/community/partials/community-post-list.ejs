@@ -16,6 +16,7 @@
         title: 'Share something',
         description: 'Choose where this post should appear, then write it without leaving the conversation.',
         meta: 'Posting as your verified Hive account',
+        imageAttachment: true,
         fields: [
           { id: 'new-post-destination', name: 'destination', type: 'select', label: 'Destination', required: true, value: 'community', options: [
             { value: 'community', label: '4th Street Bar community' },
@@ -26,7 +27,7 @@
           { id: 'new-post-tags', name: 'tags', type: 'text', label: 'Tags', placeholder: 'reno, nightlife', autocomplete: 'off', help: 'Separate tags with commas. Community posts add the bar community automatically. Profile posts use your first tag as the category, or blog if you leave tags blank.' },
         ],
         submitLabel: 'Review post',
-        disclosure: 'You’ll review the exact post and its destination before Hive Keychain asks you to approve it.',
+        disclosure: 'You’ll review the exact post, attached image URL, and destination before Hive Keychain asks you to approve it.',
       } }) %>
     </div>
   <% } %>

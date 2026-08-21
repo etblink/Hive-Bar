@@ -14,11 +14,12 @@
       title: 'Start a Thread',
       description: 'Share a quick thought with the 4th Street Bar community.',
       meta: 'Short-form · 500 bytes',
+      imageAttachment: true,
       fields: [
         { id: 'new-thread-body', name: 'body', type: 'textarea', label: 'What do you want to share?', required: true, maxBytes: 500, rows: 4, size: 'medium', placeholder: 'What’s happening?' },
       ],
       submitLabel: 'Review Thread',
-      disclosure: 'You’ll review your Thread before Hive Keychain asks you to approve it.',
+      disclosure: 'You’ll review your Thread and attached image URL before Hive Keychain asks you to approve it. The image reference counts toward the 500-byte Thread limit.',
     } }) %>
   </div>
 <% } %>

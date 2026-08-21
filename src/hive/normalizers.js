@@ -1,6 +1,6 @@
 'use strict';
 
-const { plainTextExcerpt, renderMarkdown } = require('../content/markdown');
+const { plainTextExcerpt, proxyHiveImageUrl, renderMarkdown } = require('../content/markdown');
 const { assetNumber } = require('./wallet');
 
 function safeObject(value) {
@@ -34,6 +34,26 @@ function negativeVoteCount(votes) {
   }).length;
 }
 
+function safeContentImage(rawMetadata) {
+  const metadata = safeObject(rawMetadata);
+  const candidates = Array.isArray(metadata.image)
+    ? metadata.image
+    : typeof metadata.image === 'string'
+      ? [metadata.image]
+      : [];
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string' || !/^https:\/\//i.test(candidate.trim())) continue;
+    try {
+      const proxied = proxyHiveImageUrl(candidate.trim());
+      const parsed = new URL(proxied);
+      if (parsed.protocol === 'https:' && parsed.hostname === 'images.hive.blog') return parsed.toString();
+    } catch {
+      // Ignore malformed image metadata and keep the content readable.
+    }
+  }
+  return '';
+}
+
 function normalizeContent(item = {}) {
   const author = typeof item.author === 'string' ? item.author : '';
   const body = typeof item.body === 'string' ? item.body : '';
@@ -50,6 +70,7 @@ function normalizeContent(item = {}) {
     title: typeof item.title === 'string' && item.title.trim() ? item.title.trim() : 'Untitled',
     bodyHtml: renderMarkdown(body),
     excerpt: plainTextExcerpt(body),
+    primaryImage: safeContentImage(item.json_metadata),
     created: typeof item.created === 'string' ? item.created : '',
     updated: typeof item.updated === 'string' ? item.updated : '',
     positiveVotes: positiveVoteCount(votes),
@@ -155,6 +176,7 @@ module.exports = {
   normalizeDiscussion,
   normalizeProfile,
   positiveVoteCount,
+  safeContentImage,
   safeObject,
   safeProfileImage,
 };

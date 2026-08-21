@@ -34,7 +34,7 @@ function securityMiddleware(config) {
       directives: {
         defaultSrc: ["'self'"],
         baseUri: ["'self'"],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", 'https://images.hive.blog'],
         fontSrc: ["'self'"],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],

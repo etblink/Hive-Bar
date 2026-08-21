@@ -15,6 +15,7 @@
       title: 'Publish a post',
       description: 'Post to your profile or share directly with the 4th Street Bar community.',
       meta: `Posting as @${userProfile.name}`,
+      imageAttachment: true,
       fields: [
         { id: 'profile-post-destination', name: 'destination', type: 'select', label: 'Destination', required: true, value: 'profile', options: [
           { value: 'profile', label: 'My profile' },
@@ -25,7 +26,7 @@
         { id: 'profile-post-tags', name: 'tags', type: 'text', label: 'Tags', placeholder: 'reno, nightlife', autocomplete: 'off', help: 'Separate tags with commas. Profile posts use your first tag as the category, or blog if you leave tags blank. Community posts add the bar community automatically.' },
       ],
       submitLabel: 'Review post',
-      disclosure: 'You’ll review the exact post and its destination before Hive Keychain asks you to approve it.',
+      disclosure: 'You’ll review the exact post, attached image URL, and destination before Hive Keychain asks you to approve it.',
     } }) %>
   </div>
 <% } %>

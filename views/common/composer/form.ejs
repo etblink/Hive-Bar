@@ -9,6 +9,9 @@
       <%- include('field', { composer, field }) %>
     <% } %>
   </div>
+  <% if (composer.imageAttachment) { %>
+    <%- include('../image-upload', { imageUpload: { id: `${composer.id}-image`, mode: 'social' } }) %>
+  <% } %>
   <div class="composer__actions">
     <button type="submit" class="<%= composer.submitVariant === 'secondary' ? 'button-secondary' : 'button-primary' %> composer__submit" aria-describedby="<%= composer.disclosure ? `${composerDisclosureId} ` : '' %><%= composerStatusId %>" <% if (composer.wallPrivacy) { %>data-wall-privacy-submit<% } %>><%= composer.submitLabel %></button>
   </div>

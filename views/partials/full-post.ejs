@@ -42,6 +42,7 @@
       kicker: 'Join the conversation',
       title: 'Reply to this post',
       description: `Reply to @${post.author}’s post.`,
+      imageAttachment: true,
       hiddenFields: [
         { name: 'parentAuthor', value: post.author },
         { name: 'parentPermlink', value: post.permlink },
@@ -50,7 +51,7 @@
         { id: 'new-comment-body', name: 'body', type: 'textarea', label: 'Your reply', required: true, maxBytes: 8192, rows: 5, size: 'medium', placeholder: 'Add something to the conversation' },
       ],
       submitLabel: 'Review reply',
-      disclosure: 'You’ll review this reply before Hive Keychain asks you to approve it.',
+      disclosure: 'You’ll review this reply and attached image URL before Hive Keychain asks you to approve it.',
     } }) %>
   <% } %>
   <% if (comments.length > 0) { %>
