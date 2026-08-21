@@ -14,6 +14,7 @@ const FIRST_PARTY_ASSETS = Object.freeze([
   '/js/auth.js',
   '/js/composer-presentation.js',
   '/js/vote-presentation.js',
+  '/js/share-presentation.js',
   '/js/social-actions.js',
   '/js/m4-actions.js',
   '/js/m16-beta-usability.js',

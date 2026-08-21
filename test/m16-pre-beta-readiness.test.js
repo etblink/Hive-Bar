@@ -93,7 +93,7 @@ function messageSummary(report) {
     .join('\n');
 }
 
-test('UX-1A freezes one exact eleven-action beta manifest without activating dormant V1 policy', () => {
+test('C2-A freezes one exact twelve-action beta manifest without activating dormant V1 policy', () => {
   assert.deepEqual(BETA_ACTIONS, [
     'post',
     'comment',
@@ -102,6 +102,7 @@ test('UX-1A freezes one exact eleven-action beta manifest without activating dor
     'unfollow',
     'subscribe',
     'unsubscribe',
+    'profile',
     'claim-rewards',
     'wall',
     'inbox',
@@ -109,9 +110,7 @@ test('UX-1A freezes one exact eleven-action beta manifest without activating dor
   ]);
   assert.equal(Object.isFrozen(BETA_ACTIONS), true);
   for (const action of BETA_ACTIONS) assert.equal(isBetaAction(action), true);
-  for (const action of ['profile', 'payment']) {
-    assert.equal(isBetaAction(action), false, action);
-  }
+  assert.equal(isBetaAction('payment'), false);
 
   const acceptedSocialActions = [...ACTIONS].filter((action) => isBetaAction(action));
   const acceptedLaneUnion = [...new Set([
@@ -177,6 +176,7 @@ test('signed-in beta desktop/mobile documents pass structural and serious access
     '/community',
     '/post/etblink/welcome-fourth-street-bar',
     '/profile/etblink/wallet',
+    '/profile/etblink/settings',
     '/profile/barfriend/wall-posts',
     '/profile/etblink/inbox',
     '/pay',
@@ -244,6 +244,13 @@ test('signed-in beta desktop/mobile documents pass structural and serious access
     .set('cookie', `hive_bar_session=${fixture.token}`)
     .expect(200);
   assert.match(wallet.text, /data-m4-action="claim-rewards"/);
+
+  const settings = await request(fixture.app)
+    .get('/profile/etblink/settings')
+    .set('cookie', `hive_bar_session=${fixture.token}`)
+    .expect(200);
+  assert.match(settings.text, /data-m4-action="profile"/);
+  assert.match(settings.text, />Review changes</);
 
   const wallFixture = betaFixture({ account: 'barfriend' });
   const wall = await request(wallFixture.app)

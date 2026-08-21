@@ -1,0 +1,11 @@
+<%
+  const sharePath = `/post/${item.author}/${item.permlink}`;
+%>
+<button
+  type="button"
+  class="button-secondary text-xs"
+  data-share-post
+  data-share-url="<%= sharePath %>"
+  aria-label="Share post">
+  Share
+</button>

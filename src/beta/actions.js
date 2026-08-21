@@ -8,6 +8,7 @@ const BETA_ACTIONS = Object.freeze([
   'unfollow',
   'subscribe',
   'unsubscribe',
+  'profile',
   'claim-rewards',
   'wall',
   'inbox',

@@ -23,6 +23,7 @@ const EXPECTED_BETA_ACTIONS = [
   'unfollow',
   'subscribe',
   'unsubscribe',
+  'profile',
   'claim-rewards',
   'wall',
   'inbox',
@@ -93,8 +94,13 @@ test('UX-1F ready homepage has one dominant brand, exact actions, editorial upda
   assert.ok(images.every((image) => image.getAttribute('alt') && image.getAttribute('width') && image.getAttribute('height')));
   assert.equal(images.filter((image) => image.getAttribute('loading') === 'lazy').length, 3);
 
-  assert.match(main.querySelector('#visit')?.textContent || '', /1114 E\. 4th Street, Reno, NV 89512/);
-  assert.match(main.querySelector('#visit')?.textContent || '', /Daily, 12:00 p\.m\.–2:00 a\.m\./);
+  const visit = main.querySelector('#visit');
+  assert.match(visit?.textContent || '', /1114 E\. 4th Street, Reno, NV 89512/);
+  assert.match(visit?.textContent || '', /Daily, 12:00 p\.m\.–2:00 a\.m\./);
+  assert.equal(visit?.querySelectorAll('a').length, 1);
+  assert.ok(visit?.querySelector('a[href^="https://www.google.com/maps/"]'));
+  assert.doesNotMatch(visit?.textContent || '', /Official bar website/i);
+  assert.match(visit?.textContent || '', /Holiday hours may vary/);
   assert.equal(main.querySelector('.home-pathway--community a[href="/community"]')?.textContent.trim(), 'Browse the community');
   assert.equal(main.querySelector('.home-pathway--community a[href="/create-account"]')?.textContent.trim(), 'New to Hive?');
   assertSingleBoundedRead(fixture);
@@ -115,6 +121,7 @@ test('UX-1F empty and unavailable update states stay compact while retaining the
     assert.ok(main.querySelector('a[href="/community"]'), status);
     assert.ok(main.querySelector('a[href="#visit"]'), status);
     assert.ok(main.querySelector('#visit a[href^="https://www.google.com/maps/"]'), status);
+    assert.equal(main.querySelector('#visit a[href="https://4thstreetbarreno.com/"]'), null, status);
     assert.ok(main.querySelector('.home-gallery__grid'), status);
     assert.doesNotMatch(response.text, /UX-1F deterministic update outage/, status);
     if (status === 'unavailable') {
@@ -152,14 +159,14 @@ test('UX-1F is a registered homepage-only presentation layer and preserves the f
   assert.match(routeSource, /status:\s*'unavailable'/);
 });
 
-test('UX-1F leaves beta, V1, payment, and signer policy byte-for-byte inactive', async () => {
+test('UX-1F remains read-only while C2-A beta profile exposure leaves V1, payment, and signer policy inactive', async () => {
   const fixture = createUx1fVisualFixture('empty');
   const response = await request(fixture.app).get('/').expect(200);
   const document = documentFor(response.text);
 
   assert.deepEqual(BETA_ACTIONS, EXPECTED_BETA_ACTIONS);
   assert.equal(BETA_ACTIONS.includes('thread'), true);
-  assert.equal(BETA_ACTIONS.includes('profile'), false);
+  assert.equal(BETA_ACTIONS.includes('profile'), true);
   assert.equal(V1_ACTIONS.length, 12);
   assert.equal(V1_ACTIONS.includes('profile'), true);
   assert.equal(fixture.config.hive.writeMode, 'disabled');

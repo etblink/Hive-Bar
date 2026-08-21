@@ -23,6 +23,7 @@ const EXPECTED_BETA_ACTIONS = [
   'unfollow',
   'subscribe',
   'unsubscribe',
+  'profile',
   'claim-rewards',
   'wall',
   'inbox',
@@ -220,7 +221,7 @@ test('full conversation establishes root, composer, and depth-capped reply hiera
   assertUniqueIdsAndOwnedStatuses(document);
 });
 
-test('profile feed inherits the shared post hierarchy and policy activation stays byte-for-byte stable', async () => {
+test('profile feed inherits shared hierarchy while C2-A exposes profile without V1 activation', async () => {
   const fixture = hierarchyFixture();
   const response = await request(fixture.app)
     .get('/profile/etblink')
@@ -247,7 +248,7 @@ test('profile feed inherits the shared post hierarchy and policy activation stay
   assert.equal(fixture.config.hive.writeMode, 'beta');
   assert.equal(fixture.app.locals.canWriteAction('vote'), true);
   assert.equal(fixture.app.locals.canWriteAction('thread'), true);
-  assert.equal(fixture.app.locals.canWriteAction('profile'), false);
+  assert.equal(fixture.app.locals.canWriteAction('profile'), true);
   assert.equal(fixture.config.hive.v1SelfSigningEnabled, false);
   assert.equal(V1_ACTIONS.length, 12);
   assert.equal(V1_ACTIONS.includes('profile'), true);

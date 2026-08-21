@@ -34,6 +34,7 @@
       <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
       <span><%= post.replyCount.toLocaleString() %> replies</span>
       <span class="text-bar-gold">$<%= formatPayout(post) %></span>
+      <%- include('share-action', { item: post }) %>
     </footer>
     <%- include('vote-form', { item: post }) %>
   </div>

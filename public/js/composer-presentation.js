@@ -31,13 +31,21 @@
     );
   }
 
-  document.addEventListener('input', (event) => {
+  function initialize(root = global.document) {
+    if (!root?.querySelectorAll) return;
+    for (const input of root.querySelectorAll('[data-composer-input][data-max-bytes]')) {
+      updateByteCounter(input);
+    }
+  }
+
+  global.document.addEventListener('input', (event) => {
     const input = event.target.closest?.('[data-composer-input][data-max-bytes]');
     if (input) updateByteCounter(input);
   });
-  for (const input of document.querySelectorAll('[data-composer-input][data-max-bytes]')) {
-    updateByteCounter(input);
-  }
+  global.document.addEventListener('htmx:afterSwap', (event) => {
+    initialize(event.detail?.target || event.target);
+  });
+  initialize();
 
-  global.HiveBarComposer = Object.freeze({ updateByteCounter });
+  global.HiveBarComposer = Object.freeze({ initialize, updateByteCounter });
 })(window);

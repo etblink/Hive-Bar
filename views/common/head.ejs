@@ -1,7 +1,35 @@
+<%
+  const resolvedTitle = pageTitle || siteName;
+  const resolvedDescription =
+    typeof socialDescription === 'string' && socialDescription.trim()
+      ? socialDescription.trim()
+      : `Visit ${siteName} in Reno and browse its public Hive community.`;
+  const resolvedCanonicalUrl =
+    typeof canonicalUrl === 'string' && canonicalUrl.trim() ? canonicalUrl.trim() : '';
+  const resolvedSocialTitle =
+    typeof socialTitle === 'string' && socialTitle.trim() ? socialTitle.trim() : resolvedTitle;
+  const resolvedSocialType =
+    typeof socialType === 'string' && socialType.trim() ? socialType.trim() : 'website';
+  const resolvedSocialImage =
+    typeof socialImage === 'string' && socialImage.trim() ? socialImage.trim() : '';
+%>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="Visit <%= siteName %> in Reno and browse its public Hive community.">
-<title><%= pageTitle || siteName %></title>
+<meta name="description" content="<%= resolvedDescription %>">
+<title><%= resolvedTitle %></title>
+<% if (resolvedCanonicalUrl) { %>
+<link rel="canonical" href="<%= resolvedCanonicalUrl %>">
+<meta property="og:type" content="<%= resolvedSocialType %>">
+<meta property="og:site_name" content="<%= siteName %>">
+<meta property="og:title" content="<%= resolvedSocialTitle %>">
+<meta property="og:description" content="<%= resolvedDescription %>">
+<meta property="og:url" content="<%= resolvedCanonicalUrl %>">
+<% if (resolvedSocialImage) { %><meta property="og:image" content="<%= resolvedSocialImage %>"><% } %>
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<%= resolvedSocialTitle %>">
+<meta name="twitter:description" content="<%= resolvedDescription %>">
+<% if (resolvedSocialImage) { %><meta name="twitter:image" content="<%= resolvedSocialImage %>"><% } %>
+<% } %>
 <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/style.css') : '/css/style.css' %>">
 <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/m15-social.css') : '/css/m15-social.css' %>">

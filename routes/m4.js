@@ -13,7 +13,7 @@ const {
   requireSocialWriteMode,
 } = require('./social');
 
-const BETA_M16_4_ACTIONS = new Set(['claim-rewards', 'wall', 'inbox']);
+const BETA_M16_4_ACTIONS = new Set(['profile', 'claim-rewards', 'wall', 'inbox']);
 
 function assertM4Action(config, action) {
   if (config.hive.writeMode === 'beta') {

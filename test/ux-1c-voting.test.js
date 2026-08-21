@@ -25,6 +25,7 @@ const EXPECTED_BETA_ACTIONS = [
   'unfollow',
   'subscribe',
   'unsubscribe',
+  'profile',
   'claim-rewards',
   'wall',
   'inbox',
@@ -178,13 +179,13 @@ test('beta preflight retains all six exact positive and negative Hive weight vec
   }
 });
 
-test('UX-1C changes no beta or dormant-V1 activation boundary', () => {
+test('UX-1C vote boundaries remain exact while C2-A exposes profile without V1 activation', () => {
   const fixture = votingFixture();
   assert.deepEqual(BETA_ACTIONS, EXPECTED_BETA_ACTIONS);
   assert.equal(fixture.config.hive.writeMode, 'beta');
   assert.equal(fixture.app.locals.canWriteAction('vote'), true);
   assert.equal(fixture.app.locals.canWriteAction('thread'), true);
-  assert.equal(fixture.app.locals.canWriteAction('profile'), false);
+  assert.equal(fixture.app.locals.canWriteAction('profile'), true);
   assert.equal(fixture.config.hive.v1SelfSigningEnabled, false);
   assert.equal(V1_ACTIONS.length, 12);
   assert.equal(V1_ACTIONS.includes('profile'), true);

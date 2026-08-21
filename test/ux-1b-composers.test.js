@@ -24,6 +24,7 @@ const EXPECTED_BETA_ACTIONS = [
   'unfollow',
   'subscribe',
   'unsubscribe',
+  'profile',
   'claim-rewards',
   'wall',
   'inbox',
@@ -200,7 +201,7 @@ test('UX-1B Wall composers share presentation while retaining distinct M4 action
   assert.match(privateForm.textContent, /HBD amount, time, and transaction remain public on Hive/);
 });
 
-test('UX-1B composer pages validate and beta policy remains exactly unchanged', async () => {
+test('UX-1B composer pages validate while C2-A exposes only the reviewed profile action', async () => {
   const fixture = ux1bFixture();
   const paths = [
     '/community',
@@ -228,11 +229,11 @@ test('UX-1B composer pages validate and beta policy remains exactly unchanged', 
 
   assert.deepEqual(BETA_ACTIONS, EXPECTED_BETA_ACTIONS);
   assert.equal(isBetaAction('thread'), true);
-  assert.equal(isBetaAction('profile'), false);
+  assert.equal(isBetaAction('profile'), true);
   assert.equal(fixture.config.hive.writeMode, 'beta');
   assert.equal(fixture.config.hive.betaSelfSigningEnabled, true);
   assert.equal(fixture.config.hive.v1SelfSigningEnabled, false);
   assert.equal(fixture.app.locals.canWriteAction('thread'), true);
-  assert.equal(fixture.app.locals.canWriteAction('profile'), false);
+  assert.equal(fixture.app.locals.canWriteAction('profile'), true);
   assert.equal(V1_ACTIONS.includes('profile'), true);
 });

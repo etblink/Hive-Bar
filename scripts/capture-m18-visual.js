@@ -359,8 +359,6 @@ async function prepareScenario(page, scenario) {
       'Posts',
       'Wallet',
       'Wall',
-      'Followers',
-      'Following',
       'Inbox',
       'Settings',
     ]);

@@ -28,22 +28,6 @@
           <% if (activeView === 'wall') { %>aria-current="page"<% } %>>
           Wall
         </a>
-        <a
-          href="/profile/<%= userProfile.name %>/followers"
-          hx-get="/profile/<%= userProfile.name %>/followers"
-          hx-target="#profile-content"
-          class="content-tab <%= activeView === 'followers' ? 'content-tab--active' : '' %>"
-          <% if (activeView === 'followers') { %>aria-current="page"<% } %>>
-          Followers
-        </a>
-        <a
-          href="/profile/<%= userProfile.name %>/following"
-          hx-get="/profile/<%= userProfile.name %>/following"
-          hx-target="#profile-content"
-          class="content-tab <%= activeView === 'following' ? 'content-tab--active' : '' %>"
-          <% if (activeView === 'following') { %>aria-current="page"<% } %>>
-          Following
-        </a>
         <% if (canManageProfile) { %>
           <a
             href="/profile/<%= userProfile.name %>/inbox"

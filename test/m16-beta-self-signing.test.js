@@ -5,6 +5,7 @@ const test = require('node:test');
 const request = require('supertest');
 const { createApp } = require('../src/app');
 const { SessionStore } = require('../src/auth/session-store');
+const { metadataRevision } = require('../src/hive/profile-settings');
 const { BETA_M16_4_ACTIONS } = require('../routes/m4');
 const { BETA_M16_3_ACTIONS } = require('../routes/social');
 const { configFrom, logger } = require('./support/test-app');
@@ -12,6 +13,7 @@ const { createFixtureRpc, fixture } = require('./support/fixture-rpc');
 
 const ORIGIN = 'http://localhost:3000';
 const SESSION_SECRET = 'test-session-secret-that-is-at-least-32-bytes';
+const BARFRIEND_ACCOUNT = fixture.accounts.find((item) => item.name === 'barfriend');
 
 function betaFixture({ account = 'barfriend', rpcPool = createFixtureRpc() } = {}) {
   const config = configFrom({
@@ -56,14 +58,14 @@ function activeThreadRpc({ permlink = 'threads-2026-08-20' } = {}) {
   };
 }
 
-function authorized(builder, fixture) {
+function authorized(builder, fixtureApp) {
   return builder
     .set('origin', ORIGIN)
-    .set('cookie', `hive_bar_session=${fixture.token}`)
-    .set('x-csrf-token', fixture.session.csrfToken);
+    .set('cookie', `hive_bar_session=${fixtureApp.token}`)
+    .set('x-csrf-token', fixtureApp.session.csrfToken);
 }
 
-test('beta mode remains Keychain-only while social, reward, and messaging lanes stay explicitly bounded', () => {
+test('beta mode remains Keychain-only while social, profile, reward, and messaging lanes stay explicitly bounded', () => {
   assert.throws(
     () => configFrom({ HIVE_WRITE_MODE: 'beta' }),
     /Beta self-signing mode requires Hive Keychain/,
@@ -83,18 +85,18 @@ test('beta mode remains Keychain-only while social, reward, and messaging lanes 
     'subscribe',
     'unsubscribe',
   ]);
-  assert.deepEqual([...BETA_M16_4_ACTIONS], ['claim-rewards', 'wall', 'inbox']);
+  assert.deepEqual([...BETA_M16_4_ACTIONS], ['profile', 'claim-rewards', 'wall', 'inbox']);
   assert.equal(config.hive.writesEnabled, false);
   assert.deepEqual(config.hive.controlledAccounts, []);
   assert.equal(config.payments.enabled, false);
 });
 
 test('an arbitrary verified beta user can prepare self-authored post and comment operations', async () => {
-  const fixture = betaFixture();
+  const fixtureApp = betaFixture();
 
   const post = await authorized(
-    request(fixture.app).post('/api/social/preflight/post'),
-    fixture,
+    request(fixtureApp.app).post('/api/social/preflight/post'),
+    fixtureApp,
   )
     .send({
       title: 'Beta self-signing post',
@@ -114,8 +116,8 @@ test('an arbitrary verified beta user can prepare self-authored post and comment
   assert.equal(post.body.operations[0][1].parent_permlink, 'hive-108590');
 
   const comment = await authorized(
-    request(fixture.app).post('/api/social/preflight/comment'),
-    fixture,
+    request(fixtureApp.app).post('/api/social/preflight/comment'),
+    fixtureApp,
   )
     .send({
       body: 'Replying as the verified beta account.',
@@ -134,11 +136,11 @@ test('an arbitrary verified beta user can prepare self-authored post and comment
 });
 
 test('M16.3 prepares explicit weighted upvotes and downvotes as the verified beta voter', async () => {
-  const fixture = betaFixture();
+  const fixtureApp = betaFixture();
 
   const upvote = await authorized(
-    request(fixture.app).post('/api/social/preflight/vote'),
-    fixture,
+    request(fixtureApp.app).post('/api/social/preflight/vote'),
+    fixtureApp,
   )
     .send({
       author: 'etblink',
@@ -167,13 +169,13 @@ test('M16.3 prepares explicit weighted upvotes and downvotes as the verified bet
   assert.equal(upvote.body.summary.weight, 4200);
 
   await authorized(
-    request(fixture.app).post(`/api/social/preflight/${upvote.body.id}/cancel`),
-    fixture,
+    request(fixtureApp.app).post(`/api/social/preflight/${upvote.body.id}/cancel`),
+    fixtureApp,
   ).expect(204);
 
   const downvote = await authorized(
-    request(fixture.app).post('/api/social/preflight/vote'),
-    fixture,
+    request(fixtureApp.app).post('/api/social/preflight/vote'),
+    fixtureApp,
   )
     .send({
       author: 'etblink',
@@ -197,13 +199,13 @@ test('M16.3 prepares explicit weighted upvotes and downvotes as the verified bet
   assert.equal(downvote.body.summary.weight, -3700);
 
   await authorized(
-    request(fixture.app).post(`/api/social/preflight/${downvote.body.id}/cancel`),
-    fixture,
+    request(fixtureApp.app).post(`/api/social/preflight/${downvote.body.id}/cancel`),
+    fixtureApp,
   ).expect(204);
 
   await authorized(
-    request(fixture.app).post('/api/social/preflight/vote'),
-    fixture,
+    request(fixtureApp.app).post('/api/social/preflight/vote'),
+    fixtureApp,
   )
     .send({
       author: 'etblink',
@@ -216,7 +218,7 @@ test('M16.3 prepares explicit weighted upvotes and downvotes as the verified bet
 });
 
 test('M20.2 prepares follow and community membership actions as the verified beta account', async () => {
-  const fixture = betaFixture();
+  const fixtureApp = betaFixture();
   const cases = [
     ['follow', { following: 'etblink', follower: 'attacker' }],
     ['unfollow', { following: 'etblink', follower: 'attacker' }],
@@ -226,8 +228,8 @@ test('M20.2 prepares follow and community membership actions as the verified bet
 
   for (const [action, payload] of cases) {
     const response = await authorized(
-      request(fixture.app).post(`/api/social/preflight/${action}`),
-      fixture,
+      request(fixtureApp.app).post(`/api/social/preflight/${action}`),
+      fixtureApp,
     )
       .send(payload)
       .expect(201);
@@ -346,12 +348,12 @@ test('UX-1A Thread preparation validates content and fails safely when the conta
     .expect(({ body }) => assert.equal(body.error.code, 'BETA_ACTION_NOT_ALLOWED'));
 });
 
-test('M16.4 messaging stays session-bound and M20.2 adds self-signed reward claims', async () => {
-  const fixture = betaFixture();
+test('M16.4 messaging, profile settings, and rewards stay session-bound in beta', async () => {
+  const fixtureApp = betaFixture();
 
   const wall = await authorized(
-    request(fixture.app).post('/api/m4/preflight/wall'),
-    fixture,
+    request(fixtureApp.app).post('/api/m4/preflight/wall'),
+    fixtureApp,
   )
     .send({
       recipient: 'etblink',
@@ -376,22 +378,22 @@ test('M16.4 messaging stays session-bound and M20.2 adds self-signed reward clai
   ]]);
 
   await authorized(
-    request(fixture.app).post(`/api/m4/preflight/${wall.body.id}/accepted`),
-    fixture,
+    request(fixtureApp.app).post(`/api/m4/preflight/${wall.body.id}/accepted`),
+    fixtureApp,
   )
     .send({ transactionId: '1'.repeat(40) })
     .expect(200);
 
   const observed = await authorized(
-    request(fixture.app).post(`/api/m4/preflight/${wall.body.id}/observe`),
-    fixture,
+    request(fixtureApp.app).post(`/api/m4/preflight/${wall.body.id}/observe`),
+    fixtureApp,
   ).expect(200);
   assert.equal(observed.body.state, 'observed');
   assert.equal(observed.body.blockNumber, 108944500);
 
   const inbox = await authorized(
-    request(fixture.app).post('/api/m4/preflight/inbox'),
-    fixture,
+    request(fixtureApp.app).post('/api/m4/preflight/inbox'),
+    fixtureApp,
   )
     .send({
       recipient: 'etblink',
@@ -417,13 +419,13 @@ test('M16.4 messaging stays session-bound and M20.2 adds self-signed reward clai
   assert.doesNotMatch(JSON.stringify(inbox.body.summary), /#8fixtureciphertext/);
 
   await authorized(
-    request(fixture.app).post(`/api/m4/preflight/${inbox.body.id}/cancel`),
-    fixture,
+    request(fixtureApp.app).post(`/api/m4/preflight/${inbox.body.id}/cancel`),
+    fixtureApp,
   ).expect(204);
 
   const staleFee = await authorized(
-    request(fixture.app).post('/api/m4/preflight/wall'),
-    fixture,
+    request(fixtureApp.app).post('/api/m4/preflight/wall'),
+    fixtureApp,
   )
     .send({
       recipient: 'etblink',
@@ -434,13 +436,24 @@ test('M16.4 messaging stays session-bound and M20.2 adds self-signed reward clai
     .expect(409);
   assert.equal(staleFee.body.error.code, 'WALL_FEE_CHANGED');
 
-  await authorized(
-    request(fixture.app).post('/api/m4/preflight/profile'),
-    fixture,
+  const profile = await authorized(
+    request(fixtureApp.app).post('/api/m4/preflight/profile'),
+    fixtureApp,
   )
-    .send({})
-    .expect(503)
-    .expect(({ body }) => assert.equal(body.error.code, 'BETA_ACTION_NOT_ALLOWED'));
+    .send({
+      baseRevision: metadataRevision(BARFRIEND_ACCOUNT.posting_json_metadata),
+      displayName: 'Bar Friend C2-A',
+      about: 'C2-A beta profile rehearsal.',
+      profileImage: 'https://images.hive.blog/u/barfriend/avatar',
+      wallFee: '1.000 HBD',
+      blocklist: '',
+    })
+    .expect(201);
+  assert.equal(profile.body.broadcastMode, 'beta-self');
+  assert.equal(profile.body.account, 'barfriend');
+  assert.equal(profile.body.authority, 'Posting');
+  assert.equal(profile.body.operations[0][0], 'account_update2');
+  assert.equal(profile.body.operations[0][1].account, 'barfriend');
 
   const rewardFixture = betaFixture({ account: 'etblink' });
   const claim = await authorized(
@@ -457,12 +470,12 @@ test('M16.4 messaging stays session-bound and M20.2 adds self-signed reward clai
   assert.equal(claim.body.operations[0][1].account, 'etblink');
 });
 
-test('beta UI exposes posts, community membership, voting, messaging, and reward claims in plain language', async () => {
-  const fixture = betaFixture({ account: 'etblink' });
+test('beta UI exposes posts, community membership, voting, messaging, profile settings, and reward claims in plain language', async () => {
+  const fixtureApp = betaFixture({ account: 'etblink' });
 
-  const community = await request(fixture.app)
+  const community = await request(fixtureApp.app)
     .get('/community')
-    .set('cookie', `hive_bar_session=${fixture.token}`)
+    .set('cookie', `hive_bar_session=${fixtureApp.token}`)
     .expect(200);
   assert.match(community.text, /data-social-action="post" data-signer-mode="keychain"/);
   assert.match(community.text, /data-social-action="vote"\s+data-signer-mode="keychain"/);
@@ -471,9 +484,9 @@ test('beta UI exposes posts, community membership, voting, messaging, and reward
   assert.match(community.text, /type="range"\s+name="percent"\s+value="100"/);
   assert.match(community.text, /data-social-action="(?:subscribe|unsubscribe)"/);
 
-  const post = await request(fixture.app)
+  const post = await request(fixtureApp.app)
     .get('/post/etblink/welcome-fourth-street-bar')
-    .set('cookie', `hive_bar_session=${fixture.token}`)
+    .set('cookie', `hive_bar_session=${fixtureApp.token}`)
     .expect(200);
   const replyForms = post.text.match(/data-social-action="comment" data-signer-mode="keychain"/g) || [];
   assert.equal(replyForms.length, 2);
@@ -495,9 +508,16 @@ test('beta UI exposes posts, community membership, voting, messaging, and reward
   assert.match(wall.text, /review the recipient, message, fee, and payment before Keychain asks for approval/i);
   assert.doesNotMatch(wall.text, /exact Active operation|controlled-write run|Verified-owner page/);
 
-  const wallet = await request(fixture.app)
+  const settings = await request(fixtureApp.app)
+    .get('/profile/etblink/settings')
+    .set('cookie', `hive_bar_session=${fixtureApp.token}`)
+    .expect(200);
+  assert.match(settings.text, /data-m4-action="profile"/);
+  assert.match(settings.text, />Review changes</);
+
+  const wallet = await request(fixtureApp.app)
     .get('/profile/etblink/wallet')
-    .set('cookie', `hive_bar_session=${fixture.token}`)
+    .set('cookie', `hive_bar_session=${fixtureApp.token}`)
     .expect(200);
   assert.match(wallet.text, /data-m4-action="claim-rewards"/);
   assert.match(wallet.text, /checks your current rewards again/i);

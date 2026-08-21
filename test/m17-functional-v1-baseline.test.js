@@ -19,7 +19,7 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
-test('UX-1A extends beta while preserving the pre-final functional V1 baseline', () => {
+test('C2-A exposes the reviewed profile action in beta while preserving the pre-final functional V1 baseline', () => {
   const summary = assertFunctionalV1Baseline();
 
   assert.equal(EXPECTED_VERSION, '0.1.0');
@@ -47,6 +47,7 @@ test('UX-1A extends beta while preserving the pre-final functional V1 baseline',
     'unfollow',
     'subscribe',
     'unsubscribe',
+    'profile',
     'claim-rewards',
     'wall',
     'inbox',

@@ -121,7 +121,7 @@ test('M15.3 Conversation is content-first while preserving comment and vote gate
   assert.match(FULL_POST_SOURCE, /include\('\.\.\/common\/vote-form', \{ item: post \}\)/);
 });
 
-test('M15.3 Profile becomes a modern identity header while retaining every current public tab', async () => {
+test('M15.3 Profile keeps its identity header while C2-A removes duplicate connection tabs', async () => {
   const { app } = createFixtureApp();
   const response = await request(app).get('/profile/barfriend').expect(200);
   const document = documentFor(response.text);
@@ -141,9 +141,9 @@ test('M15.3 Profile becomes a modern identity header while retaining every curre
     '/profile/barfriend',
     '/profile/barfriend/wallet',
     '/profile/barfriend/wall-posts',
-    '/profile/barfriend/followers',
-    '/profile/barfriend/following',
   ]);
+  assert.ok(surface.querySelector('.profile-hero__stats a[href="/profile/barfriend/followers"]'));
+  assert.ok(surface.querySelector('.profile-hero__stats a[href="/profile/barfriend/following"]'));
 
   assert.ok(surface.querySelector('.profile-content-panel .social-feed'));
   assert.equal(surface.querySelector('a[href="/profile/barfriend/inbox"]'), null);
