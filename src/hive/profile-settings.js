@@ -124,7 +124,13 @@ function requireBlocklist(value) {
   return [...new Set(normalized)];
 }
 
-function validateProfileInput(payload) {
+function validateProfileInput(payload, { existingProfileImage = null } = {}) {
+  const submittedProfileImage = String(payload?.profileImage ?? '');
+  const profileImage =
+    typeof existingProfileImage === 'string' && submittedProfileImage === existingProfileImage
+      ? existingProfileImage
+      : requireProfileImage(payload?.profileImage);
+
   return {
     displayName: requireBoundedText(
       payload?.displayName,
@@ -132,7 +138,7 @@ function validateProfileInput(payload) {
       PROFILE_LIMITS.displayNameBytes,
     ),
     about: requireBoundedText(payload?.about, 'About text', PROFILE_LIMITS.aboutBytes),
-    profileImage: requireProfileImage(payload?.profileImage),
+    profileImage,
     wallFee: requireWallFee(payload?.wallFee),
     blocklist: requireBlocklist(payload?.blocklist),
   };
@@ -164,8 +170,8 @@ function prepareProfileUpdate({ rawMetadata, baseRevision, payload, defaultWallF
     );
   }
 
-  const input = validateProfileInput(payload);
   const before = ownedSnapshot(parsed.metadata, defaultWallFee);
+  const input = validateProfileInput(payload, { existingProfileImage: before.profileImage });
   const next = { ...parsed.metadata };
   const profile = isPlainObject(parsed.metadata.profile) ? { ...parsed.metadata.profile } : {};
   const hivebar = isPlainObject(parsed.metadata.hivebar) ? { ...parsed.metadata.hivebar } : {};
