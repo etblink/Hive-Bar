@@ -21,36 +21,39 @@
           <header class="composer-dialog__header">
             <div class="composer__context">
               <% if (composer.kicker) { %><p class="composer__kicker"><%= composer.kicker %></p><% } %>
-              <h2 id="<%= composerHeadingId %>" class="composer__title"><%= composer.title %></h2>
-              <% if (composer.description) { %><p class="composer__description"><%= composer.description %></p><% } %>
+              <h2 id="<%= composerHeadingId %>" class="composer__title" <% if (composer.wallPrivacy) { %>data-wall-privacy-title<% } %>><%= composer.title %></h2>
+              <% if (composer.description) { %><p class="composer__description" <% if (composer.wallPrivacy) { %>data-wall-privacy-description<% } %>><%= composer.description %></p><% } %>
             </div>
             <button type="button" class="composer-dialog__close" aria-label="Close <%= composer.title %>" data-composer-dialog-close>&times;</button>
           </header>
-          <% if (composer.meta) { %><p class="composer__meta composer-dialog__meta"><%= composer.meta %></p><% } %>
+          <% if (composer.meta) { %><p class="composer__meta composer-dialog__meta" <% if (composer.wallPrivacy) { %>data-wall-privacy-meta<% } %>><%= composer.meta %></p><% } %>
           <%- include('composer/form', { composer }) %>
         </div>
       </dialog>
     </details>
   <% } else { %>
-    <div id="<%= composer.id %>" class="composer composer--dialog-launcher<%= composerVariant %>" data-composer="<%= composer.id %>" data-composer-dialog-shell <% if (composer.privateDisclosure) { %>data-m18-private-composer<% } %>>
+    <% const iconTrigger = composer.triggerVariant === 'icon'; %>
+    <div id="<%= composer.id %>" class="composer composer--dialog-launcher<%= iconTrigger ? ' composer--icon-launcher' : '' %><%= composerVariant %>" data-composer="<%= composer.id %>" data-composer-dialog-shell <% if (composer.privateDisclosure) { %>data-m18-private-composer<% } %>>
       <button
         type="button"
-        class="<%= composer.triggerVariant === 'secondary' ? 'button-secondary' : 'button-primary' %> composer__dialog-trigger"
+        class="<%= composer.triggerVariant === 'secondary' ? 'button-secondary' : 'button-primary' %> composer__dialog-trigger<%= iconTrigger ? ' composer__dialog-trigger--icon' : '' %>"
         aria-haspopup="dialog"
         aria-controls="<%= composerDialogId %>"
-        data-composer-dialog-trigger><%= composer.triggerLabel || composer.title %></button>
+        aria-label="<%= composer.triggerAriaLabel || composer.triggerLabel || composer.title %>"
+        title="<%= composer.triggerTitle || composer.triggerAriaLabel || composer.triggerLabel || composer.title %>"
+        data-composer-dialog-trigger><% if (iconTrigger) { %><span class="composer__dialog-trigger-icon" aria-hidden="true">+</span><% } else { %><%= composer.triggerLabel || composer.title %><% } %></button>
       <% if (composer.triggerMeta) { %><span class="composer__dialog-trigger-meta"><%= composer.triggerMeta %></span><% } %>
       <dialog id="<%= composerDialogId %>" class="composer-dialog" data-composer-dialog aria-labelledby="<%= composerHeadingId %>">
         <div class="composer-dialog__surface">
           <header class="composer-dialog__header">
             <div class="composer__context">
               <% if (composer.kicker) { %><p class="composer__kicker"><%= composer.kicker %></p><% } %>
-              <h2 id="<%= composerHeadingId %>" class="composer__title"><%= composer.title %></h2>
-              <% if (composer.description) { %><p class="composer__description"><%= composer.description %></p><% } %>
+              <h2 id="<%= composerHeadingId %>" class="composer__title" <% if (composer.wallPrivacy) { %>data-wall-privacy-title<% } %>><%= composer.title %></h2>
+              <% if (composer.description) { %><p class="composer__description" <% if (composer.wallPrivacy) { %>data-wall-privacy-description<% } %>><%= composer.description %></p><% } %>
             </div>
             <button type="button" class="composer-dialog__close" aria-label="Close <%= composer.title %>" data-composer-dialog-close>&times;</button>
           </header>
-          <% if (composer.meta) { %><p class="composer__meta composer-dialog__meta"><%= composer.meta %></p><% } %>
+          <% if (composer.meta) { %><p class="composer__meta composer-dialog__meta" <% if (composer.wallPrivacy) { %>data-wall-privacy-meta<% } %>><%= composer.meta %></p><% } %>
           <%- include('composer/form', { composer }) %>
         </div>
       </dialog>

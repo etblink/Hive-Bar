@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 const request = require('supertest');
 const { createApp } = require('../src/app');
@@ -10,6 +12,10 @@ const { createFixtureRpc } = require('./support/fixture-rpc');
 
 const SESSION_SECRET = 'test-session-secret-that-is-at-least-32-bytes';
 const FORBIDDEN_VISIBLE_COPY = /individually authorized controlled-write run|Verified-owner page|Current on-chain state|M2 read-only release|account-bound action|exact Active operation|Controlled maximum|merchant author/i;
+const WALL_SOURCE = fs.readFileSync(
+  path.join(__dirname, '..', 'views/pages/profile/partials/wall-posts.ejs'),
+  'utf8',
+);
 
 function signedInApp({ account = 'barfriend', writeMode = 'beta' } = {}) {
   const config = configFrom({
@@ -74,10 +80,12 @@ test('M16.5 beta participation copy stays friendly while preserving write-review
     .set('cookie', beta.cookie)
     .expect(200);
   assert.match(wall.text, /Post a public message/);
-  assert.match(wall.text, /Send a private message/);
-  assert.match(wall.text, /Keychain encrypts the message in this browser/);
+  assert.match(wall.text, /Encrypt this message \(private\)/);
+  assert.match(wall.text, /Checked messages are encrypted with Hive Keychain in this browser before review/);
   assert.match(wall.text, /payment details are permanently visible on Hive/);
-  assert.match(wall.text, /HBD amount, time, and transaction remain public on Hive/);
+  assert.match(wall.text, /The message, sender, recipient, payment, and transaction are permanently public on Hive/);
+  assert.match(WALL_SOURCE, /The message text stays private/);
+  assert.match(WALL_SOURCE, /HBD amount, time, and transaction remain public on Hive/);
   assert.doesNotMatch(visibleText(wall.text), FORBIDDEN_VISIBLE_COPY);
 });
 

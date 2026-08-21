@@ -197,8 +197,13 @@ async function settle(page) {
 
 async function prepare(page, id) {
   if (id === 'wall-private-expanded') {
-    await page.locator('[data-m18-private-composer] > summary').click();
-    assert.equal(await page.locator('[data-m18-private-composer]').evaluate((node) => node.open), true);
+    const composer = page.locator('#wall-message-composer');
+    await composer.locator('[data-composer-dialog-trigger]').click();
+    await composer.locator('[data-wall-privacy-toggle]').check();
+    assert.equal(
+      await composer.locator('form[data-wall-privacy-form]').getAttribute('data-m4-action'),
+      'inbox',
+    );
   }
   if (id === 'pay-authenticated-receipt') {
     await page.evaluate(() => {
@@ -263,7 +268,7 @@ async function evidence(page, scenario, width) {
       })
       .filter(Boolean);
     const uncontainedOutsideFocusables = outsideFocusables.filter(({ scrollContainer }) => !scrollContainer);
-    const undersizedButtonsAndSummaries = Array.from(globalThis.document.querySelectorAll('button,[data-m18-private-composer] > summary'))
+    const undersizedButtonsAndSummaries = Array.from(globalThis.document.querySelectorAll('button,[data-composer-dialog-trigger]'))
       .filter(visible)
       .map((node) => ({ text: node.textContent.trim(), rect: node.getBoundingClientRect() }))
       .filter(({ rect }) => rect.height < 44 || rect.width < 44)
@@ -283,7 +288,7 @@ async function evidence(page, scenario, width) {
       pay: Boolean(globalThis.document.querySelector('[data-m18-3-surface="pay"]')),
       publicComposer: Boolean(globalThis.document.querySelector('form[data-m4-action="wall"]')),
       privateComposer: Boolean(globalThis.document.querySelector('form[data-m4-action="inbox"]')),
-      privateExpanded: Boolean(globalThis.document.querySelector('[data-m18-private-composer]')?.open),
+      privateExpanded: Boolean(globalThis.document.querySelector('#wall-message-composer [data-composer-dialog]')?.open),
       payForm: Boolean(globalThis.document.querySelector('[data-pay-form]')),
       payReceiptVisible: Boolean(receipt && visible(receipt)),
       keychainStub: globalThis.__M18_3_KEYCHAIN_DISABLED__ === true,
@@ -306,10 +311,14 @@ async function evidence(page, scenario, width) {
   }
   if (scenario.id === 'wall-authenticated') {
     assert.equal(result.publicComposer, true);
-    assert.equal(result.privateComposer, true);
+    assert.equal(result.privateComposer, false);
     assert.equal(result.privateExpanded, false);
   }
-  if (scenario.id === 'wall-private-expanded') assert.equal(result.privateExpanded, true);
+  if (scenario.id === 'wall-private-expanded') {
+    assert.equal(result.publicComposer, false);
+    assert.equal(result.privateComposer, true);
+    assert.equal(result.privateExpanded, true);
+  }
   if (scenario.id.startsWith('pay-')) assert.equal(result.pay, true);
   if (scenario.id === 'pay-signed-out') assert.equal(result.payForm, false);
   if (scenario.id === 'pay-authenticated-ready') assert.equal(result.payForm, true);

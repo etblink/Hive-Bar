@@ -135,6 +135,7 @@ async function capture({ browser, baseUrl, scenario, token, width }) {
   const response = await page.goto(`${baseUrl}${scenario.path}`, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);
   if (scenario.composerValue) {
+    await page.locator('#thread-composer [data-composer-dialog-trigger]').click();
     await page.locator('#new-thread-body').fill(scenario.composerValue);
     await page.locator('#new-thread-body').focus();
   }
@@ -156,6 +157,9 @@ async function capture({ browser, baseUrl, scenario, token, width }) {
       technicalContainer: text.includes('Technical Threads Container — Do Not Display'),
       technicalParentLink: text.includes('View the parent post'),
       composer: Boolean(composer),
+      composerDialog: Boolean(composer?.closest('dialog[data-composer-dialog]')),
+      composerDialogOpen: composer?.closest('dialog[data-composer-dialog]')?.open || false,
+      compactTrigger: Boolean(document.querySelector('#thread-composer .composer__dialog-trigger--icon')),
       signerMode: composer?.dataset.signerMode || null,
       composerValue: document.querySelector('#new-thread-body')?.value || '',
       byteCounter: document.querySelector('#new-thread-body-counter')?.textContent.trim() || '',
@@ -175,15 +179,23 @@ async function capture({ browser, baseUrl, scenario, token, width }) {
   }
   if (scenario.id === 'threads-empty') {
     assert.equal(evidence.composer, true);
+    assert.equal(evidence.composerDialog, true);
+    assert.equal(evidence.composerDialogOpen, false);
+    assert.equal(evidence.compactTrigger, true);
     assert.equal(evidence.emptyState, true);
   }
   if (scenario.id === 'thread-composer-active') {
     assert.equal(evidence.composer, true);
+    assert.equal(evidence.composerDialog, true);
+    assert.equal(evidence.composerDialogOpen, true);
+    assert.equal(evidence.compactTrigger, true);
     assert.equal(evidence.composerValue, scenario.composerValue);
     assert.equal(evidence.byteCounter, '37 / 500 used');
   }
   if (scenario.id === 'threads-populated') {
     assert.equal(evidence.composer, true);
+    assert.equal(evidence.composerDialog, true);
+    assert.equal(evidence.compactTrigger, true);
     assert.equal(evidence.populatedThread, true);
     assert.equal(evidence.populatedReply, true);
   }

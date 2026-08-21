@@ -47,7 +47,11 @@ function assertUniqueAccessibleComposerContracts(document) {
     assert.equal(form.querySelectorAll(':scope [data-social-status], :scope [data-m4-status]').length, 1);
     for (const input of form.querySelectorAll('[data-composer-input]')) {
       assert.ok(input.id);
-      assert.equal(form.querySelector(`label[for="${input.id}"]`)?.htmlFor, input.id);
+      const explicitLabel = form.querySelector(`label[for="${input.id}"]`);
+      const wrappingLabel = input.closest('label');
+      assert.ok(explicitLabel || wrappingLabel, input.id);
+      if (explicitLabel) assert.equal(explicitLabel.htmlFor, input.id);
+      if (!explicitLabel) assert.equal(wrappingLabel?.contains(input), true, input.id);
       for (const descriptionId of (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)) {
         assert.ok(form.querySelector(`#${descriptionId}`), `${input.id} -> ${descriptionId}`);
       }
@@ -66,6 +70,7 @@ function assertUniqueAccessibleComposerContracts(document) {
       assert.ok(trigger);
       assert.equal(trigger.getAttribute('aria-controls'), dialog.id);
       assert.equal(trigger.getAttribute('aria-haspopup'), 'dialog');
+      assert.ok(trigger.getAttribute('aria-label') || trigger.textContent.trim());
       assert.ok(dialog.getAttribute('aria-labelledby'));
       assert.ok(dialog.querySelector('[data-composer-dialog-close]'));
       assert.equal(composer.querySelector(':scope > form[data-composer-form]'), null);
@@ -83,15 +88,20 @@ function assertFocusedComposer(form) {
   assert.equal(dialog.parentElement, composer);
   assert.ok(composer.querySelector(':scope > [data-composer-dialog-trigger]'));
   assert.equal(composer.querySelector(':scope > form[data-composer-form]'), null);
-  const details = form.closest('details');
-  if (details) {
-    assert.equal(details, composer);
-    assert.equal(details.hasAttribute('data-composer-dialog-shell'), true);
-    assert.equal(details.hasAttribute('open'), false);
-  }
 }
 
-test('UX-1B keeps one shared composer contract while C2-B adds focused native-dialog presentation', () => {
+function assertCompactPlusLauncher(form, label) {
+  const composer = form.closest('[data-composer]');
+  const trigger = composer.querySelector(':scope > button[data-composer-dialog-trigger]');
+  assert.ok(trigger);
+  assert.equal(trigger.getAttribute('aria-label'), label);
+  assert.equal(trigger.getAttribute('title'), label);
+  assert.equal(trigger.textContent.trim(), '+');
+  assert.ok(trigger.classList.contains('composer__dialog-trigger--icon'));
+  assert.ok(composer.closest('.composer-toolbar'));
+}
+
+test('UX-1B keeps one shared composer contract while C2-B.1 adds compact launchers and Wall privacy state', () => {
   const sources = [
     'views/pages/community/partials/community-post-list.ejs',
     'views/pages/community/partials/community-thread-list.ejs',
@@ -112,9 +122,11 @@ test('UX-1B keeps one shared composer contract while C2-B adds focused native-di
   assert.match(shared, /data-composer-form=/);
   assert.match(shared, /data-composer-input/);
   assert.match(shared, /field\.type === 'select'/);
+  assert.match(shared, /field\.type === 'checkbox'/);
+  assert.match(shared, /data-wall-privacy-form/);
 });
 
-test('C2-B Community and owner Profile use one focused post composer with explicit destination defaults', async () => {
+test('C2-B.1 Community, owner Profile, and Threads use compact plus launchers with focused dialogs', async () => {
   const fixture = ux1bFixture();
   const [communityResponse, profileResponse, threadsResponse] = await Promise.all([
     request(fixture.app).get('/community').set('cookie', fixture.cookie).expect(200),
@@ -130,23 +142,20 @@ test('C2-B Community and owner Profile use one focused post composer with explic
 
   const communityPost = community.querySelector('form[data-social-action="post"]');
   const profilePost = profile.querySelector('form[data-social-action="post"]');
-  for (const form of [communityPost, profilePost]) {
+  const thread = threads.querySelector('form[data-social-action="thread"]');
+  for (const form of [communityPost, profilePost, thread]) {
     assert.ok(form);
     assert.equal(form.dataset.signerMode, 'keychain');
     assertFocusedComposer(form);
-    const destination = form.querySelector('select[name="destination"]');
-    assert.ok(destination);
-    assert.equal(form.querySelector('[name="title"]')?.dataset.maxBytes, '256');
-    assert.equal(form.querySelector('[name="body"]')?.dataset.maxBytes, '32768');
   }
+  assertCompactPlusLauncher(communityPost, 'Create post');
+  assertCompactPlusLauncher(profilePost, 'Create post');
+  assertCompactPlusLauncher(thread, 'Start a Thread');
+
   assert.equal(communityPost.querySelector('[name="destination"]').value, 'community');
   assert.deepEqual(Array.from(communityPost.querySelector('[name="destination"]').options, ({ value }) => value), ['community', 'profile']);
   assert.equal(profilePost.querySelector('[name="destination"]').value, 'profile');
   assert.deepEqual(Array.from(profilePost.querySelector('[name="destination"]').options, ({ value }) => value), ['profile', 'community']);
-
-  const thread = threads.querySelector('form[data-social-action="thread"]');
-  assert.ok(thread);
-  assert.equal(thread.closest('dialog'), null);
   assert.equal(thread.querySelector('#new-thread-body')?.dataset.maxBytes, '500');
 });
 
@@ -169,29 +178,31 @@ test('C2-B root and nested Reply dialogs preserve exact parent semantics without
   assert.equal(nested.querySelector('[name="body"]')?.dataset.maxBytes, '8192');
 });
 
-test('C2-B Wall and Inbox share focused presentation while retaining distinct M4 actions, fees, and privacy semantics', async () => {
+test('C2-B.1 Wall renders one focused M4 composer with privacy toggle and exact fee bindings', async () => {
   const fixture = ux1bFixture();
   const response = await request(fixture.app).get('/profile/etblink/wall-posts').set('cookie', fixture.cookie).expect(200);
   const document = documentFor(response.text);
   assertUniqueAccessibleComposerContracts(document);
-  const publicForm = document.querySelector('form[data-m4-action="wall"]');
-  const privateForm = document.querySelector('form[data-m4-action="inbox"]');
-  assert.ok(publicForm); assert.ok(privateForm);
-  for (const form of [publicForm, privateForm]) {
-    assertFocusedComposer(form);
-    assert.equal(hiddenValue(form, 'recipient'), 'etblink');
-    assert.equal(hiddenValue(form, 'expectedFee'), '1.000 HBD');
-    assert.equal(hiddenValue(form, 'amount'), '1.000 HBD');
-    assert.equal(form.hasAttribute('data-social-action'), false);
-  }
-  assert.equal(publicForm.querySelector('[name="message"]')?.dataset.maxBytes, '2000');
-  assert.equal(privateForm.querySelector('[name="message"]')?.dataset.maxBytes, '1500');
-  assert.match(publicForm.textContent, /permanently public on Hive/i);
-  assert.match(privateForm.textContent, /Keychain encrypts the message in this browser/);
-  assert.match(privateForm.textContent, /message text stays private/i);
+  const forms = Array.from(document.querySelectorAll('form[data-wall-privacy-form]'));
+  assert.equal(forms.length, 1);
+  const form = forms[0];
+  assertFocusedComposer(form);
+  assert.equal(form.dataset.m4Action, 'wall');
+  assert.equal(form.dataset.wallEnabled, 'true');
+  assert.equal(form.dataset.inboxEnabled, 'true');
+  assert.equal(hiddenValue(form, 'recipient'), 'etblink');
+  assert.equal(hiddenValue(form, 'expectedFee'), '1.000 HBD');
+  assert.equal(hiddenValue(form, 'amount'), '1.000 HBD');
+  assert.equal(form.hasAttribute('data-social-action'), false);
+  assert.equal(form.querySelector('[data-wall-privacy-toggle]')?.checked, false);
+  assert.equal(form.querySelector('[data-wall-privacy-message]')?.dataset.maxBytes, '2000');
+  assert.match(form.textContent, /Encrypt this message \(private\)/);
+  assert.match(form.textContent, /Unchecked messages are public on Hive/);
+  assert.match(form.textContent, /permanently public on Hive/i);
+  assert.equal(document.querySelectorAll('form[data-m4-action="inbox"]').length, 0);
 });
 
-test('UX-1B composer pages validate while C2-A/C2-B keep the 12-action beta boundary and V1 dormant', async () => {
+test('UX-1B composer pages validate while C2-A/C2-B.1 keep the 12-action beta boundary and V1 dormant', async () => {
   const fixture = ux1bFixture();
   const paths = ['/community', '/community/threads', '/post/etblink/welcome-fourth-street-bar', '/profile/etblink', '/profile/etblink/wall-posts'];
   const validator = new HtmlValidate({ extends: ['html-validate:recommended'], rules: { 'no-trailing-whitespace': 'off', 'valid-id': 'off' } });

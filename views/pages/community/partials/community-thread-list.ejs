@@ -1,20 +1,26 @@
 <% if (hiveSession && canWriteAction('thread') && container) { %>
-  <%- include('../../../common/composer', { composer: {
-    id: 'thread-composer',
-    controller: 'social',
-    action: 'thread',
-    signerMode,
-    variant: 'highlight',
-    kicker: 'Start a conversation',
-    title: 'Start a Thread',
-    description: 'Share a quick thought with the 4th Street Bar community.',
-    meta: 'Short-form · 500 bytes',
-    fields: [
-      { id: 'new-thread-body', name: 'body', type: 'textarea', label: 'What do you want to share?', required: true, maxBytes: 500, rows: 4, size: 'medium', placeholder: 'What’s happening?' },
-    ],
-    submitLabel: 'Review Thread',
-    disclosure: 'You’ll review your Thread before Hive Keychain asks you to approve it.',
-  } }) %>
+  <div class="composer-toolbar" role="toolbar" aria-label="Thread actions">
+    <%- include('../../../common/composer', { composer: {
+      id: 'thread-composer',
+      controller: 'social',
+      action: 'thread',
+      signerMode,
+      dialog: true,
+      triggerVariant: 'icon',
+      triggerLabel: 'Start a Thread',
+      triggerAriaLabel: 'Start a Thread',
+      triggerTitle: 'Start a Thread',
+      kicker: 'Start a conversation',
+      title: 'Start a Thread',
+      description: 'Share a quick thought with the 4th Street Bar community.',
+      meta: 'Short-form · 500 bytes',
+      fields: [
+        { id: 'new-thread-body', name: 'body', type: 'textarea', label: 'What do you want to share?', required: true, maxBytes: 500, rows: 4, size: 'medium', placeholder: 'What’s happening?' },
+      ],
+      submitLabel: 'Review Thread',
+      disclosure: 'You’ll review your Thread before Hive Keychain asks you to approve it.',
+    } }) %>
+  </div>
 <% } %>
 <% if (threads.length > 0) { %>
   <div class="thread-feed" role="feed" aria-label="Community Threads">

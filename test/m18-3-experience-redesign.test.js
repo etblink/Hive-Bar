@@ -17,8 +17,16 @@ const WALL_SOURCE = fs.readFileSync(
   path.join(ROOT, 'views', 'pages', 'profile', 'partials', 'wall-posts.ejs'),
   'utf8',
 );
+const COMPOSER_FIELD_SOURCE = fs.readFileSync(
+  path.join(ROOT, 'views', 'common', 'composer', 'field.ejs'),
+  'utf8',
+);
 const COMPOSER_FORM_SOURCE = fs.readFileSync(
   path.join(ROOT, 'views', 'common', 'composer', 'form.ejs'),
+  'utf8',
+);
+const COMPOSER_CLIENT_SOURCE = fs.readFileSync(
+  path.join(ROOT, 'public', 'js', 'composer-presentation.js'),
   'utf8',
 );
 const PAY_SOURCE = fs.readFileSync(path.join(ROOT, 'views', 'pages', 'pay', 'index.ejs'), 'utf8');
@@ -119,11 +127,12 @@ test('M18.3 signed-out Wall leads with public conversation and hides composers',
   assert.match(wall.textContent, /Public on Hive/);
   assert.match(wall.textContent, /Sign in with Hive Keychain/);
   assert.ok(wall.querySelector('#public-wall-messages-heading'));
+  assert.equal(wall.querySelector('[data-wall-privacy-form]'), null);
   assert.equal(wall.querySelector('form[data-m4-action="wall"]'), null);
   assert.equal(wall.querySelector('form[data-m4-action="inbox"]'), null);
 });
 
-test('M18.3 authenticated Wall makes public composition primary and private composition secondary', async () => {
+test('M18.3 authenticated Wall uses one public-first composer with an explicit privacy toggle', async () => {
   const fixture = controlledApp();
   const response = await request(fixture.app)
     .get('/profile/etblink/wall-posts')
@@ -131,33 +140,27 @@ test('M18.3 authenticated Wall makes public composition primary and private comp
     .expect(200);
   const document = documentFor(response.text);
   const wall = document.querySelector('[data-m18-3-surface="wall"]');
-  const publicForm = wall?.querySelector('form[data-m4-action="wall"]');
-  const privateDisclosure = wall?.querySelector('details[data-m18-private-composer]');
-  const privateForm = privateDisclosure?.querySelector('form[data-m4-action="inbox"]');
+  const form = wall?.querySelector('form[data-wall-privacy-form]');
   const feedHeading = wall?.querySelector('#public-wall-messages-heading');
 
-  assert.ok(publicForm);
-  assert.ok(privateDisclosure);
-  assert.ok(privateForm);
-  assert.equal(privateDisclosure.hasAttribute('open'), false);
-  assert.ok(publicForm.compareDocumentPosition(privateDisclosure) & 4);
-  assert.ok(privateDisclosure.compareDocumentPosition(feedHeading) & 4);
-
-  for (const form of [publicForm, privateForm]) {
-    assert.equal(form.querySelector('input[name="recipient"]')?.value, 'etblink');
-    assert.equal(form.querySelector('input[name="expectedFee"]')?.value, '1.000 HBD');
-    assert.equal(form.querySelector('input[name="amount"]')?.value, '1.000 HBD');
-    assert.ok(form.querySelector('[data-byte-counter]'));
-    assert.ok(form.querySelector('[data-m4-status]'));
-  }
-
-  assert.equal(publicForm.querySelector('textarea[name="message"]')?.dataset.maxBytes, '2000');
-  assert.equal(privateForm.querySelector('textarea[name="message"]')?.dataset.maxBytes, '1500');
-  assert.match(publicForm.textContent, /permanently public on Hive/i);
-  assert.match(privateForm.textContent, /Keychain encrypts the message in this browser/);
-  assert.match(privateForm.textContent, /HBD amount, time, and transaction remain public on Hive/);
-  assert.ok(wall.querySelector('summary')?.textContent.includes('Send a private message'));
-  assert.ok(wall.querySelector('summary') && wall.textContent.includes('Transaction details'));
+  assert.ok(form);
+  assert.equal(form.dataset.m4Action, 'wall');
+  assert.equal(form.dataset.wallEnabled, 'true');
+  assert.equal(form.dataset.inboxEnabled, 'true');
+  assert.ok(form.compareDocumentPosition(feedHeading) & 4);
+  assert.equal(form.querySelector('input[name="recipient"]')?.value, 'etblink');
+  assert.equal(form.querySelector('input[name="expectedFee"]')?.value, '1.000 HBD');
+  assert.equal(form.querySelector('input[name="amount"]')?.value, '1.000 HBD');
+  assert.ok(form.querySelector('[data-byte-counter]'));
+  assert.ok(form.querySelector('[data-m4-status]'));
+  assert.equal(form.querySelector('textarea[name="message"]')?.dataset.maxBytes, '2000');
+  assert.equal(form.querySelector('[data-wall-privacy-toggle]')?.checked, false);
+  assert.match(form.textContent, /Encrypt this message \(private\)/);
+  assert.match(form.textContent, /Unchecked messages are public on Hive/);
+  assert.match(form.textContent, /permanently public on Hive/i);
+  assert.equal(wall.querySelectorAll('form[data-m4-action="inbox"]').length, 0);
+  assert.equal(wall.querySelectorAll('[data-composer]').length, 1);
+  assert.ok(wall.textContent.includes('Transaction details'));
 });
 
 test('M18.3 Pay is task-first without changing payment hooks or no-retry semantics', async () => {
@@ -217,12 +220,16 @@ test('M18.3 signed-out Pay remains a sign-in gate with no payment form', async (
 test('M18.3 source contracts retain dynamic fees and every accepted write/payment hook', () => {
   for (const pattern of [
     /<%= profileSettings\.wallFee %>/,
-    /action: 'wall'/,
-    /action: 'inbox'/,
-    /maxBytes: 2000/,
-    /maxBytes: 1500/,
+    /privateOnly \? 'inbox' : 'wall'/,
+    /privateOnly \? 1500 : 2000/,
+    /role: 'wall-privacy-toggle'/,
   ]) assert.match(WALL_SOURCE, pattern);
+  assert.match(COMPOSER_FIELD_SOURCE, /data-wall-privacy-toggle/);
   assert.match(COMPOSER_FORM_SOURCE, /data-m4-action="<%= composer\.action %>"/);
+  assert.match(COMPOSER_FORM_SOURCE, /data-wall-privacy-form/);
+  assert.match(COMPOSER_CLIENT_SOURCE, /form\.dataset\.m4Action = privateMode \? 'inbox' : 'wall'/);
+  assert.match(COMPOSER_CLIENT_SOURCE, /WALL_PRIVATE_LIMIT = 1500/);
+  assert.match(COMPOSER_CLIENT_SOURCE, /WALL_PUBLIC_LIMIT = 2000/);
 
   for (const pattern of [
     /data-pay-form/,

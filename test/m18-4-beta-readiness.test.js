@@ -72,12 +72,14 @@ test('M18.4 keeps exact byte enforcement while presenting friendly length feedba
   assert.match(files, /maxBytes: 500/);
   assert.match(files, /maxBytes: 8192/);
   assert.match(files, /data-max-bytes="512"/);
-  assert.match(files, /maxBytes: 2000/);
-  assert.match(files, /maxBytes: 1500/);
+  assert.match(files, /maxBytes: privateOnly \? 1500 : 2000/);
   assert.doesNotMatch(files, /byte limit/);
 
   const client = read('public/js/composer-presentation.js');
-  assert.match(client, /new TextEncoder\(\)\.encode\(input\.value\)\.byteLength/);
+  assert.match(client, /WALL_PRIVATE_LIMIT = 1500/);
+  assert.match(client, /WALL_PUBLIC_LIMIT = 2000/);
+  assert.match(client, /new global\.TextEncoder\(\)\.encode\(String\(value \|\| ''\)\)\.byteLength/);
+  assert.match(client, /const bytes = utf8Bytes\(input\.value\)/);
   assert.match(client, /\$\{bytes\.toLocaleString\(\)\} \/ \$\{maximum\.toLocaleString\(\)\} used/);
   assert.match(client, /This text is too long\. Shorten it and try again\./);
   assert.match(client, /closest\('\[data-composer-field\]'\)/);

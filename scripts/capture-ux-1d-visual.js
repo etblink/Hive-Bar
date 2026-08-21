@@ -72,7 +72,7 @@ async function setRange(range, value) {
 async function prepareScenario(page, scenario) {
   if (scenario.id === 'community-posts-composer-active') {
     const composer = page.locator('#community-post-composer');
-    await composer.locator(':scope > summary').click();
+    await composer.locator('[data-composer-dialog-trigger]').click();
     await composer.locator('input[name="title"]').fill('A quick update from the bar');
     await composer.locator('textarea[name="body"]').fill('The patio is ready. Who is joining the conversation tonight?');
     await composer.locator('textarea[name="body"]').focus();
@@ -80,6 +80,7 @@ async function prepareScenario(page, scenario) {
   }
   if (scenario.id === 'threads-multiple-composer-active') {
     const composer = page.locator('#thread-composer');
+    await composer.locator('[data-composer-dialog-trigger]').click();
     await composer.locator('textarea[name="body"]').fill('Anyone stopping by after work?');
     await composer.locator('textarea[name="body"]').focus();
     return;

@@ -18,7 +18,7 @@ const SCENARIOS = Object.freeze([
   {
     id: 'community-post-active',
     path: '/community',
-    open: '#community-post-composer > summary',
+    open: '#community-post-composer [data-composer-dialog-trigger]',
     input: '#new-post-body',
     value: 'Tonight’s pool table is open—pull up a stool and say hello.',
     action: 'post',
@@ -26,6 +26,7 @@ const SCENARIOS = Object.freeze([
   {
     id: 'thread-active',
     path: '/community/threads',
+    open: '#thread-composer [data-composer-dialog-trigger]',
     input: '#new-thread-body',
     value: 'Anyone up for a game of pool tonight?',
     action: 'thread',
@@ -41,7 +42,7 @@ const SCENARIOS = Object.freeze([
   {
     id: 'public-wall-active',
     path: '/profile/etblink/wall-posts',
-    open: '#public-wall-composer [data-composer-dialog-trigger]',
+    open: '#wall-message-composer [data-composer-dialog-trigger]',
     input: '#wall-message',
     value: 'Thanks for making everyone feel welcome at 4th Street Bar.',
     action: 'wall',
@@ -49,8 +50,9 @@ const SCENARIOS = Object.freeze([
   {
     id: 'private-message-active',
     path: '/profile/etblink/wall-posts',
-    open: '#private-wall-composer > summary',
-    input: '#inbox-message',
+    open: '#wall-message-composer [data-composer-dialog-trigger]',
+    toggle: '#wall-encrypt-message',
+    input: '#wall-message',
     value: 'Could you save me a seat near the pool table?',
     action: 'inbox',
   },
@@ -145,6 +147,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
   const response = await page.goto(`${baseUrl}${scenario.path}`, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);
   if (scenario.open) await page.locator(scenario.open).click();
+  if (scenario.toggle) await page.locator(scenario.toggle).check();
   await page.locator(scenario.input).fill(scenario.value);
   await page.locator(scenario.input).focus();
   await settleCaptureViewport(page);
@@ -159,7 +162,12 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
     const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
     const composerControls = Array.from(document.querySelectorAll('[data-composer-input]'));
     const brokenLabels = composerControls
-      .filter((control) => !control.id || !document.querySelector(`label[for="${control.id}"]`))
+      .filter((control) => {
+        if (!control.id) return true;
+        const explicitLabel = document.querySelector(`label[for="${control.id}"]`);
+        const wrappingLabel = control.closest('label');
+        return !explicitLabel && !wrappingLabel;
+      })
       .map((control) => control.id || control.name);
     const brokenDescriptions = composerControls.flatMap((control) =>
       (control.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)
@@ -200,6 +208,8 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
       keychainDisabled: globalThis.__UX_1B_KEYCHAIN_DISABLED__ === true,
       nativeKeychain: Boolean(globalThis.hive_keychain),
       overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      privacyChecked: targetForm?.querySelector('[data-wall-privacy-toggle]')?.checked ?? null,
+      privacyMode: targetForm?.dataset.wallPrivacyMode || null,
       scenario: scenarioId,
       scrollY: window.scrollY,
       signerMode: targetForm?.dataset.signerMode || null,
@@ -231,15 +241,17 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
   assert.match(evidence.targetCounter, new RegExp(`^${Buffer.byteLength(scenario.value, 'utf8')} / `));
   assert.ok(evidence.untouchedCounters.every(({ text }) => text.startsWith('0 / ')));
   assert.equal(evidence.technicalContainer, false);
-  assert.equal(evidence.targetDialogOpen, scenario.action === 'thread' ? null : true);
+  assert.equal(evidence.targetDialogOpen, true);
   if (scenario.id === 'nested-reply-active') {
     assert.equal(evidence.hiddenParentAuthor, 'barfriend');
     assert.equal(evidence.hiddenParentPermlink, 're-welcome-fourth-street-bar');
   }
-  if (scenario.id.endsWith('wall-active') || scenario.id === 'private-message-active') {
+  if (scenario.id === 'public-wall-active' || scenario.id === 'private-message-active') {
     assert.equal(evidence.hiddenRecipient, 'etblink');
     assert.equal(evidence.hiddenExpectedFee, '1.000 HBD');
     assert.equal(evidence.hiddenAmount, '1.000 HBD');
+    assert.equal(evidence.privacyMode, scenario.id === 'private-message-active' ? 'private' : 'public');
+    assert.equal(evidence.privacyChecked, scenario.id === 'private-message-active');
   }
   if (['post', 'thread', 'comment'].includes(scenario.action)) {
     assert.equal(evidence.signerMode, 'keychain');

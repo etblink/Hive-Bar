@@ -257,8 +257,10 @@ test('signed-in beta desktop/mobile documents pass structural and serious access
     .get('/profile/etblink/wall-posts')
     .set('cookie', `hive_bar_session=${wallFixture.token}`)
     .expect(200);
+  assert.match(wall.text, /data-wall-privacy-form/);
   assert.match(wall.text, /data-m4-action="wall"/);
-  assert.match(wall.text, /data-m4-action="inbox"/);
+  assert.match(wall.text, /data-wall-privacy-toggle/);
+  assert.doesNotMatch(wall.text, /data-m4-action="inbox"/);
 });
 
 test('responsive shell and activation tooling retain explicit mobile, desktop, and rollback-safe boundaries', () => {

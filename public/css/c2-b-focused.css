@@ -1,5 +1,17 @@
 /* C2-B focused social interaction layer. Presentation only. */
 
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 3.5rem;
+  margin-block: 0.45rem 0.75rem;
+}
+
+.composer-toolbar .composer--dialog-launcher {
+  margin: 0;
+}
+
 .composer--dialog-launcher {
   display: flex;
   align-items: center;
@@ -12,6 +24,28 @@
 
 .composer__dialog-trigger {
   min-height: 44px;
+}
+
+.composer--icon-launcher {
+  flex: none;
+}
+
+.composer__dialog-trigger--icon {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.composer__dialog-trigger-icon {
+  display: block;
+  transform: translateY(-1px);
+  font-weight: 500;
 }
 
 .composer__dialog-trigger-meta {
@@ -84,6 +118,38 @@
   margin-top: 1rem;
 }
 
+.composer__field--checkbox {
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius-control);
+  background: var(--hb-surface-raised);
+}
+
+.composer__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 44px;
+  color: var(--hb-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.composer__checkbox input[type='checkbox'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  accent-color: var(--hb-accent);
+}
+
+.composer__checkbox input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+
+.composer__field--checkbox .composer__field-help {
+  margin: 0.25rem 0 0 1.85rem;
+}
+
 .vote-control--focused {
   margin-top: 0.45rem;
   padding-top: 0;
@@ -150,13 +216,18 @@
 }
 
 @media (max-width: 700px) {
-  .composer--dialog-launcher {
+  .composer--dialog-launcher:not(.composer--icon-launcher) {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .composer__dialog-trigger {
+  .composer__dialog-trigger:not(.composer__dialog-trigger--icon) {
     width: 100%;
+  }
+
+  .composer__dialog-trigger--icon {
+    width: 44px;
+    align-self: flex-end;
   }
 
   .composer-dialog,

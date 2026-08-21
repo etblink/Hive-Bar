@@ -42,12 +42,38 @@ function composerMarkup({ id, controller = 'social', action = 'comment', maximum
     </section>`;
 }
 
-function documentFixture() {
+function wallPrivacyMarkup() {
+  return `
+    <section data-composer="wall-unified">
+      <h2 data-wall-privacy-title>Post a public message</h2>
+      <p data-wall-privacy-description>Public description</p>
+      <p data-wall-privacy-meta>1.000 HBD · Public on Hive</p>
+      <form data-composer-form="wall-unified" data-m4-action="wall" data-wall-privacy-form data-wall-enabled="true" data-inbox-enabled="true">
+        <input type="hidden" name="recipient" value="etblink">
+        <input type="hidden" name="expectedFee" value="1.000 HBD">
+        <input type="hidden" name="amount" value="1.000 HBD">
+        <div data-composer-field="wall-encrypt-message">
+          <label for="wall-encrypt-message"><input id="wall-encrypt-message" type="checkbox" data-composer-input data-wall-privacy-toggle>Encrypt this message (private)</label>
+        </div>
+        <div data-composer-field="wall-message">
+          <label for="wall-message">Message</label>
+          <textarea id="wall-message" name="message" data-composer-input data-wall-privacy-message data-max-bytes="2000"></textarea>
+          <p id="wall-message-counter" data-byte-counter></p>
+        </div>
+        <button type="submit" data-wall-privacy-submit>Review message and 1.000 HBD payment</button>
+        <p data-wall-privacy-disclosure>Public disclosure</p>
+        <p id="wall-unified-status" data-m4-status></p>
+      </form>
+    </section>`;
+}
+
+function documentFixture({ unifiedWall = false } = {}) {
   const dom = new JSDOM(`<!doctype html><body>
     ${composerMarkup({ id: 'reply-one' })}
     ${composerMarkup({ id: 'reply-two' })}
     ${composerMarkup({ id: 'wall-one', controller: 'm4', action: 'wall' })}
     ${composerMarkup({ id: 'wall-two', controller: 'm4', action: 'wall' })}
+    ${unifiedWall ? wallPrivacyMarkup() : ''}
   </body>`, {
     runScripts: 'outside-only',
     url: 'https://hive-bar.test/community',
@@ -89,6 +115,47 @@ test('shared composer byte feedback is UTF-8 exact and isolated to its field and
   assert.equal(firstCounter.textContent, '5 / 8 used');
   assert.equal(first.validationMessage, '');
   assert.equal(firstCounter.classList.contains('composer__counter--over'), false);
+  dom.window.close();
+});
+
+test('C2-B.1 Wall privacy toggle selects existing wall or inbox action and enforces dynamic byte limit', () => {
+  const dom = documentFixture({ unifiedWall: true });
+  const { document, Event } = dom.window;
+  const form = document.querySelector('[data-wall-privacy-form]');
+  const toggle = form.querySelector('[data-wall-privacy-toggle]');
+  const message = form.querySelector('[data-wall-privacy-message]');
+  const counter = document.querySelector('#wall-message-counter');
+
+  assert.equal(form.dataset.m4Action, 'wall');
+  assert.equal(form.dataset.wallPrivacyMode, 'public');
+  assert.equal(message.dataset.maxBytes, '2000');
+  assert.equal(counter.textContent, '0 / 2,000 used');
+  assert.match(document.querySelector('[data-wall-privacy-title]').textContent, /public message/i);
+
+  message.value = 'x'.repeat(1600);
+  message.dispatchEvent(new Event('input', { bubbles: true }));
+  assert.equal(message.validationMessage, '');
+
+  toggle.checked = true;
+  toggle.dispatchEvent(new Event('change', { bubbles: true }));
+  assert.equal(form.dataset.m4Action, 'inbox');
+  assert.equal(form.dataset.wallPrivacyMode, 'private');
+  assert.equal(message.dataset.maxBytes, '1500');
+  assert.equal(counter.textContent, '1,600 / 1,500 used');
+  assert.equal(message.validationMessage, 'This text is too long. Shorten it and try again.');
+  assert.match(document.querySelector('[data-wall-privacy-title]').textContent, /private message/i);
+  assert.match(document.querySelector('[data-wall-privacy-submit]').textContent, /Encrypt & review payment/);
+  assert.match(document.querySelector('[data-wall-privacy-disclosure]').textContent, /message text stays private/i);
+
+  message.value = 'private hello';
+  message.dispatchEvent(new Event('input', { bubbles: true }));
+  assert.equal(message.validationMessage, '');
+
+  toggle.checked = false;
+  toggle.dispatchEvent(new Event('change', { bubbles: true }));
+  assert.equal(form.dataset.m4Action, 'wall');
+  assert.equal(message.dataset.maxBytes, '2000');
+  assert.match(document.querySelector('[data-wall-privacy-disclosure]').textContent, /permanently public on Hive/i);
   dom.window.close();
 });
 

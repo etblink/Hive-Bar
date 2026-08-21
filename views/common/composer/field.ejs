@@ -6,26 +6,34 @@
   if (field.help) describedBy.push(helpId);
   const sizeClass = field.size ? ` composer__control--${field.size}` : '';
 %>
-<div class="composer__field" data-composer-field="<%= field.id %>">
-  <label class="composer__label" for="<%= field.id %>">
-    <span><%= field.label %></span>
-    <% if (field.labelContext) { %><span class="composer__label-context"><%= field.labelContext %></span><% } %>
-  </label>
-  <% if (field.type === 'textarea') { %>
-    <textarea id="<%= field.id %>" name="<%= field.name %>" rows="<%= field.rows || 4 %>" class="composer__control composer__textarea<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (field.maxBytes) { %>data-max-bytes="<%= field.maxBytes %>"<% } %> <% if (field.placeholder) { %>placeholder="<%= field.placeholder %>"<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>><%= field.value || '' %></textarea>
-  <% } else if (field.type === 'select') { %>
-    <select id="<%= field.id %>" name="<%= field.name %>" class="composer__control<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>>
-      <% for (const option of field.options || []) { %>
-        <option value="<%= option.value %>" <%= String(field.value || '') === String(option.value) ? 'selected' : '' %>><%= option.label %></option>
-      <% } %>
-    </select>
+<div class="composer__field<%= field.type === 'checkbox' ? ' composer__field--checkbox' : '' %>" data-composer-field="<%= field.id %>">
+  <% if (field.type === 'checkbox') { %>
+    <label class="composer__checkbox">
+      <input id="<%= field.id %>" name="<%= field.name %>" type="checkbox" value="<%= field.value || 'true' %>" data-composer-input <% if (field.checked) { %>checked<% } %> <% if (field.disabled) { %>disabled<% } %> <% if (field.role === 'wall-privacy-toggle') { %>data-wall-privacy-toggle<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>>
+      <span><%= field.label %></span>
+    </label>
+    <% if (field.help) { %><p id="<%= helpId %>" class="composer__field-help"><%= field.help %></p><% } %>
   <% } else { %>
-    <input id="<%= field.id %>" name="<%= field.name %>" type="<%= field.type || 'text' %>" value="<%= field.value || '' %>" class="composer__control<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (field.maxBytes) { %>data-max-bytes="<%= field.maxBytes %>"<% } %> <% if (field.placeholder) { %>placeholder="<%= field.placeholder %>"<% } %> <% if (field.autocomplete) { %>autocomplete="<%= field.autocomplete %>"<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>>
-  <% } %>
-  <% if (field.maxBytes || field.help) { %>
-    <div class="composer__field-meta">
-      <% if (field.maxBytes) { %><p id="<%= counterId %>" class="composer__counter text-gray-400" data-byte-counter>0 / <%= field.maxBytes.toLocaleString('en-US') %> used</p><% } %>
-      <% if (field.help) { %><p id="<%= helpId %>" class="composer__field-help"><%= field.help %></p><% } %>
-    </div>
+    <label class="composer__label" for="<%= field.id %>">
+      <span><%= field.label %></span>
+      <% if (field.labelContext) { %><span class="composer__label-context"><%= field.labelContext %></span><% } %>
+    </label>
+    <% if (field.type === 'textarea') { %>
+      <textarea id="<%= field.id %>" name="<%= field.name %>" rows="<%= field.rows || 4 %>" class="composer__control composer__textarea<%= sizeClass %>" data-composer-input <% if (field.role === 'wall-message') { %>data-wall-privacy-message<% } %> <% if (field.required) { %>required<% } %> <% if (field.maxBytes) { %>data-max-bytes="<%= field.maxBytes %>"<% } %> <% if (field.placeholder) { %>placeholder="<%= field.placeholder %>"<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>><%= field.value || '' %></textarea>
+    <% } else if (field.type === 'select') { %>
+      <select id="<%= field.id %>" name="<%= field.name %>" class="composer__control<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>>
+        <% for (const option of field.options || []) { %>
+          <option value="<%= option.value %>" <%= String(field.value || '') === String(option.value) ? 'selected' : '' %>><%= option.label %></option>
+        <% } %>
+      </select>
+    <% } else { %>
+      <input id="<%= field.id %>" name="<%= field.name %>" type="<%= field.type || 'text' %>" value="<%= field.value || '' %>" class="composer__control<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (field.maxBytes) { %>data-max-bytes="<%= field.maxBytes %>"<% } %> <% if (field.placeholder) { %>placeholder="<%= field.placeholder %>"<% } %> <% if (field.autocomplete) { %>autocomplete="<%= field.autocomplete %>"<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>>
+    <% } %>
+    <% if (field.maxBytes || field.help) { %>
+      <div class="composer__field-meta">
+        <% if (field.maxBytes) { %><p id="<%= counterId %>" class="composer__counter text-gray-400" data-byte-counter>0 / <%= field.maxBytes.toLocaleString('en-US') %> used</p><% } %>
+        <% if (field.help) { %><p id="<%= helpId %>" class="composer__field-help"><%= field.help %></p><% } %>
+      </div>
+    <% } %>
   <% } %>
 </div>

@@ -503,10 +503,12 @@ test('beta UI exposes posts, community membership, focused voting, messaging, pr
     .get('/profile/etblink/wall-posts')
     .set('cookie', `hive_bar_session=${messenger.token}`)
     .expect(200);
+  assert.match(wall.text, /data-wall-privacy-form/);
   assert.match(wall.text, /data-m4-action="wall"/);
-  assert.match(wall.text, /data-m4-action="inbox"/);
-  assert.match(wall.text, /Keychain encrypts the message in this browser/);
+  assert.match(wall.text, /data-wall-privacy-toggle/);
+  assert.match(wall.text, /Checked messages are encrypted with Hive Keychain in this browser before review/);
   assert.match(wall.text, /review the recipient, message, fee, and payment before Keychain asks for approval/i);
+  assert.doesNotMatch(wall.text, /data-m4-action="inbox"/);
   assert.doesNotMatch(wall.text, /exact Active operation|controlled-write run|Verified-owner page/);
 
   const settings = await request(fixtureApp.app)

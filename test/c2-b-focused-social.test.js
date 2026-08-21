@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const ejs = require('ejs');
 const { buildPost } = require('../src/hive/social-operations');
 const { configFrom } = require('./support/test-app');
 
@@ -21,6 +22,26 @@ function payload(overrides = {}) {
     tags: ['reno', 'nightlife'],
     ...overrides,
   };
+}
+
+function wallLocals(enabledActions) {
+  const enabled = new Set(enabledActions);
+  return {
+    userProfile: { name: 'etblink' },
+    profileSettings: { wallFee: '1.000 HBD' },
+    wallPage: { items: [], nextCursor: null },
+    messageProfiles: {},
+    hiveSession: { account: 'barfriend' },
+    canWriteAction: (action) => enabled.has(action),
+    formatHiveDate: (value) => value,
+  };
+}
+
+async function renderWall(enabledActions) {
+  return ejs.renderFile(
+    path.join(ROOT, 'views/pages/profile/partials/wall-posts.ejs'),
+    wallLocals(enabledActions),
+  );
 }
 
 test('C2-B omitted and explicit community destinations preserve the accepted community operation exactly', () => {
@@ -82,14 +103,17 @@ test('C2-B personal root posts fall back to blog and invalid destinations fail c
   );
 });
 
-test('C2-B focused presentation remains separate from transaction controllers and leaves Threads untouched', () => {
+test('C2-B.1 focused presentation refines launchers without changing transaction controllers', () => {
   const composer = fs.readFileSync(path.join(ROOT, 'views/common/composer.ejs'), 'utf8');
+  const composerField = fs.readFileSync(path.join(ROOT, 'views/common/composer/field.ejs'), 'utf8');
   const vote = fs.readFileSync(path.join(ROOT, 'views/common/vote-form.ejs'), 'utf8');
   const wall = fs.readFileSync(path.join(ROOT, 'views/pages/profile/partials/wall-posts.ejs'), 'utf8');
   const thread = fs.readFileSync(path.join(ROOT, 'views/pages/community/partials/community-thread-list.ejs'), 'utf8');
+  const m4Client = fs.readFileSync(path.join(ROOT, 'public/js/m4-actions.js'), 'utf8');
   assert.match(composer, /<dialog/);
   assert.match(composer, /data-composer-dialog/);
   assert.match(composer, /data-composer-dialog-trigger/);
+  assert.match(composer, /composer__dialog-trigger--icon/);
   assert.match(vote, /data-vote-open="upvote"/);
   assert.match(vote, /data-vote-open="downvote"/);
   assert.match(vote, /min="1"/);
@@ -97,6 +121,54 @@ test('C2-B focused presentation remains separate from transaction controllers an
   assert.match(wall, /const wallEnabled = canWriteAction\('wall'\)/);
   assert.match(wall, /const inboxEnabled = canWriteAction\('inbox'\)/);
   assert.match(wall, /controller: 'm4'/);
-  assert.match(wall, /action: 'inbox'/);
-  assert.doesNotMatch(thread, /data-composer-dialog|dialog: true/);
+  assert.match(wall, /action: privateOnly \? 'inbox' : 'wall'/);
+  assert.match(wall, /role: 'wall-privacy-toggle'/);
+  assert.match(composerField, /data-wall-privacy-toggle/);
+  assert.match(thread, /action: 'thread'/);
+  assert.match(thread, /dialog: true/);
+  assert.match(thread, /triggerVariant: 'icon'/);
+  assert.match(m4Client, /if \(action === 'wall'\)/);
+  assert.match(m4Client, /if \(action === 'inbox'\)/);
+  assert.match(m4Client, /adapter\.encodeMemo/);
+});
+
+test('C2-B.1 Wall-only rendering exposes public composition without a privacy option', async () => {
+  const html = await renderWall(['wall']);
+  assert.match(html, /data-wall-privacy-form/);
+  assert.match(html, /data-m4-action="wall"/);
+  assert.match(html, /data-wall-enabled="true"/);
+  assert.match(html, /data-inbox-enabled="false"/);
+  assert.match(html, /data-max-bytes="2000"/);
+  assert.doesNotMatch(html, /data-wall-privacy-toggle/);
+  assert.doesNotMatch(html, /data-m4-action="inbox"/);
+});
+
+test('C2-B.1 Inbox-only rendering becomes private-only and fail-closed', async () => {
+  const html = await renderWall(['inbox']);
+  assert.match(html, /data-wall-privacy-form/);
+  assert.match(html, /data-m4-action="inbox"/);
+  assert.match(html, /data-wall-enabled="false"/);
+  assert.match(html, /data-inbox-enabled="true"/);
+  assert.match(html, /data-composer-input checked disabled data-wall-privacy-toggle/);
+  assert.match(html, /data-max-bytes="1500"/);
+  assert.doesNotMatch(html, /data-m4-action="wall"/);
+});
+
+test('C2-B.1 combined Wall and Inbox rendering starts public with one privacy-selectable composer', async () => {
+  const html = await renderWall(['wall', 'inbox']);
+  assert.equal((html.match(/data-wall-privacy-form/g) || []).length, 1);
+  assert.match(html, /data-m4-action="wall"/);
+  assert.match(html, /data-wall-enabled="true"/);
+  assert.match(html, /data-inbox-enabled="true"/);
+  assert.match(html, /data-wall-privacy-toggle/);
+  assert.match(html, /Encrypt this message \(private\)/);
+  assert.match(html, /data-max-bytes="2000"/);
+  assert.doesNotMatch(html, /data-m4-action="inbox"/);
+});
+
+test('C2-B.1 unavailable Wall and Inbox rendering exposes no composer', async () => {
+  const html = await renderWall([]);
+  assert.doesNotMatch(html, /data-wall-privacy-form/);
+  assert.doesNotMatch(html, /data-m4-action="(?:wall|inbox)"/);
+  assert.match(html, /Wall and private messaging aren’t available here yet/);
 });

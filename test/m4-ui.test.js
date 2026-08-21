@@ -134,7 +134,7 @@ test('owner pages expose safe settings, reward claim, and local-only decrypt con
   assert.match(inbox.headers['cache-control'], /no-store/);
 });
 
-test('public connection tabs and message forms remain available without exposing owner pages', async () => {
+test('public connection tabs and unified message composer remain available without exposing owner pages', async () => {
   const signedIn = signedInApp('barfriend');
   const followers = await request(signedIn.app).get('/profile/etblink/followers').expect(200);
   assert.match(followers.text, /@etblink followers/);
@@ -144,9 +144,12 @@ test('public connection tabs and message forms remain available without exposing
     .get('/profile/etblink/wall-posts')
     .set('cookie', signedIn.cookie)
     .expect(200);
+  assert.match(wall.text, /data-wall-privacy-form/);
   assert.match(wall.text, /data-m4-action="wall"/);
-  assert.match(wall.text, /data-m4-action="inbox"/);
-  assert.match(wall.text, /Keychain encrypts the message in this browser/);
+  assert.match(wall.text, /data-wall-privacy-toggle/);
+  assert.match(wall.text, /Encrypt this message \(private\)/);
+  assert.match(wall.text, /encrypted with Hive Keychain in this browser/);
+  assert.doesNotMatch(wall.text, /data-m4-action="inbox"/);
   assert.doesNotMatch(wall.text, /href="\/profile\/etblink\/settings"/);
 });
 

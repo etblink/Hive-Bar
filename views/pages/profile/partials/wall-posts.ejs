@@ -13,57 +13,61 @@
   <% const wallEnabled = canWriteAction('wall'); %>
   <% const inboxEnabled = canWriteAction('inbox'); %>
   <% if (hiveSession) { %>
-    <% if (wallEnabled) { %>
+    <% if (wallEnabled || inboxEnabled) { %>
+      <% const privateOnly = !wallEnabled && inboxEnabled; %>
+      <% const wallFields = []; %>
+      <% if (inboxEnabled) { %>
+        <% wallFields.push({
+          id: 'wall-encrypt-message',
+          name: 'encryptMessage',
+          type: 'checkbox',
+          role: 'wall-privacy-toggle',
+          label: 'Encrypt this message (private)',
+          value: 'true',
+          checked: privateOnly,
+          disabled: privateOnly,
+          help: wallEnabled
+            ? 'Unchecked messages are public on Hive. Checked messages are encrypted with Hive Keychain in this browser before review.'
+            : 'Private messaging is the only available message mode here.',
+        }); %>
+      <% } %>
+      <% wallFields.push({
+        id: 'wall-message',
+        name: 'message',
+        type: 'textarea',
+        role: 'wall-message',
+        label: privateOnly ? `Private message for @${userProfile.name}` : 'Your message',
+        required: true,
+        maxBytes: privateOnly ? 1500 : 2000,
+        rows: 4,
+        size: 'medium',
+        placeholder: privateOnly ? `Private message for @${userProfile.name}` : `Write on @${userProfile.name}’s Wall`,
+      }); %>
       <%- include('../../../common/composer', { composer: {
-        id: 'public-wall-composer',
+        id: 'wall-message-composer',
         controller: 'm4',
-        action: 'wall',
+        action: privateOnly ? 'inbox' : 'wall',
         dialog: true,
-        triggerLabel: 'Write on the wall',
-        kicker: 'Public wall message',
-        title: 'Post a public message',
-        description: `Write something for @${userProfile.name} and everyone who visits this Wall.`,
-        meta: `${profileSettings.wallFee} · Public on Hive`,
+        triggerLabel: wallEnabled ? 'Write on the wall' : 'Send a private message',
+        kicker: privateOnly ? 'Private message' : 'Public wall message',
+        title: privateOnly ? 'Send a private message' : 'Post a public message',
+        description: privateOnly
+          ? `Keychain encrypts this message for @${userProfile.name} in this browser.`
+          : `Write something for @${userProfile.name} and everyone who visits this Wall.`,
+        meta: `${profileSettings.wallFee} · ${privateOnly ? 'Encrypted text' : 'Public on Hive'}`,
+        wallPrivacy: { wallEnabled, inboxEnabled },
         hiddenFields: [
           { name: 'recipient', value: userProfile.name },
           { name: 'expectedFee', value: profileSettings.wallFee },
           { name: 'amount', value: profileSettings.wallFee },
         ],
-        fields: [
-          { id: 'wall-message', name: 'message', type: 'textarea', label: 'Your message', required: true, maxBytes: 2000, rows: 4, size: 'medium', placeholder: `Write on @${userProfile.name}’s Wall` },
-        ],
-        submitLabel: `Review message and ${profileSettings.wallFee} payment`,
-        disclosure: 'The message, sender, recipient, payment, and transaction are permanently public on Hive. You’ll review the recipient, message, fee, and payment before Keychain asks for approval.',
+        fields: wallFields,
+        submitLabel: privateOnly ? 'Encrypt & review payment' : `Review message and ${profileSettings.wallFee} payment`,
+        disclosure: privateOnly
+          ? 'Keychain encrypts the message in this browser. The message text stays private, but sender, recipient, HBD amount, time, and transaction remain public on Hive. Encryption happens before review.'
+          : 'The message, sender, recipient, payment, and transaction are permanently public on Hive. You’ll review the recipient, message, fee, and payment before Keychain asks for approval.',
       } }) %>
-    <% } %>
-    <% if (inboxEnabled) { %>
-      <%- include('../../../common/composer', { composer: {
-        id: 'private-wall-composer',
-        controller: 'm4',
-        action: 'inbox',
-        dialog: true,
-        dialogDetails: true,
-        triggerLabel: 'Send a private message',
-        triggerVariant: 'secondary',
-        privateDisclosure: true,
-        kicker: 'Private message',
-        title: 'Send a private message',
-        description: `Keychain encrypts the message for @${userProfile.name} in this browser.`,
-        meta: `${profileSettings.wallFee} · Encrypted text`,
-        hiddenFields: [
-          { name: 'recipient', value: userProfile.name },
-          { name: 'expectedFee', value: profileSettings.wallFee },
-          { name: 'amount', value: profileSettings.wallFee },
-        ],
-        fields: [
-          { id: 'inbox-message', name: 'message', type: 'textarea', label: `Private message for @${userProfile.name}`, required: true, maxBytes: 1500, rows: 4, size: 'medium', placeholder: 'Write a private message' },
-        ],
-        submitLabel: 'Encrypt & review payment',
-        submitVariant: 'secondary',
-        disclosure: 'Keychain encrypts the message in this browser. The message text stays private, but sender, recipient, HBD amount, time, and transaction remain public on Hive. Encryption happens before review.',
-      } }) %>
-    <% } %>
-    <% if (!wallEnabled && !inboxEnabled) { %>
+    <% } else { %>
       <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and private messaging aren’t available here yet.</p>
     <% } %>
   <% } else { %>
