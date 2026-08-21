@@ -20,7 +20,7 @@
         <div class="composer-dialog__surface">
           <header class="composer-dialog__header">
             <div class="composer__context">
-              <% if (composer.kicker) { %><p class="composer__kicker"><%= composer.kicker %></p><% } %>
+              <% if (composer.kicker) { %><p class="composer__kicker" <% if (composer.wallPrivacy) { %>data-wall-privacy-kicker<% } %>><%= composer.kicker %></p><% } %>
               <h2 id="<%= composerHeadingId %>" class="composer__title" <% if (composer.wallPrivacy) { %>data-wall-privacy-title<% } %>><%= composer.title %></h2>
               <% if (composer.description) { %><p class="composer__description" <% if (composer.wallPrivacy) { %>data-wall-privacy-description<% } %>><%= composer.description %></p><% } %>
             </div>
@@ -33,10 +33,15 @@
     </details>
   <% } else { %>
     <% const iconTrigger = composer.triggerVariant === 'icon'; %>
+    <% const triggerStyleClass = composer.triggerVariant === 'secondary'
+      ? 'button-secondary'
+      : composer.triggerVariant === 'social'
+        ? 'composer__dialog-trigger--social'
+        : 'button-primary'; %>
     <div id="<%= composer.id %>" class="composer composer--dialog-launcher<%= iconTrigger ? ' composer--icon-launcher' : '' %><%= composerVariant %>" data-composer="<%= composer.id %>" data-composer-dialog-shell <% if (composer.privateDisclosure) { %>data-m18-private-composer<% } %>>
       <button
         type="button"
-        class="<%= composer.triggerVariant === 'secondary' ? 'button-secondary' : 'button-primary' %> composer__dialog-trigger<%= iconTrigger ? ' composer__dialog-trigger--icon' : '' %>"
+        class="<%= triggerStyleClass %> composer__dialog-trigger<%= iconTrigger ? ' composer__dialog-trigger--icon' : '' %>"
         aria-haspopup="dialog"
         aria-controls="<%= composerDialogId %>"
         aria-label="<%= composer.triggerAriaLabel || composer.triggerLabel || composer.title %>"
@@ -47,7 +52,7 @@
         <div class="composer-dialog__surface">
           <header class="composer-dialog__header">
             <div class="composer__context">
-              <% if (composer.kicker) { %><p class="composer__kicker"><%= composer.kicker %></p><% } %>
+              <% if (composer.kicker) { %><p class="composer__kicker" <% if (composer.wallPrivacy) { %>data-wall-privacy-kicker<% } %>><%= composer.kicker %></p><% } %>
               <h2 id="<%= composerHeadingId %>" class="composer__title" <% if (composer.wallPrivacy) { %>data-wall-privacy-title<% } %>><%= composer.title %></h2>
               <% if (composer.description) { %><p class="composer__description" <% if (composer.wallPrivacy) { %>data-wall-privacy-description<% } %>><%= composer.description %></p><% } %>
             </div>

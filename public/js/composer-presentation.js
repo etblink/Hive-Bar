@@ -79,6 +79,7 @@
       : `Write on @${recipient}’s Wall`;
     updateByteCounter(message);
 
+    setText(form, '[data-wall-privacy-kicker]', privateMode ? 'Private message' : 'Wall message');
     setText(form, '[data-wall-privacy-title]', privateMode ? 'Send a private message' : 'Post a public message');
     setText(
       form,
@@ -120,7 +121,7 @@
     dialogTriggers.set(dialog, trigger);
     dialog.showModal();
     const first = dialog.querySelector('[data-composer-input]');
-    global.setTimeout(() => first?.focus(), 0);
+    first?.focus();
     return true;
   }
 

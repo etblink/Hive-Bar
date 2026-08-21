@@ -178,7 +178,7 @@ test('Threads use one dense comment presentation context without exposing the ac
 
   for (const comment of comments) {
     const vote = comment.querySelector(':scope > .social-comment__activity form[data-social-action="vote"]');
-    const reply = comment.querySelector(':scope > details form[data-social-action="comment"]');
+    const reply = comment.querySelector(':scope > [data-composer] form[data-social-action="comment"]');
     assert.ok(vote);
     assert.ok(reply);
     assert.equal(hiddenValue(reply, 'parentAuthor'), hiddenValue(vote, 'author'));
@@ -213,7 +213,7 @@ test('full conversation establishes root, composer, and depth-capped reply hiera
   const expectedTargets = UX1D_CONTENT.rootReplies.map(({ author, permlink }) => `${author}/${permlink}`);
   assert.deepEqual(comments.map((comment) => {
     const vote = comment.querySelector(':scope > .social-comment__activity form[data-social-action="vote"]');
-    const reply = comment.querySelector(':scope > details form[data-social-action="comment"]');
+    const reply = comment.querySelector(':scope > [data-composer] form[data-social-action="comment"]');
     assert.equal(hiddenValue(reply, 'parentAuthor'), hiddenValue(vote, 'author'));
     assert.equal(hiddenValue(reply, 'parentPermlink'), hiddenValue(vote, 'permlink'));
     return `${hiddenValue(vote, 'author')}/${hiddenValue(vote, 'permlink')}`;

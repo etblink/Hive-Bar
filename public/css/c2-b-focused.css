@@ -215,19 +215,175 @@
   margin-top: 0.6rem;
 }
 
+/* C2-B.2 social-surface density refinement.
+ * X is an interaction-density reference only; Fourth Street Bar retains its own visual identity.
+ */
+
+.composer-toolbar {
+  min-height: 3rem;
+  margin-block: 0.35rem 0.55rem;
+  padding-inline: 0.15rem;
+}
+
+.composer__dialog-trigger--social {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: flex-start;
+  border: 0;
+  border-radius: var(--hb-radius-control);
+  padding: 0.45rem 0.2rem;
+  background: transparent;
+  color: var(--hb-text-muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.composer__dialog-trigger--social:hover,
+.composer__dialog-trigger--social:focus-visible {
+  background: transparent;
+  color: var(--hb-accent);
+}
+
+.social-comment > .composer--dialog-launcher {
+  margin-block: 0.05rem 0;
+}
+
+.social-comment > .composer--dialog-launcher .composer__dialog-trigger--social {
+  padding-inline: 0;
+}
+
+.composer--root-reply {
+  width: 100%;
+  margin-block: 0.45rem 0.75rem;
+  border-top: 1px solid rgb(60 52 46 / 52%);
+  border-bottom: 1px solid rgb(60 52 46 / 52%);
+}
+
+.composer--root-reply .composer__dialog-trigger--social {
+  width: 100%;
+  padding: 0.55rem 0.1rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.9rem;
+}
+
+.social-post,
+.social-update {
+  padding-block: 1rem 1.05rem;
+}
+
+.social-post__activity,
+.social-comment__activity,
+.conversation-post__activity {
+  margin-top: 0.6rem;
+}
+
+.comment-card.social-comment {
+  padding-top: 0.8rem;
+  padding-bottom: 0.85rem;
+}
+
+.thread-feed,
+.conversation-thread {
+  margin-top: 0.45rem;
+}
+
+.social-post__stats .text-bar-gold,
+.social-comment__stats .text-bar-gold,
+.conversation-post__stats .text-bar-gold {
+  color: var(--hb-text-subtle);
+}
+
+.composer-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+}
+
+.composer-dialog__surface {
+  padding: 1rem 1.05rem;
+}
+
+.composer-dialog__close {
+  border-color: transparent;
+}
+
+.composer-dialog__meta {
+  margin-top: 0.45rem;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--hb-text-subtle);
+}
+
+.composer-dialog .composer__form {
+  margin-top: 0.7rem;
+  border-top: 0;
+  padding: 0;
+}
+
+.composer-dialog .composer__fields {
+  gap: 0.85rem;
+}
+
+.composer-dialog .composer__actions {
+  margin-top: 0.85rem;
+}
+
+.composer-dialog .composer__disclosure {
+  margin-top: 0.65rem;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.composer-dialog .composer__field--checkbox {
+  border: 0;
+  border-radius: 0;
+  padding: 0.15rem 0;
+  background: transparent;
+}
+
+.composer-dialog .composer__field--checkbox .composer__field-help {
+  margin-top: 0.15rem;
+}
+
+[data-composer='wall-message-composer'] {
+  margin-block: 0.55rem 0.9rem;
+}
+
+[data-composer='wall-message-composer'] > .composer__dialog-trigger {
+  padding-inline: 1rem;
+}
+
+@media (min-width: 1280px) {
+  .community-layout {
+    grid-template-columns: minmax(0, 46rem) minmax(17rem, 20rem);
+    justify-content: space-between;
+  }
+
+  .community-main {
+    max-width: 46rem;
+  }
+}
+
 @media (max-width: 700px) {
   .composer--dialog-launcher:not(.composer--icon-launcher) {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .composer__dialog-trigger:not(.composer__dialog-trigger--icon) {
+  .composer__dialog-trigger:not(.composer__dialog-trigger--icon):not(.composer__dialog-trigger--social) {
     width: 100%;
   }
 
   .composer__dialog-trigger--icon {
     width: 44px;
     align-self: flex-end;
+  }
+
+  .composer__dialog-trigger--social {
+    align-self: stretch;
   }
 
   .composer-dialog,

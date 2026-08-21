@@ -45,6 +45,7 @@ function composerMarkup({ id, controller = 'social', action = 'comment', maximum
 function wallPrivacyMarkup() {
   return `
     <section data-composer="wall-unified">
+      <p data-wall-privacy-kicker>Wall message</p>
       <h2 data-wall-privacy-title>Post a public message</h2>
       <p data-wall-privacy-description>Public description</p>
       <p data-wall-privacy-meta>1.000 HBD · Public on Hive</p>
@@ -130,6 +131,7 @@ test('C2-B.1 Wall privacy toggle selects existing wall or inbox action and enfor
   assert.equal(form.dataset.wallPrivacyMode, 'public');
   assert.equal(message.dataset.maxBytes, '2000');
   assert.equal(counter.textContent, '0 / 2,000 used');
+  assert.equal(document.querySelector('[data-wall-privacy-kicker]').textContent, 'Wall message');
   assert.match(document.querySelector('[data-wall-privacy-title]').textContent, /public message/i);
 
   message.value = 'x'.repeat(1600);
@@ -143,6 +145,7 @@ test('C2-B.1 Wall privacy toggle selects existing wall or inbox action and enfor
   assert.equal(message.dataset.maxBytes, '1500');
   assert.equal(counter.textContent, '1,600 / 1,500 used');
   assert.equal(message.validationMessage, 'This text is too long. Shorten it and try again.');
+  assert.equal(document.querySelector('[data-wall-privacy-kicker]').textContent, 'Private message');
   assert.match(document.querySelector('[data-wall-privacy-title]').textContent, /private message/i);
   assert.match(document.querySelector('[data-wall-privacy-submit]').textContent, /Encrypt & review payment/);
   assert.match(document.querySelector('[data-wall-privacy-disclosure]').textContent, /message text stays private/i);
@@ -155,7 +158,38 @@ test('C2-B.1 Wall privacy toggle selects existing wall or inbox action and enfor
   toggle.dispatchEvent(new Event('change', { bubbles: true }));
   assert.equal(form.dataset.m4Action, 'wall');
   assert.equal(message.dataset.maxBytes, '2000');
+  assert.equal(document.querySelector('[data-wall-privacy-kicker]').textContent, 'Wall message');
   assert.match(document.querySelector('[data-wall-privacy-disclosure]').textContent, /permanently public on Hive/i);
+  dom.window.close();
+});
+
+test('C2-B.2 dialog opening establishes focus synchronously and never steals later patron focus', async () => {
+  const dom = new JSDOM(`<!doctype html><body>
+    <section data-composer-dialog-shell>
+      <button id="open" type="button" data-composer-dialog-trigger>Open</button>
+      <dialog data-composer-dialog>
+        <input id="first-control" type="checkbox" data-composer-input>
+        <textarea id="message-control" data-composer-input></textarea>
+      </dialog>
+    </section>
+  </body>`, {
+    runScripts: 'outside-only',
+    url: 'https://hive-bar.test/profile/etblink/wall-posts',
+  });
+  dom.window.TextEncoder = TextEncoder;
+  const { document } = dom.window;
+  const dialog = document.querySelector('[data-composer-dialog]');
+  dialog.showModal = () => dialog.setAttribute('open', '');
+  dom.window.eval(composerClient);
+
+  const trigger = document.querySelector('#open');
+  const message = document.querySelector('#message-control');
+  assert.equal(dom.window.HiveBarComposer.openDialog(trigger), true);
+  assert.equal(document.activeElement.id, 'first-control');
+
+  message.focus();
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
+  assert.equal(document.activeElement.id, 'message-control');
   dom.window.close();
 });
 

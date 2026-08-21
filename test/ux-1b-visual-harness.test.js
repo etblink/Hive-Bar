@@ -46,6 +46,11 @@ test('UX-1B pinned-Chromium contract covers five composer contexts at desktop an
     'public-wall-active',
     'private-message-active',
   ]) assert.match(capture, new RegExp(scenario));
+  assert.match(
+    capture,
+    /open: '\[data-composer\^="reply-composer-"\] \[data-composer-dialog-trigger\]'/,
+  );
+  assert.doesNotMatch(capture, /reply-composer-.*> summary/);
   assert.match(capture, /UX-1B visual qualification forbids Keychain signing/);
   assert.match(capture, /UX-1B visual qualification forbids Keychain encryption/);
   assert.match(capture, /assert\.deepEqual\(fixture\.mutationAttempts, \[\]\)/);

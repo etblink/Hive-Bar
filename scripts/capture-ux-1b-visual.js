@@ -34,7 +34,7 @@ const SCENARIOS = Object.freeze([
   {
     id: 'nested-reply-active',
     path: '/post/etblink/welcome-fourth-street-bar',
-    open: '[data-composer^="reply-composer-"] > summary',
+    open: '[data-composer^="reply-composer-"] [data-composer-dialog-trigger]',
     input: '[data-composer^="reply-composer-"] textarea[data-composer-input]',
     value: 'Glad you made it—see you at the bar.',
     action: 'comment',

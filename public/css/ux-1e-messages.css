@@ -120,6 +120,23 @@
   display: none;
 }
 
+/* C2-B.2: once plaintext is visible, content leads and the completed decrypt action recedes. */
+.message-entry--inbox:has(.message-entry__body--private:not([hidden])) .message-entry__decrypt {
+  display: none;
+}
+
+.message-entry--inbox:has(.message-entry__body--private:not([hidden])) .message-entry__private-content {
+  margin-top: 0.65rem;
+}
+
+.message-entry--inbox:has(.message-entry__body--private:not([hidden])) .message-entry__body--private {
+  margin-top: 0;
+}
+
+.message-entry--inbox:has(.message-entry__body--private:not([hidden])) .message-entry__status {
+  color: var(--hb-text-subtle);
+}
+
 .message-entry__activity {
   display: flex;
   min-width: 0;

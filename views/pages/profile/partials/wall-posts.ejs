@@ -48,8 +48,11 @@
         controller: 'm4',
         action: privateOnly ? 'inbox' : 'wall',
         dialog: true,
-        triggerLabel: wallEnabled ? 'Write on the wall' : 'Send a private message',
-        kicker: privateOnly ? 'Private message' : 'Public wall message',
+        triggerVariant: 'secondary',
+        triggerLabel: wallEnabled
+          ? (inboxEnabled ? 'Write a message' : 'Write on the wall')
+          : 'Send a private message',
+        kicker: privateOnly ? 'Private message' : 'Wall message',
         title: privateOnly ? 'Send a private message' : 'Post a public message',
         description: privateOnly
           ? `Keychain encrypts this message for @${userProfile.name} in this browser.`
