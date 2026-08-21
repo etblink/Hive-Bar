@@ -1,117 +1,137 @@
-<section class="wallet-social" aria-labelledby="wallet-heading" data-m15-surface="wallet">
-  <header class="wallet-social__header">
-    <p class="app-kicker">Public wallet</p>
+<section class="wallet-social c2c-wallet" aria-labelledby="wallet-heading" data-m15-surface="wallet" data-c2c-surface="wallet">
+  <header class="wallet-social__header c2c-wallet__header">
+    <p class="app-kicker">Bar wallet</p>
     <div class="wallet-social__identity">
       <div>
         <h2 id="wallet-heading" class="app-section-title">@<%= userProfile.name %> wallet</h2>
-        <p class="wallet-social__lede">A read-only snapshot of public Hive balances, voting resources, and unclaimed rewards.</p>
+        <p class="wallet-social__lede">See what is available now, how ready this account is to participate, and what rewards are waiting.</p>
       </div>
       <span class="wallet-social__badge">Public on Hive</span>
     </div>
   </header>
 
-  <dl class="wallet-balance-grid grid grid-cols-1 gap-3 sm:grid-cols-3">
-    <div class="wallet-balance">
-      <dt>Liquid HIVE</dt>
-      <dd><%= formatNumber(wallet.liquidHive) %> <span>HIVE</span></dd>
+  <section class="c2c-wallet__section" aria-labelledby="available-heading">
+    <div class="c2c-wallet__section-heading">
+      <div>
+        <p class="app-kicker">Your balances</p>
+        <h3 id="available-heading">Available now</h3>
+      </div>
+      <a class="c2c-wallet__learn" href="/faq#wallet">What do these Hive terms mean?</a>
     </div>
-    <div class="wallet-balance">
-      <dt>Liquid HBD</dt>
-      <dd><%= formatNumber(wallet.liquidHbd) %> <span>HBD</span></dd>
-    </div>
-    <div class="wallet-balance">
-      <dt>Hive Power</dt>
-      <dd><%= formatNumber(wallet.hivePower) %> <span>HP</span></dd>
-    </div>
-  </dl>
+    <dl class="wallet-balance-grid c2c-wallet__balances grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div class="wallet-balance">
+        <dt>Available HBD <span class="c2c-wallet__protocol">Liquid HBD</span></dt>
+        <dd><%= formatNumber(wallet.liquidHbd) %> <span>HBD</span></dd>
+      </div>
+      <div class="wallet-balance">
+        <dt>Available HIVE <span class="c2c-wallet__protocol">Liquid HIVE</span></dt>
+        <dd><%= formatNumber(wallet.liquidHive) %> <span>HIVE</span></dd>
+      </div>
+    </dl>
+  </section>
 
   <p class="wallet-capability-note">
     This page only reads public Hive data. Hive-Bar cannot move funds or access private keys from here. Any available account action is reviewed in Keychain before it happens.
   </p>
 
-  <div class="wallet-health-grid">
-    <section class="wallet-health" aria-labelledby="voting-power-heading">
+  <section class="wallet-module c2c-wallet__rank" aria-labelledby="milestone-heading">
+    <div class="wallet-module__heading">
       <div>
-        <p class="app-kicker">Account resource</p>
-        <h3 id="voting-power-heading">Voting power</h3>
+        <p class="app-kicker">Your bar level</p>
+        <h3 id="milestone-heading"><%= wallet.milestone.name %></h3>
+        <span class="c2c-wallet__protocol">Hive Power</span>
       </div>
-      <div class="wallet-health__body">
-        <div class="beer-pitcher" role="img" aria-label="Voting power: <%= formatNumber(wallet.votingPowerPercent, 2) %> percent">
-          <div class="beer-foam" aria-hidden="true"></div>
-          <div class="beer-segments" aria-hidden="true">
-            <% for (let segment = 10; segment >= 1; segment -= 1) { %>
-              <span class="beer-segment <%= segment <= wallet.beerSegmentsFilled ? 'beer-segment--filled' : '' %>"></span>
-            <% } %>
+      <span class="wallet-module__icon" aria-hidden="true"><%= wallet.milestone.icon %></span>
+    </div>
+    <div class="c2c-wallet__rank-body">
+      <p class="wallet-module__amount"><%= formatNumber(wallet.hivePower) %> HP</p>
+      <p class="c2c-wallet__supporting">Your bar level follows your Hive Power while the exact HP amount stays visible.</p>
+    </div>
+    <label for="hp-progress" class="wallet-module__label">
+      <%= wallet.milestone.hasNextLevel ? `Progress to the next bar level at ${wallet.milestone.max.toLocaleString()} HP` : 'Highest listed bar level reached' %>
+    </label>
+    <meter id="hp-progress" class="wallet-meter" min="0" max="100" value="<%= wallet.milestone.progressPercent %>">
+      <%= formatNumber(wallet.milestone.progressPercent, 1) %>%
+    </meter>
+  </section>
+
+  <section class="c2c-wallet__section c2c-wallet__participation" aria-labelledby="participation-heading">
+    <div class="c2c-wallet__section-heading c2c-wallet__section-heading--stacked">
+      <div>
+        <p class="app-kicker">Participation</p>
+        <h3 id="participation-heading">Ready to join in</h3>
+      </div>
+      <p class="c2c-wallet__supporting">These account resources refill over time as you use Hive.</p>
+    </div>
+
+    <div class="wallet-health-grid">
+      <section class="wallet-health" aria-labelledby="voting-power-heading">
+        <div>
+          <p class="app-kicker">Voting</p>
+          <h3 id="voting-power-heading">Voting strength</h3>
+          <span class="c2c-wallet__protocol">Voting power</span>
+        </div>
+        <div class="wallet-health__body">
+          <div class="beer-pitcher" role="img" aria-label="Voting power: <%= formatNumber(wallet.votingPowerPercent, 2) %> percent">
+            <div class="beer-foam" aria-hidden="true"></div>
+            <div class="beer-segments" aria-hidden="true">
+              <% for (let segment = 10; segment >= 1; segment -= 1) { %>
+                <span class="beer-segment <%= segment <= wallet.beerSegmentsFilled ? 'beer-segment--filled' : '' %>"></span>
+              <% } %>
+            </div>
+          </div>
+          <div class="wallet-health__value">
+            <strong><%= formatNumber(wallet.votingPowerPercent, 2) %>%</strong>
+            <span>Your voting strength refills over time.</span>
           </div>
         </div>
-        <div class="wallet-health__value">
-          <strong><%= formatNumber(wallet.votingPowerPercent, 2) %>%</strong>
-          <span>Voting power refills over time. This is its value at the update time below.</span>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="wallet-health" aria-labelledby="resources-heading">
+      <section class="wallet-health" aria-labelledby="resources-heading">
+        <div>
+          <p class="app-kicker">Activity</p>
+          <h3 id="resources-heading">Activity capacity</h3>
+          <span class="c2c-wallet__protocol">Resource credits (RC)</span>
+        </div>
+        <div class="wallet-health__value wallet-health__value--meter">
+          <strong><%= formatNumber(wallet.resourceCreditsPercent, 2) %>%</strong>
+          <meter class="wallet-meter" min="0" max="100" value="<%= wallet.resourceCreditsPercent %>">
+            <%= formatNumber(wallet.resourceCreditsPercent, 2) %>%
+          </meter>
+          <span>This capacity is used for Hive actions such as posts, replies, and votes, then refills over time.</span>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="wallet-module c2c-wallet__rewards" aria-labelledby="rewards-heading">
+    <div class="wallet-module__heading">
       <div>
-        <p class="app-kicker">Account resource</p>
-        <h3 id="resources-heading">Resource credits</h3>
+        <p class="app-kicker">Rewards</p>
+        <h3 id="rewards-heading">Ready to claim</h3>
+        <span class="c2c-wallet__protocol">Claimable rewards</span>
       </div>
-      <div class="wallet-health__value wallet-health__value--meter">
-        <strong><%= formatNumber(wallet.resourceCreditsPercent, 2) %>%</strong>
-        <meter class="wallet-meter" min="0" max="100" value="<%= wallet.resourceCreditsPercent %>">
-          <%= formatNumber(wallet.resourceCreditsPercent, 2) %>%
-        </meter>
-        <span>Resource credits are used for actions on Hive and refill over time.</span>
-      </div>
-    </section>
-  </div>
-
-  <div class="wallet-secondary-grid">
-    <section class="wallet-module" aria-labelledby="milestone-heading">
-      <div class="wallet-module__heading">
-        <div>
-          <p class="app-kicker">Hive Power milestone</p>
-          <h3 id="milestone-heading"><%= wallet.milestone.name %></h3>
-        </div>
-        <span class="wallet-module__icon" aria-hidden="true"><%= wallet.milestone.icon %></span>
-      </div>
-      <p class="wallet-module__amount"><%= formatNumber(wallet.hivePower) %> HP</p>
-      <label for="hp-progress" class="wallet-module__label">
-        <%= wallet.milestone.hasNextLevel ? `Progress toward ${wallet.milestone.max.toLocaleString()} HP` : 'Highest listed milestone reached' %>
-      </label>
-      <meter id="hp-progress" class="wallet-meter" min="0" max="100" value="<%= wallet.milestone.progressPercent %>">
-        <%= formatNumber(wallet.milestone.progressPercent, 1) %>%
-      </meter>
-    </section>
-
-    <section class="wallet-module" aria-labelledby="rewards-heading">
-      <div class="wallet-module__heading">
-        <div>
-          <p class="app-kicker">Your rewards</p>
-          <h3 id="rewards-heading">Claimable rewards</h3>
-        </div>
-      </div>
-      <% if (wallet.hasClaimableRewards) { %>
-        <dl class="wallet-rewards">
-          <div><dt>HIVE</dt><dd><%= formatNumber(wallet.rewards.hive) %></dd></div>
-          <div><dt>HBD</dt><dd><%= formatNumber(wallet.rewards.hbd) %></dd></div>
-          <div><dt>Hive Power</dt><dd><%= formatNumber(wallet.rewards.hivePower) %></dd></div>
-        </dl>
-        <% if (canManageProfile && (writesEnabled || canWriteAction('claim-rewards'))) { %>
-          <form class="wallet-reward-action" data-m4-action="claim-rewards">
-            <button type="submit" class="button-primary">Review reward claim</button>
-            <p aria-live="polite" data-m4-status>
-              Hive-Bar checks your current rewards again before Keychain asks for approval.
-            </p>
-          </form>
-        <% } else if (canManageProfile) { %>
-          <p class="wallet-module__note">Claiming rewards isn’t available here yet.</p>
-        <% } %>
-      <% } else { %>
-        <p class="wallet-module__note">No rewards are ready to claim.</p>
+    </div>
+    <% if (wallet.hasClaimableRewards) { %>
+      <dl class="wallet-rewards">
+        <div><dt>HIVE</dt><dd><%= formatNumber(wallet.rewards.hive) %></dd></div>
+        <div><dt>HBD</dt><dd><%= formatNumber(wallet.rewards.hbd) %></dd></div>
+        <div><dt>Hive Power</dt><dd><%= formatNumber(wallet.rewards.hivePower) %></dd></div>
+      </dl>
+      <% if (canManageProfile && (writesEnabled || canWriteAction('claim-rewards'))) { %>
+        <form class="wallet-reward-action" data-m4-action="claim-rewards">
+          <button type="submit" class="button-primary">Review reward claim</button>
+          <p aria-live="polite" data-m4-status>
+            Hive-Bar checks your current rewards again before Keychain asks for approval.
+          </p>
+        </form>
+      <% } else if (canManageProfile) { %>
+        <p class="wallet-module__note">Claiming rewards isn’t available here yet.</p>
       <% } %>
-    </section>
-  </div>
+    <% } else { %>
+      <p class="wallet-module__note">No rewards are ready to claim.</p>
+    <% } %>
+  </section>
 
   <p class="wallet-snapshot-time">
     Updated at <time datetime="<%= wallet.displayedAt %>"><%= formatHiveDate(wallet.displayedAt) %></time>.

@@ -1,0 +1,157 @@
+/* C2-C wallet semantic layer.
+ * Patron/bar-oriented concepts lead while exact Hive terminology stays visible.
+ * Presentation only: no wallet calculation, read-service, operation, Keychain, or payment behavior.
+ */
+
+.c2c-wallet {
+  padding-bottom: 1.5rem;
+}
+
+.c2c-wallet__header {
+  padding-bottom: 0.7rem;
+}
+
+.c2c-wallet__section,
+.c2c-wallet__rank,
+.c2c-wallet__rewards {
+  margin-top: 1.2rem;
+}
+
+.c2c-wallet__section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.c2c-wallet__section-heading h3 {
+  margin-top: 0.15rem;
+  color: var(--hb-text);
+  font-size: 1.12rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.c2c-wallet__section-heading--stacked {
+  align-items: flex-start;
+}
+
+.c2c-wallet__learn {
+  color: var(--hb-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.c2c-wallet__learn:hover,
+.c2c-wallet__learn:focus-visible {
+  color: var(--hb-accent);
+}
+
+.c2c-wallet__balances {
+  margin-top: 0.45rem;
+}
+
+.c2c-wallet__balances .wallet-balance dt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  color: var(--hb-text-muted);
+  font-size: 0.84rem;
+}
+
+.c2c-wallet__protocol {
+  display: block;
+  color: var(--hb-text-subtle);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.c2c-wallet__rank {
+  border-color: color-mix(in srgb, var(--hb-accent) 32%, var(--hb-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hb-accent) 5%, var(--hb-surface)), var(--hb-surface));
+}
+
+.c2c-wallet__rank .wallet-module__heading h3 {
+  font-size: clamp(1.3rem, 3vw, 1.65rem);
+}
+
+.c2c-wallet__rank-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem 1rem;
+  margin-top: 0.85rem;
+}
+
+.c2c-wallet__rank-body .wallet-module__amount {
+  margin-top: 0;
+}
+
+.c2c-wallet__supporting {
+  max-width: 34rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.c2c-wallet__participation {
+  padding-top: 0.15rem;
+}
+
+.c2c-wallet__participation .wallet-health-grid {
+  margin-top: 0.8rem;
+}
+
+.c2c-wallet__participation .wallet-health {
+  background: transparent;
+}
+
+.c2c-wallet__participation .wallet-health h3 {
+  margin-top: 0.12rem;
+}
+
+.c2c-wallet__rewards {
+  background: transparent;
+}
+
+.c2c-wallet__rewards .wallet-module__heading h3 {
+  font-size: 1.12rem;
+}
+
+.c2c-wallet .wallet-capability-note {
+  margin-top: 0.8rem;
+  border-left-width: 2px;
+  opacity: 0.92;
+}
+
+.c2c-wallet .wallet-snapshot-time {
+  margin-top: 1rem;
+  text-align: right;
+}
+
+@media (min-width: 640px) {
+  .c2c-wallet__balances {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .c2c-wallet__section-heading,
+  .c2c-wallet__rank-body {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .c2c-wallet__learn {
+    margin-top: 0.2rem;
+  }
+
+  .c2c-wallet .wallet-snapshot-time {
+    text-align: left;
+  }
+}
