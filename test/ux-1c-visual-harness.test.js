@@ -25,6 +25,9 @@ test('UX-1C visual fixture is authenticated, deterministic, and mutation-fail-cl
     .expect(200);
   assert.equal((page.text.match(/data-vote-control/g) || []).length, 2);
   assert.match(page.text, /\/js\/vote-presentation\.js\?v=[0-9a-f]{64}/);
+  assert.match(page.text, /data-vote-open="upvote"/);
+  assert.match(page.text, /data-vote-open="downvote"/);
+  assert.match(page.text, /data-vote-dialog/);
   assert.match(page.text, /type="range"\s+name="percent"\s+value="100"/);
 
   await request(fixture.app)
@@ -37,7 +40,7 @@ test('UX-1C visual fixture is authenticated, deterministic, and mutation-fail-cl
   ]);
 });
 
-test('UX-1C pinned-Chromium contract covers neutral, weighted directions, and repeated-form isolation', () => {
+test('UX-1C pinned-Chromium contract covers neutral, contextual weighted directions, and repeated-form isolation', () => {
   assert.equal(packageJson.scripts['test:visual:ux-1c'], 'node scripts/capture-ux-1c-visual.js');
   assert.match(capture, /Object\.freeze\(\[390, 1440\]\)/);
   for (const scenario of [
@@ -47,10 +50,13 @@ test('UX-1C pinned-Chromium contract covers neutral, weighted directions, and re
     'comment-downvote-50-isolated',
   ]) assert.match(capture, new RegExp(scenario));
   assert.match(capture, /UX-1C visual qualification forbids Keychain signing/);
-  assert.match(capture, /\.vote-direction-option__surface`[\s\S]*?\.click\(\)/);
+  assert.match(capture, /\[data-vote-open=/);
+  assert.match(capture, /dialogOpen/);
   assert.match(capture, /page\.keyboard\.press\('ArrowLeft'\)/);
   assert.match(capture, /otherForms/);
   assert.match(capture, /tapTargetErrors/);
+  assert.match(capture, /triggerAccessibilityErrors/);
+  assert.match(capture, /dialogAccessibilityErrors/);
   assert.match(capture, /statusOwnershipErrors/);
   assert.match(capture, /assert\.deepEqual\(fixture\.mutationAttempts, \[\]\)/);
   assert.match(capture, /assert\.equal\(evidence\.scrollY, 0\)/);

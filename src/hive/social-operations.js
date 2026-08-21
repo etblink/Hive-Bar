@@ -15,6 +15,7 @@ const LIMITS = Object.freeze({
   tags: 10,
 });
 const TAG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+const POST_DESTINATIONS = new Set(['community', 'profile']);
 const ACTIONS = new Set([
   'post',
   'thread',
@@ -53,10 +54,18 @@ function requireOperationPermlink(value) {
   return permlink;
 }
 
-function normalizeTags(values, communityId) {
+function requirePostDestination(value) {
+  const destination = String(value ?? 'community').trim().toLowerCase();
+  if (!POST_DESTINATIONS.has(destination)) {
+    throw new ValidationError('Post destination must be community or profile');
+  }
+  return destination;
+}
+
+function normalizeTags(values, requiredTag) {
   if (!Array.isArray(values)) throw new ValidationError('Tags must be an array');
   const normalized = values.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean);
-  const unique = [...new Set([communityId, ...normalized])];
+  const unique = [...new Set(requiredTag ? [requiredTag, ...normalized] : normalized)];
   if (unique.length > LIMITS.tags) throw new ValidationError(`No more than ${LIMITS.tags} tags are allowed`);
 
   for (const tag of unique) {
@@ -97,13 +106,17 @@ function buildPost({ account: accountValue, payload, config }) {
   const title = requireOptionalTitle(payload?.title);
   const body = requireText(payload?.body, 'Post body', LIMITS.postBodyBytes);
   const permlink = requireOperationPermlink(payload?.permlink);
-  const tags = normalizeTags(payload?.tags, config.hive.communityId);
+  const destination = requirePostDestination(payload?.destination);
+  const communityPost = destination === 'community';
+  const normalizedTags = normalizeTags(payload?.tags, communityPost ? config.hive.communityId : null);
+  const tags = communityPost || normalizedTags.length > 0 ? normalizedTags : ['blog'];
+  const parentPermlink = communityPost ? config.hive.communityId : tags[0];
   const jsonMetadata = metadata({ tags, app: config.hive.appTag, format: 'markdown' });
   const operation = [
     'comment',
     {
       parent_author: '',
-      parent_permlink: config.hive.communityId,
+      parent_permlink: parentPermlink,
       author: account,
       permlink,
       title,
@@ -111,10 +124,24 @@ function buildPost({ account: accountValue, payload, config }) {
       json_metadata: jsonMetadata,
     },
   ];
+
+  if (communityPost) {
+    return operationEnvelope('post', account, [operation], {
+      kind: 'Community post',
+      author: account,
+      community: config.hive.communityId,
+      permlink,
+      title,
+      tags,
+      bodyBytes: utf8Bytes(body),
+    });
+  }
+
   return operationEnvelope('post', account, [operation], {
-    kind: 'Community post',
+    kind: 'Profile post',
     author: account,
-    community: config.hive.communityId,
+    destination: 'My profile',
+    category: parentPermlink,
     permlink,
     title,
     tags,
@@ -285,6 +312,7 @@ function createPermlink(value, { now = Date.now, random = randomBytes } = {}) {
 module.exports = {
   ACTIONS,
   LIMITS,
+  POST_DESTINATIONS,
   buildComment,
   buildFollow,
   buildPost,
@@ -295,5 +323,6 @@ module.exports = {
   createPermlink,
   fingerprint,
   normalizeTags,
+  requirePostDestination,
   utf8Bytes,
 };

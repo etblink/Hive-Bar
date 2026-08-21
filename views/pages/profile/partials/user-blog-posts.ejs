@@ -1,3 +1,30 @@
+<% const ownsProfile = Boolean(hiveSession && hiveSession.account === userProfile.name); %>
+<% if (ownsProfile && canWriteAction('post')) { %>
+  <%- include('../../../common/composer', { composer: {
+    id: 'profile-post-composer',
+    controller: 'social',
+    action: 'post',
+    signerMode,
+    dialog: true,
+    triggerLabel: 'Create post',
+    kicker: 'Create post',
+    title: 'Publish a post',
+    description: 'Post to your profile or share directly with the 4th Street Bar community.',
+    meta: `Posting as @${userProfile.name}`,
+    fields: [
+      { id: 'profile-post-destination', name: 'destination', type: 'select', label: 'Destination', required: true, value: 'profile', options: [
+        { value: 'profile', label: 'My profile' },
+        { value: 'community', label: '4th Street Bar community' },
+      ], help: 'The destination is included in the exact review before Keychain opens.' },
+      { id: 'profile-post-title', name: 'title', type: 'text', label: 'Title', required: true, maxBytes: 256, placeholder: 'Give your post a clear title', autocomplete: 'off' },
+      { id: 'profile-post-body', name: 'body', type: 'textarea', label: 'Post', required: true, maxBytes: 32768, rows: 8, size: 'large', placeholder: 'What do you want to share?' },
+      { id: 'profile-post-tags', name: 'tags', type: 'text', label: 'Tags', placeholder: 'reno, nightlife', autocomplete: 'off', help: 'Separate tags with commas. Profile posts use your first tag as the category, or blog if you leave tags blank. Community posts add the bar community automatically.' },
+    ],
+    submitLabel: 'Review post',
+    disclosure: 'You’ll review the exact post and its destination before Hive Keychain asks you to approve it.',
+  } }) %>
+<% } %>
+
 <% if (postsPage.items.length > 0) { %>
   <ul class="social-feed" aria-label="Posts by <%= userProfile.name %>">
     <% postsPage.items.forEach((post) => { %>

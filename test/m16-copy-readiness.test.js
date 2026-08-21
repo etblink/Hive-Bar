@@ -64,9 +64,9 @@ test('M16.5 beta participation copy stays friendly while preserving write-review
     .get('/community')
     .set('cookie', beta.cookie)
     .expect(200);
-  assert.match(community.text, /Create a community post/);
-  assert.match(community.text, /Separate tags with commas\. We’ll add the community tag for you/);
-  assert.match(community.text, /Choose up or down, set the strength, then review the exact vote before Keychain opens/);
+  assert.match(community.text, /Choose where this post should appear/);
+  assert.match(community.text, /Community posts add the bar community automatically/);
+  assert.match(community.text, /Set the strength, then review the exact vote before Keychain opens/);
   assert.doesNotMatch(visibleText(community.text), FORBIDDEN_VISIBLE_COPY);
 
   const wall = await request(beta.app)

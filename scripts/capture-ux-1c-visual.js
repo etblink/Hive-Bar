@@ -40,7 +40,7 @@ const SCENARIOS = Object.freeze([
     form: ROOT_FORM,
     direction: 'downvote',
     percent: 25,
-    focus: 'direction',
+    focus: 'strength',
   },
   {
     id: 'comment-downvote-50-isolated',
@@ -94,29 +94,31 @@ function listen(app) {
   });
 }
 
+async function setRange(range, value) {
+  await range.evaluate((element, nextValue) => {
+    element.value = String(nextValue);
+    element.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+  }, value);
+}
+
 async function prepareScenario(page, scenario) {
   const form = page.locator(scenario.form).first();
-  await assert.equal(await form.count(), 1);
+  assert.equal(await form.count(), 1);
   const strength = form.locator('[data-vote-strength]');
   let keyboardAdjusted = false;
   if (scenario.direction) {
-    await form.locator(
-      `label:has([data-vote-direction][value="${scenario.direction}"]) .vote-direction-option__surface`,
-    ).click();
+    await form.locator(`[data-vote-open="${scenario.direction}"]`).click();
+    assert.equal(await form.locator('[data-vote-dialog]').evaluate((dialog) => dialog.open), true);
   }
   if (scenario.keyboardAdjustment) {
-    await strength.fill(String(scenario.percent + 1));
+    await setRange(strength, scenario.percent + 1);
     await strength.focus();
     await page.keyboard.press('ArrowLeft');
     keyboardAdjusted = true;
   } else if (scenario.percent !== 100) {
-    await strength.fill(String(scenario.percent));
+    await setRange(strength, scenario.percent);
   }
-  if (scenario.focus === 'direction') {
-    await form.locator(`[data-vote-direction][value="${scenario.direction}"]`).focus();
-  } else if (scenario.focus === 'strength') {
-    await strength.focus();
-  }
+  if (scenario.focus === 'strength') await strength.focus();
   return keyboardAdjusted;
 }
 
@@ -176,16 +178,19 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
     const ids = Array.from(document.querySelectorAll('[id]'), (element) => element.id);
     const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
     const brokenLabels = voteForms.flatMap((form) => {
-      const errors = [];
-      for (const radio of form.querySelectorAll('[data-vote-direction]')) {
-        if (!radio.closest('label')?.textContent.trim()) errors.push(radio.id || radio.value);
-      }
       const strength = form.querySelector('[data-vote-strength]');
-      if (!strength?.id || !form.querySelector(`label[for="${strength.id}"]`)) {
-        errors.push(strength?.id || 'strength');
-      }
-      return errors;
+      return !strength?.id || !form.querySelector(`label[for="${strength.id}"]`)
+        ? [strength?.id || 'strength']
+        : [];
     });
+    const triggerAccessibilityErrors = voteForms.flatMap((form) =>
+      Array.from(form.querySelectorAll('[data-vote-open]'))
+        .filter((trigger) => !trigger.getAttribute('aria-label') || !trigger.getAttribute('aria-controls'))
+        .map((trigger) => trigger.dataset.voteOpen || 'unknown'));
+    const dialogAccessibilityErrors = voteForms.flatMap((form) =>
+      Array.from(form.querySelectorAll('[data-vote-dialog]'))
+        .filter((dialog) => !dialog.getAttribute('aria-labelledby') || !dialog.querySelector('[data-vote-close]'))
+        .map((dialog) => dialog.id || 'dialog'));
     const brokenDescriptions = voteForms.flatMap((form) =>
       Array.from(form.querySelectorAll('[aria-describedby]')).flatMap((control) =>
         (control.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)
@@ -195,22 +200,27 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
       const status = form.querySelector('[data-social-status]');
       return !status || status.closest('[data-vote-control]') !== form;
     }).map((form) => form.querySelector('[name="permlink"]')?.value || 'unknown');
+    const visible = (control) => {
+      const rect = control.getBoundingClientRect();
+      const style = globalThis.getComputedStyle(control);
+      return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+    };
     const tapTargetErrors = voteForms.flatMap((form) => [
-      ...Array.from(form.querySelectorAll('.vote-direction-option__surface')),
+      ...Array.from(form.querySelectorAll('[data-vote-open]')),
       form.querySelector('[data-vote-strength]'),
       form.querySelector('[data-vote-review]'),
-    ].filter(Boolean).filter((control) => control.getBoundingClientRect().height < 43.5)
-      .map((control) => control.id || control.className));
+      form.querySelector('[data-vote-close]'),
+    ].filter(Boolean).filter(visible).filter((control) => control.getBoundingClientRect().height < 43.5)
+      .map((control) => control.id || control.dataset.voteOpen || control.className));
     const states = voteForms.map((form) => {
-      const checked = form.querySelector('[data-vote-direction]:checked');
       const strength = form.querySelector('[data-vote-strength]');
+      const direction = form.querySelector('[data-vote-direction-value]')?.value || null;
       return {
         author: form.querySelector('[name="author"]')?.value || null,
         permlink: form.querySelector('[name="permlink"]')?.value || null,
-        direction: checked?.value || null,
-        selectedCount: form.querySelectorAll('[data-vote-direction]:checked').length,
-        requiredDirections: Array.from(form.querySelectorAll('[data-vote-direction]'))
-          .every((input) => input.required),
+        direction,
+        dialogOpen: Boolean(form.querySelector('[data-vote-dialog]')?.open),
+        triggerCount: form.querySelectorAll('[data-vote-open]').length,
         percent: strength?.value || null,
         min: strength?.min || null,
         max: strength?.max || null,
@@ -226,6 +236,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
       activeElementId: document.activeElement?.id || null,
       brokenDescriptions,
       brokenLabels,
+      dialogAccessibilityErrors,
       duplicateIds,
       formCount: voteForms.length,
       keychainDisabled: globalThis.__UX_1C_KEYCHAIN_DISABLED__ === true,
@@ -237,6 +248,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
       statusOwnershipErrors,
       tapTargetErrors,
       target: states[targetIndex] || null,
+      triggerAccessibilityErrors,
     };
   }, { formSelector: scenario.form, scenarioId: scenario.id });
   evidence.keyboardAdjusted = keyboardAdjusted;
@@ -249,12 +261,14 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
   assert.deepEqual(evidence.duplicateIds, []);
   assert.deepEqual(evidence.brokenLabels, []);
   assert.deepEqual(evidence.brokenDescriptions, []);
+  assert.deepEqual(evidence.triggerAccessibilityErrors, []);
+  assert.deepEqual(evidence.dialogAccessibilityErrors, []);
   assert.deepEqual(evidence.statusOwnershipErrors, []);
   assert.deepEqual(evidence.tapTargetErrors, []);
   assert.ok(evidence.target);
   assert.equal(evidence.target.direction, scenario.direction);
-  assert.equal(evidence.target.selectedCount, scenario.direction ? 1 : 0);
-  assert.equal(evidence.target.requiredDirections, true);
+  assert.equal(evidence.target.dialogOpen, Boolean(scenario.direction));
+  assert.equal(evidence.target.triggerCount, 2);
   assert.equal(evidence.target.percent, String(scenario.percent));
   assert.equal(evidence.target.min, '1');
   assert.equal(evidence.target.max, '100');
@@ -269,7 +283,8 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
   assert.equal(evidence.target.status, '');
   assert.ok(evidence.otherForms.every((state) =>
     state.direction === null &&
-    state.selectedCount === 0 &&
+    state.dialogOpen === false &&
+    state.triggerCount === 2 &&
     state.percent === '100' &&
     state.output === '100%' &&
     state.reviewLabel === 'Review vote' &&
@@ -284,7 +299,6 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
   }
   if (scenario.keyboardAdjustment) assert.equal(evidence.keyboardAdjusted, true);
   if (scenario.focus === 'strength') assert.match(evidence.activeElementId || '', /-percent$/);
-  if (scenario.focus === 'direction') assert.match(evidence.activeElementId || '', /-downvote$/);
   assert.deepEqual(consoleErrors, []);
 
   const filename = path.join(SHOTS, `${String(width).padStart(4, '0')}-${scenario.id}.png`);

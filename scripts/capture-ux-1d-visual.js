@@ -62,6 +62,13 @@ async function settleCaptureViewport(page) {
   }));
 }
 
+async function setRange(range, value) {
+  await range.evaluate((element, nextValue) => {
+    element.value = String(nextValue);
+    element.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+  }, value);
+}
+
 async function prepareScenario(page, scenario) {
   if (scenario.id === 'community-posts-composer-active') {
     const composer = page.locator('#community-post-composer');
@@ -78,10 +85,12 @@ async function prepareScenario(page, scenario) {
     return;
   }
   const rootComposer = page.locator('#post-reply-composer');
+  await rootComposer.locator('[data-composer-dialog-trigger]').click();
   await rootComposer.locator('textarea[name="body"]').fill('Looking forward to seeing everyone tonight.');
+  await rootComposer.locator('[data-composer-dialog-close]').click();
   const nestedVote = page.locator('.conversation-thread .social-comment[data-comment-depth="3"] form[data-vote-control]').first();
-  await nestedVote.locator('label:has([data-vote-direction][value="downvote"]) .vote-direction-option__surface').click();
-  await nestedVote.locator('[data-vote-strength]').fill('50');
+  await nestedVote.locator('[data-vote-open="downvote"]').click();
+  await setRange(nestedVote.locator('[data-vote-strength]'), 50);
   await nestedVote.locator('[data-vote-strength]').focus();
   await page.keyboard.press('ArrowLeft');
   await page.keyboard.press('ArrowRight');
@@ -149,26 +158,33 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
       const status = form.querySelector('[data-social-status]');
       return !status || status.closest('form') !== form;
     }).map((form) => form.dataset.socialAction || 'unknown');
+    const visible = (control) => {
+      const rect = control.getBoundingClientRect();
+      const style = window.getComputedStyle(control);
+      return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+    };
     const tapTargetErrors = Array.from(document.querySelectorAll([
-      '.vote-direction-option__surface',
+      '[data-vote-open]',
       '[data-vote-strength]',
       '[data-vote-review]',
+      '[data-vote-close]',
       '.community-sort__select',
       '.community-sort__submit',
-      '.composer--collapsible > summary',
-    ].join(','))).filter((control) => control.getBoundingClientRect().height < 43.5)
-      .map((control) => control.id || control.className);
+      '[data-composer-dialog-trigger]',
+    ].join(','))).filter(visible).filter((control) => control.getBoundingClientRect().height < 43.5)
+      .map((control) => control.id || control.dataset.voteOpen || control.className);
     const voteTargets = Array.from(document.querySelectorAll('form[data-vote-control]'), (form) => ({
       author: form.querySelector('[name="author"]')?.value || null,
       permlink: form.querySelector('[name="permlink"]')?.value || null,
-      direction: form.querySelector('[data-vote-direction]:checked')?.value || null,
+      direction: form.querySelector('[data-vote-direction-value]')?.value || null,
       percent: form.querySelector('[data-vote-strength]')?.value || null,
+      dialogOpen: Boolean(form.querySelector('[data-vote-dialog]')?.open),
       statusOwner: form.querySelector('[data-social-status]')?.closest('form') === form,
     }));
     const comments = Array.from(document.querySelectorAll('.social-comment'), (comment) => {
       const style = window.getComputedStyle(comment);
       const vote = comment.querySelector(':scope > .social-comment__activity form[data-vote-control]');
-      const reply = comment.querySelector(':scope > details form[data-social-action="comment"]');
+      const reply = comment.querySelector(':scope > [data-composer] form[data-social-action="comment"]');
       return {
         author: vote?.querySelector('[name="author"]')?.value || null,
         background: style.backgroundColor,
@@ -281,6 +297,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
       permlink: 're-renolocal-opening-night',
       direction: 'downvote',
       percent: '50',
+      dialogOpen: true,
       statusOwner: true,
     });
   }

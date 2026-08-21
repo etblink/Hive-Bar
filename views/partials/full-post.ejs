@@ -32,9 +32,12 @@
       controller: 'social',
       action: 'comment',
       signerMode,
+      dialog: true,
+      triggerLabel: 'Reply',
+      triggerVariant: 'secondary',
       headingLevel: 3,
       kicker: 'Join the conversation',
-      title: 'Add a reply',
+      title: 'Reply to this post',
       description: `Reply to @${post.author}’s post.`,
       hiddenFields: [
         { name: 'parentAuthor', value: post.author },

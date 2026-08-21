@@ -4,18 +4,24 @@
     controller: 'social',
     action: 'post',
     signerMode,
-    collapsible: true,
-    kicker: 'Community post',
-    title: 'Create a community post',
-    description: 'Share news, a story, or something worth discussing with the community.',
-    meta: '4th Street Bar community',
+    dialog: true,
+    dialogDetails: true,
+    triggerLabel: 'Create post',
+    kicker: 'Create post',
+    title: 'Share something',
+    description: 'Choose where this post should appear, then write it without leaving the conversation.',
+    meta: 'Posting as your verified Hive account',
     fields: [
+      { id: 'new-post-destination', name: 'destination', type: 'select', label: 'Destination', required: true, value: 'community', options: [
+        { value: 'community', label: '4th Street Bar community' },
+        { value: 'profile', label: 'My profile' },
+      ], help: 'The destination is included in the exact review before Keychain opens.' },
       { id: 'new-post-title', name: 'title', type: 'text', label: 'Title', required: true, maxBytes: 256, placeholder: 'Give your post a clear title', autocomplete: 'off' },
-      { id: 'new-post-body', name: 'body', type: 'textarea', label: 'Post', required: true, maxBytes: 32768, rows: 8, size: 'large', placeholder: 'What do you want the community to know?' },
-      { id: 'new-post-tags', name: 'tags', type: 'text', label: 'Tags', placeholder: 'reno, nightlife', autocomplete: 'off', help: 'Separate tags with commas. We’ll add the community tag for you.' },
+      { id: 'new-post-body', name: 'body', type: 'textarea', label: 'Post', required: true, maxBytes: 32768, rows: 8, size: 'large', placeholder: 'What do you want to share?' },
+      { id: 'new-post-tags', name: 'tags', type: 'text', label: 'Tags', placeholder: 'reno, nightlife', autocomplete: 'off', help: 'Separate tags with commas. Community posts add the bar community automatically. Profile posts use your first tag as the category, or blog if you leave tags blank.' },
     ],
     submitLabel: 'Review post',
-    disclosure: 'You’ll review the post and its destination before Hive Keychain asks you to approve it.',
+    disclosure: 'You’ll review the exact post and its destination before Hive Keychain asks you to approve it.',
   } }) %>
 <% } %>
 

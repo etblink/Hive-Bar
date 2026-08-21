@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <%- include('../../common/head') %>
+  <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/c2-b-focused.css') : '/css/c2-b-focused.css' %>">
   <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/m15-wallet-pay.css') : '/css/m15-wallet-pay.css' %>">
   <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/ux-1e-messages.css') : '/css/ux-1e-messages.css' %>">
 </head>

@@ -13,6 +13,12 @@
   </label>
   <% if (field.type === 'textarea') { %>
     <textarea id="<%= field.id %>" name="<%= field.name %>" rows="<%= field.rows || 4 %>" class="composer__control composer__textarea<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (field.maxBytes) { %>data-max-bytes="<%= field.maxBytes %>"<% } %> <% if (field.placeholder) { %>placeholder="<%= field.placeholder %>"<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>><%= field.value || '' %></textarea>
+  <% } else if (field.type === 'select') { %>
+    <select id="<%= field.id %>" name="<%= field.name %>" class="composer__control<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>>
+      <% for (const option of field.options || []) { %>
+        <option value="<%= option.value %>" <%= String(field.value || '') === String(option.value) ? 'selected' : '' %>><%= option.label %></option>
+      <% } %>
+    </select>
   <% } else { %>
     <input id="<%= field.id %>" name="<%= field.name %>" type="<%= field.type || 'text' %>" value="<%= field.value || '' %>" class="composer__control<%= sizeClass %>" data-composer-input <% if (field.required) { %>required<% } %> <% if (field.maxBytes) { %>data-max-bytes="<%= field.maxBytes %>"<% } %> <% if (field.placeholder) { %>placeholder="<%= field.placeholder %>"<% } %> <% if (field.autocomplete) { %>autocomplete="<%= field.autocomplete %>"<% } %> <% if (describedBy.length) { %>aria-describedby="<%= describedBy.join(' ') %>"<% } %>>
   <% } %>

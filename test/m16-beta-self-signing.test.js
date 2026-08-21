@@ -470,7 +470,7 @@ test('M16.4 messaging, profile settings, and rewards stay session-bound in beta'
   assert.equal(claim.body.operations[0][1].account, 'etblink');
 });
 
-test('beta UI exposes posts, community membership, voting, messaging, profile settings, and reward claims in plain language', async () => {
+test('beta UI exposes posts, community membership, focused voting, messaging, profile settings, and reward claims in plain language', async () => {
   const fixtureApp = betaFixture({ account: 'etblink' });
 
   const community = await request(fixtureApp.app)
@@ -479,8 +479,9 @@ test('beta UI exposes posts, community membership, voting, messaging, profile se
     .expect(200);
   assert.match(community.text, /data-social-action="post" data-signer-mode="keychain"/);
   assert.match(community.text, /data-social-action="vote"\s+data-signer-mode="keychain"/);
-  assert.match(community.text, /type="radio"\s+name="direction"\s+value="upvote"/);
-  assert.match(community.text, /type="radio"\s+name="direction"\s+value="downvote"/);
+  assert.match(community.text, /data-vote-open="upvote"/);
+  assert.match(community.text, /data-vote-open="downvote"/);
+  assert.match(community.text, /data-vote-dialog/);
   assert.match(community.text, /type="range"\s+name="percent"\s+value="100"/);
   assert.match(community.text, /data-social-action="(?:subscribe|unsubscribe)"/);
 
@@ -495,7 +496,7 @@ test('beta UI exposes posts, community membership, voting, messaging, profile se
   assert.match(post.text, /name="parentPermlink" value="re-welcome-fourth-street-bar"/);
   const voteForms = post.text.match(/data-social-action="vote"\s+data-signer-mode="keychain"/g) || [];
   assert.equal(voteForms.length, 2);
-  assert.match(post.text, /Choose up or down, set the strength/);
+  assert.match(post.text, /Set the strength, then review the exact vote before Keychain opens/);
 
   const messenger = betaFixture({ account: 'barfriend' });
   const wall = await request(messenger.app)

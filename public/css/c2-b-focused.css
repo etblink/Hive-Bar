@@ -1,0 +1,178 @@
+/* C2-B focused social interaction layer. Presentation only. */
+
+.composer--dialog-launcher {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 0.85rem 1rem;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.composer__dialog-trigger {
+  min-height: 44px;
+}
+
+.composer__dialog-trigger-meta {
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+}
+
+.composer-dialog,
+.vote-dialog {
+  width: min(42rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: min(88vh, 52rem);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius-panel);
+  background: var(--hb-surface);
+  color: var(--hb-text);
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 55%);
+}
+
+.composer-dialog::backdrop,
+.vote-dialog::backdrop {
+  background: rgb(0 0 0 / 72%);
+  backdrop-filter: blur(3px);
+}
+
+.composer-dialog__surface,
+.vote-dialog__surface {
+  max-height: inherit;
+  overflow-y: auto;
+  padding: 1.1rem;
+}
+
+.composer-dialog__header,
+.vote-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.composer-dialog__meta {
+  margin-top: 0.7rem;
+}
+
+.composer-dialog__close {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius-control);
+  background: transparent;
+  color: var(--hb-text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.composer-dialog__close:hover,
+.composer-dialog__close:focus-visible {
+  border-color: var(--hb-accent);
+  color: var(--hb-text);
+}
+
+.composer-dialog .composer__form,
+.vote-dialog .vote-control__strength {
+  margin-top: 1rem;
+}
+
+.vote-control--focused {
+  margin-top: 0.45rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.vote-trigger-group {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.vote-trigger {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--hb-radius-control);
+  background: transparent;
+  color: var(--hb-text-subtle);
+}
+
+.vote-trigger:hover,
+.vote-trigger:focus-visible {
+  border-color: var(--hb-border);
+  background: var(--hb-surface-raised);
+  color: var(--hb-text);
+}
+
+.vote-trigger__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vote-trigger__icon--down {
+  transform: rotate(180deg);
+}
+
+.vote-dialog {
+  width: min(27rem, calc(100vw - 2rem));
+}
+
+.vote-dialog__title {
+  margin-top: 0.15rem;
+  color: var(--hb-text);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.vote-dialog .vote-control__review {
+  width: 100%;
+  margin-top: 0.8rem;
+}
+
+.vote-dialog .vote-control__help,
+.vote-dialog .vote-control__status {
+  margin-top: 0.6rem;
+}
+
+@media (max-width: 700px) {
+  .composer--dialog-launcher {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .composer__dialog-trigger {
+    width: 100%;
+  }
+
+  .composer-dialog,
+  .vote-dialog {
+    width: 100vw;
+    max-height: min(88dvh, 56rem);
+    margin: auto 0 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 1rem 1rem 0 0;
+  }
+
+  .composer-dialog__surface,
+  .vote-dialog__surface {
+    padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}

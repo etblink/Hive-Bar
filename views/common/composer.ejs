@@ -1,6 +1,62 @@
 <% const composerHeadingId = `${composer.id}-heading`; %>
 <% const composerVariant = composer.variant ? ` composer--${composer.variant}` : ''; %>
-<% if (composer.collapsible) { %>
+<% if (composer.dialog) { %>
+  <% const composerDialogId = `${composer.id}-dialog`; %>
+  <% if (composer.dialogDetails) { %>
+    <details id="<%= composer.id %>" class="composer composer--dialog-launcher<%= composerVariant %>" data-composer="<%= composer.id %>" data-composer-dialog-shell <% if (composer.privateDisclosure) { %>data-m18-private-composer<% } %>>
+      <summary
+        class="composer__summary composer__dialog-trigger"
+        aria-haspopup="dialog"
+        aria-controls="<%= composerDialogId %>"
+        data-composer-dialog-trigger>
+        <span class="composer__summary-copy">
+          <% if (composer.kicker) { %><span class="composer__kicker"><%= composer.kicker %></span><% } %>
+          <strong class="composer__title"><%= composer.triggerLabel || composer.title %></strong>
+          <% if (composer.triggerMeta) { %><span class="composer__description"><%= composer.triggerMeta %></span><% } %>
+        </span>
+        <span class="composer__chevron" aria-hidden="true"></span>
+      </summary>
+      <dialog id="<%= composerDialogId %>" class="composer-dialog" data-composer-dialog aria-labelledby="<%= composerHeadingId %>">
+        <div class="composer-dialog__surface">
+          <header class="composer-dialog__header">
+            <div class="composer__context">
+              <% if (composer.kicker) { %><p class="composer__kicker"><%= composer.kicker %></p><% } %>
+              <h2 id="<%= composerHeadingId %>" class="composer__title"><%= composer.title %></h2>
+              <% if (composer.description) { %><p class="composer__description"><%= composer.description %></p><% } %>
+            </div>
+            <button type="button" class="composer-dialog__close" aria-label="Close <%= composer.title %>" data-composer-dialog-close>&times;</button>
+          </header>
+          <% if (composer.meta) { %><p class="composer__meta composer-dialog__meta"><%= composer.meta %></p><% } %>
+          <%- include('composer/form', { composer }) %>
+        </div>
+      </dialog>
+    </details>
+  <% } else { %>
+    <div id="<%= composer.id %>" class="composer composer--dialog-launcher<%= composerVariant %>" data-composer="<%= composer.id %>" data-composer-dialog-shell <% if (composer.privateDisclosure) { %>data-m18-private-composer<% } %>>
+      <button
+        type="button"
+        class="<%= composer.triggerVariant === 'secondary' ? 'button-secondary' : 'button-primary' %> composer__dialog-trigger"
+        aria-haspopup="dialog"
+        aria-controls="<%= composerDialogId %>"
+        data-composer-dialog-trigger><%= composer.triggerLabel || composer.title %></button>
+      <% if (composer.triggerMeta) { %><span class="composer__dialog-trigger-meta"><%= composer.triggerMeta %></span><% } %>
+      <dialog id="<%= composerDialogId %>" class="composer-dialog" data-composer-dialog aria-labelledby="<%= composerHeadingId %>">
+        <div class="composer-dialog__surface">
+          <header class="composer-dialog__header">
+            <div class="composer__context">
+              <% if (composer.kicker) { %><p class="composer__kicker"><%= composer.kicker %></p><% } %>
+              <h2 id="<%= composerHeadingId %>" class="composer__title"><%= composer.title %></h2>
+              <% if (composer.description) { %><p class="composer__description"><%= composer.description %></p><% } %>
+            </div>
+            <button type="button" class="composer-dialog__close" aria-label="Close <%= composer.title %>" data-composer-dialog-close>&times;</button>
+          </header>
+          <% if (composer.meta) { %><p class="composer__meta composer-dialog__meta"><%= composer.meta %></p><% } %>
+          <%- include('composer/form', { composer }) %>
+        </div>
+      </dialog>
+    </div>
+  <% } %>
+<% } else if (composer.collapsible) { %>
   <details id="<%= composer.id %>" class="composer composer--collapsible<%= composerVariant %>" data-composer="<%= composer.id %>" <% if (composer.privateDisclosure) { %>data-m18-private-composer<% } %>>
     <summary class="composer__summary">
       <span class="composer__summary-copy">

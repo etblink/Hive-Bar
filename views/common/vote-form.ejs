@@ -3,84 +3,79 @@
   <% const voteControlId = `vote-${item.author}-${item.permlink}`; %>
   <% const voteHelpId = `${voteControlId}-help`; %>
   <% const voteStatusId = `${voteControlId}-status`; %>
+  <% const voteDialogId = `${voteControlId}-dialog`; %>
+  <% const voteDialogHeadingId = `${voteControlId}-dialog-heading`; %>
   <form
-    class="vote-control"
+    class="vote-control vote-control--focused"
     data-social-action="vote"
     data-signer-mode="<%= signerMode %>"
     data-vote-control
     data-vote-direction-state="neutral">
     <input type="hidden" name="author" value="<%= item.author %>">
     <input type="hidden" name="permlink" value="<%= item.permlink %>">
-    <div class="vote-control__main">
-      <fieldset class="vote-control__direction" aria-describedby="<%= voteHelpId %> <%= voteStatusId %>">
-        <legend class="vote-control__label">Vote</legend>
-        <div class="vote-direction-group">
-          <label class="vote-direction-option">
-            <input
-              id="<%= voteControlId %>-upvote"
-              class="vote-direction-option__input"
-              type="radio"
-              name="direction"
-              value="upvote"
-              required
-              data-vote-direction>
-            <span class="vote-direction-option__surface">
-              <svg class="vote-direction-option__icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M7 10v11H3V10h4Zm0 0 5-7c.8 0 1.5.7 1.5 1.5V9H19a2 2 0 0 1 1.9 2.6l-2.2 7a2 2 0 0 1-1.9 1.4H7"></path>
-              </svg>
-              <span>Upvote</span>
-              <span class="vote-direction-option__selected" aria-hidden="true">✓</span>
-            </span>
-          </label>
-          <label class="vote-direction-option">
-            <input
-              id="<%= voteControlId %>-downvote"
-              class="vote-direction-option__input"
-              type="radio"
-              name="direction"
-              value="downvote"
-              required
-              data-vote-direction>
-            <span class="vote-direction-option__surface">
-              <svg class="vote-direction-option__icon vote-direction-option__icon--down" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M7 10v11H3V10h4Zm0 0 5-7c.8 0 1.5.7 1.5 1.5V9H19a2 2 0 0 1 1.9 2.6l-2.2 7a2 2 0 0 1-1.9 1.4H7"></path>
-              </svg>
-              <span>Downvote</span>
-              <span class="vote-direction-option__selected" aria-hidden="true">✓</span>
-            </span>
-          </label>
-        </div>
-      </fieldset>
-      <div class="vote-control__strength">
-        <div class="vote-control__strength-heading">
-          <label class="vote-control__label" for="<%= voteControlId %>-percent">Strength</label>
-          <output
-            id="<%= voteControlId %>-percent-value"
-            class="vote-control__percent"
-            for="<%= voteControlId %>-percent"
-            aria-live="polite"
-            data-vote-percent>100%</output>
-        </div>
-        <input
-          id="<%= voteControlId %>-percent"
-          class="vote-control__range"
-          type="range"
-          name="percent"
-          value="100"
-          min="1"
-          max="100"
-          step="1"
-          aria-valuetext="100 percent"
-          aria-describedby="<%= voteHelpId %> <%= voteStatusId %>"
-          data-vote-strength>
-      </div>
+    <input type="hidden" name="direction" value="" data-vote-direction-value>
+    <div class="vote-trigger-group" role="group" aria-label="Vote on this content">
       <button
-        type="submit"
-        class="button-secondary vote-control__review"
-        aria-describedby="<%= voteHelpId %> <%= voteStatusId %>"
-        data-vote-review>Review vote</button>
+        type="button"
+        class="vote-trigger"
+        aria-label="Upvote"
+        title="Upvote"
+        aria-haspopup="dialog"
+        aria-controls="<%= voteDialogId %>"
+        data-vote-open="upvote">
+        <svg class="vote-trigger__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11H3V10h4Zm0 0 5-7c.8 0 1.5.7 1.5 1.5V9H19a2 2 0 0 1 1.9 2.6l-2.2 7a2 2 0 0 1-1.9 1.4H7"></path></svg>
+      </button>
+      <button
+        type="button"
+        class="vote-trigger"
+        aria-label="Downvote"
+        title="Downvote"
+        aria-haspopup="dialog"
+        aria-controls="<%= voteDialogId %>"
+        data-vote-open="downvote">
+        <svg class="vote-trigger__icon vote-trigger__icon--down" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11H3V10h4Zm0 0 5-7c.8 0 1.5.7 1.5 1.5V9H19a2 2 0 0 1 1.9 2.6l-2.2 7a2 2 0 0 1-1.9 1.4H7"></path></svg>
+      </button>
     </div>
-    <p id="<%= voteHelpId %>" class="vote-control__help">Choose up or down, set the strength, then review the exact vote before Keychain opens.</p>
-    <p id="<%= voteStatusId %>" class="vote-control__status text-gray-300" role="status" aria-live="polite" aria-atomic="true" data-social-status></p>
+    <dialog id="<%= voteDialogId %>" class="vote-dialog" data-vote-dialog aria-labelledby="<%= voteDialogHeadingId %>">
+      <div class="vote-dialog__surface">
+        <header class="vote-dialog__header">
+          <div>
+            <p class="app-kicker">Vote</p>
+            <h2 id="<%= voteDialogHeadingId %>" class="vote-dialog__title" data-vote-dialog-title>Choose vote strength</h2>
+          </div>
+          <button type="button" class="composer-dialog__close" aria-label="Close vote" data-vote-close>&times;</button>
+        </header>
+        <div class="vote-control__strength">
+          <div class="vote-control__strength-heading">
+            <label class="vote-control__label" for="<%= voteControlId %>-percent">Strength</label>
+            <output
+              id="<%= voteControlId %>-percent-value"
+              class="vote-control__percent"
+              for="<%= voteControlId %>-percent"
+              aria-live="polite"
+              data-vote-percent>100%</output>
+          </div>
+          <input
+            id="<%= voteControlId %>-percent"
+            class="vote-control__range"
+            type="range"
+            name="percent"
+            value="100"
+            min="1"
+            max="100"
+            step="1"
+            aria-valuetext="100 percent"
+            aria-describedby="<%= voteHelpId %> <%= voteStatusId %>"
+            data-vote-strength>
+        </div>
+        <button
+          type="submit"
+          class="button-primary vote-control__review"
+          aria-describedby="<%= voteHelpId %> <%= voteStatusId %>"
+          data-vote-review>Review vote</button>
+        <p id="<%= voteHelpId %>" class="vote-control__help">Set the strength, then review the exact vote before Keychain opens.</p>
+        <p id="<%= voteStatusId %>" class="vote-control__status text-gray-300" role="status" aria-live="polite" aria-atomic="true" data-social-status></p>
+      </div>
+    </dialog>
   </form>
 <% } %>

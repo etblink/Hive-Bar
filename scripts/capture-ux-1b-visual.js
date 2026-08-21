@@ -41,6 +41,7 @@ const SCENARIOS = Object.freeze([
   {
     id: 'public-wall-active',
     path: '/profile/etblink/wall-posts',
+    open: '#public-wall-composer [data-composer-dialog-trigger]',
     input: '#wall-message',
     value: 'Thanks for making everyone feel welcome at 4th Street Bar.',
     action: 'wall',
@@ -153,6 +154,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
     const targetForm = target?.closest('[data-composer-form]');
     const targetField = target?.closest('[data-composer-field]');
     const targetCounter = targetField?.querySelector('[data-byte-counter]');
+    const targetDialog = target?.closest('dialog[data-composer-dialog]');
     const ids = Array.from(document.querySelectorAll('[id]'), (element) => element.id);
     const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
     const composerControls = Array.from(document.querySelectorAll('[data-composer-input]'));
@@ -205,6 +207,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
       targetAction: targetForm?.dataset.socialAction || targetForm?.dataset.m4Action || null,
       targetCounter: targetCounter?.textContent.trim() || null,
       targetCounterOwned: targetCounter?.closest('[data-composer-form]') === targetForm,
+      targetDialogOpen: targetDialog ? targetDialog.open : null,
       targetValue: target?.value || null,
       technicalContainer: document.body.textContent.includes('Technical Threads Container — Do Not Display'),
       untouchedCounters,
@@ -228,6 +231,7 @@ async function capture({ baseUrl, browser, scenario, token, width }) {
   assert.match(evidence.targetCounter, new RegExp(`^${Buffer.byteLength(scenario.value, 'utf8')} / `));
   assert.ok(evidence.untouchedCounters.every(({ text }) => text.startsWith('0 / ')));
   assert.equal(evidence.technicalContainer, false);
+  assert.equal(evidence.targetDialogOpen, scenario.action === 'thread' ? null : true);
   if (scenario.id === 'nested-reply-active') {
     assert.equal(evidence.hiddenParentAuthor, 'barfriend');
     assert.equal(evidence.hiddenParentPermlink, 're-welcome-fourth-street-bar');
