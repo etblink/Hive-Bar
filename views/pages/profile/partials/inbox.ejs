@@ -1,8 +1,13 @@
 <section class="message-surface message-surface--inbox" aria-labelledby="inbox-heading">
-  <header class="message-surface__intro">
-    <p class="eyebrow">Private messages</p>
-    <h2 id="inbox-heading" class="mt-2 text-2xl font-bold">Your encrypted inbox</h2>
-    <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-300">Messages are stored on Hive as encrypted text. Hive Keychain uses your Memo key in this browser to decrypt the message locally; the decrypted message is not sent back to Hive-Bar.</p>
+  <header class="message-surface__intro message-surface__intro--inbox">
+    <div class="inbox-heading-row">
+      <div>
+        <p class="eyebrow">Private messages</p>
+        <h2 id="inbox-heading" class="mt-2 text-2xl font-bold">Inbox</h2>
+      </div>
+      <span class="inbox-privacy-state">Your encrypted inbox · opened locally</span>
+    </div>
+    <p class="inbox-privacy-note">Messages are stored on Hive as encrypted text and stay encrypted until you open them. Hive Keychain uses your Memo key in this browser to decrypt the message locally; the decrypted message is not sent back to Hive-Bar.</p>
   </header>
 
   <% if (inboxPage.items.length > 0) { %>
@@ -26,16 +31,26 @@
                 </div>
               </div>
             </div>
+            <span class="message-entry__inbox-state" data-inbox-state>Encrypted</span>
           </header>
 
           <div class="message-entry__private-content">
-            <button type="button" class="button-secondary message-entry__decrypt" data-inbox-ciphertext="<%= item.ciphertext %>">Decrypt with Keychain</button>
+            <button
+              type="button"
+              class="message-entry__decrypt"
+              data-inbox-ciphertext="<%= item.ciphertext %>"
+              aria-label="Open encrypted message from @<%= item.sender %> — Decrypt with Keychain"
+              title="Open message — Decrypt with Keychain">
+              <span class="message-entry__open-glyph" aria-hidden="true">✉</span>
+              <span>Open message</span>
+              <span class="sr-only"> — Decrypt with Keychain</span>
+            </button>
             <p class="message-entry__body message-entry__body--private" data-inbox-plaintext hidden></p>
             <p class="message-entry__status" aria-live="polite" data-m4-status></p>
           </div>
 
-          <footer class="message-entry__activity">
-            <span class="message-entry__amount"><span class="sr-only">Payment: </span><%= item.amount %></span>
+          <footer class="message-entry__activity message-entry__activity--inbox">
+            <span class="message-entry__amount"><span class="sr-only">Wall fee: </span>Wall fee · <%= item.amount %></span>
             <details class="message-entry__details">
               <summary>Transaction details</summary>
               <p>Block <%= item.blockNumber || 'pending' %> · transaction <code><%= item.transactionId %></code></p>

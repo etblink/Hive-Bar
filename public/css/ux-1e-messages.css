@@ -194,6 +194,98 @@
   color: var(--hb-text-muted);
 }
 
+/* C2-B.3: Inbox reads as a message list while encryption and transfer provenance stay secondary. */
+.message-surface__intro--inbox {
+  padding-bottom: 0.8rem;
+}
+
+.inbox-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.55rem 1rem;
+}
+
+.inbox-privacy-state {
+  color: var(--hb-text-subtle);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.inbox-privacy-note {
+  max-width: 44rem;
+  margin-top: 0.55rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.message-list--inbox {
+  margin-top: 0.35rem;
+}
+
+.message-list--inbox .message-entry--inbox {
+  padding-block: 0.9rem 1rem;
+}
+
+.message-entry__inbox-state {
+  flex: none;
+  border: 1px solid rgb(60 52 46 / 76%);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  color: var(--hb-text-subtle);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.message-entry__decrypt {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--hb-radius-control);
+  background: transparent;
+  padding: 0.45rem 0.55rem 0.45rem 0;
+  color: var(--hb-text-muted);
+  font-weight: 750;
+}
+
+.message-entry__decrypt:hover,
+.message-entry__decrypt:focus-visible {
+  border-color: var(--hb-border);
+  background: var(--hb-surface-raised);
+  color: var(--hb-text);
+  padding-left: 0.55rem;
+}
+
+.message-entry__open-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  fill: none;
+  stroke: var(--hb-accent);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.message-entry__activity--inbox {
+  margin-top: 0.45rem;
+  font-size: 0.7rem;
+}
+
+.message-entry__activity--inbox .message-entry__amount {
+  color: var(--hb-text-subtle);
+  font-weight: 650;
+}
+
+.message-entry--inbox:has(.message-entry__body--private:not([hidden])) .message-entry__inbox-state {
+  display: none;
+}
+
 @media (max-width: 520px) {
   .message-entry {
     padding-block: 1rem 1.1rem;
@@ -210,5 +302,13 @@
 
   .message-entry__details {
     flex-basis: 100%;
+  }
+
+  .inbox-heading-row {
+    align-items: flex-start;
+  }
+
+  .message-entry__inbox-state {
+    margin-left: auto;
   }
 }

@@ -3,9 +3,11 @@
 %>
 <button
   type="button"
-  class="button-secondary text-xs"
+  class="social-action-button social-action-button--share"
   data-share-post
   data-share-url="<%= sharePath %>"
-  aria-label="Share post">
-  Share
+  aria-label="Share post"
+  title="Share post">
+  <span class="social-action-button__glyph" aria-hidden="true">↗</span>
+  <span class="sr-only">Share post</span>
 </button>

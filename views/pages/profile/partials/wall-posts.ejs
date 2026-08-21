@@ -1,12 +1,13 @@
 <section data-m18-3-surface="wall" aria-labelledby="wall-heading">
-  <header class="py-3">
+  <header class="wall-surface__intro py-3">
     <p class="app-kicker">Public wall</p>
-    <div class="mt-2 flex flex-wrap items-end justify-between gap-3">
+    <div class="wall-surface__heading mt-2">
       <div>
         <h2 id="wall-heading" class="app-section-title">@<%= userProfile.name %>’s Wall</h2>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-300">Posting a wall message costs at least <strong class="text-white"><%= profileSettings.wallFee %></strong>. Public wall messages and payment details are permanently visible on Hive.</p>
+        <p class="wall-surface__lede">Leave a message for @<%= userProfile.name %> where everyone who visits this profile can see it.</p>
+        <p class="wall-surface__terms">Posting a wall message costs at least <strong><%= profileSettings.wallFee %></strong>. Public messages and payment details are permanently visible on Hive. You’ll review the exact fee before Keychain opens.</p>
       </div>
-      <p class="message-surface__context"><strong><%= profileSettings.wallFee %></strong> minimum · Public on Hive</p>
+      <p class="message-surface__context">Public on Hive</p>
     </div>
   </header>
 
@@ -43,33 +44,39 @@
         size: 'medium',
         placeholder: privateOnly ? `Private message for @${userProfile.name}` : `Write on @${userProfile.name}’s Wall`,
       }); %>
-      <%- include('../../../common/composer', { composer: {
-        id: 'wall-message-composer',
-        controller: 'm4',
-        action: privateOnly ? 'inbox' : 'wall',
-        dialog: true,
-        triggerVariant: 'secondary',
-        triggerLabel: wallEnabled
-          ? (inboxEnabled ? 'Write a message' : 'Write on the wall')
-          : 'Send a private message',
-        kicker: privateOnly ? 'Private message' : 'Wall message',
-        title: privateOnly ? 'Send a private message' : 'Post a public message',
-        description: privateOnly
-          ? `Keychain encrypts this message for @${userProfile.name} in this browser.`
-          : `Write something for @${userProfile.name} and everyone who visits this Wall.`,
-        meta: `${profileSettings.wallFee} · ${privateOnly ? 'Encrypted text' : 'Public on Hive'}`,
-        wallPrivacy: { wallEnabled, inboxEnabled },
-        hiddenFields: [
-          { name: 'recipient', value: userProfile.name },
-          { name: 'expectedFee', value: profileSettings.wallFee },
-          { name: 'amount', value: profileSettings.wallFee },
-        ],
-        fields: wallFields,
-        submitLabel: privateOnly ? 'Encrypt & review payment' : `Review message and ${profileSettings.wallFee} payment`,
-        disclosure: privateOnly
-          ? 'Keychain encrypts the message in this browser. The message text stays private, but sender, recipient, HBD amount, time, and transaction remain public on Hive. Encryption happens before review.'
-          : 'The message, sender, recipient, payment, and transaction are permanently public on Hive. You’ll review the recipient, message, fee, and payment before Keychain asks for approval.',
-      } }) %>
+      <div class="wall-compose-toolbar" role="toolbar" aria-label="Wall actions">
+        <%- include('../../../common/composer', { composer: {
+          id: 'wall-message-composer',
+          controller: 'm4',
+          action: privateOnly ? 'inbox' : 'wall',
+          dialog: true,
+          triggerVariant: 'icon',
+          triggerLabel: wallEnabled
+            ? (inboxEnabled ? 'Write a message' : 'Write on the wall')
+            : 'Send a private message',
+          triggerAriaLabel: wallEnabled
+            ? (inboxEnabled ? `Write on @${userProfile.name}’s Wall or send a private message` : `Write on @${userProfile.name}’s Wall`)
+            : `Send a private message to @${userProfile.name}`,
+          triggerTitle: wallEnabled ? `Write on @${userProfile.name}’s Wall` : `Send a private message to @${userProfile.name}`,
+          kicker: privateOnly ? 'Private message' : 'Wall message',
+          title: privateOnly ? 'Send a private message' : 'Post a public message',
+          description: privateOnly
+            ? `Keychain encrypts this message for @${userProfile.name} in this browser.`
+            : `Write something for @${userProfile.name} and everyone who visits this Wall.`,
+          meta: privateOnly ? `Encrypted for @${userProfile.name}` : `Public on @${userProfile.name}’s Wall`,
+          wallPrivacy: { wallEnabled, inboxEnabled },
+          hiddenFields: [
+            { name: 'recipient', value: userProfile.name },
+            { name: 'expectedFee', value: profileSettings.wallFee },
+            { name: 'amount', value: profileSettings.wallFee },
+          ],
+          fields: wallFields,
+          submitLabel: privateOnly ? 'Review private message' : 'Review Wall post',
+          disclosure: privateOnly
+            ? `This private message uses @${userProfile.name}’s ${profileSettings.wallFee} Wall fee. Keychain encrypts the message in this browser before review. The message text stays private, but sender, recipient, HBD amount, time, and transaction remain public on Hive.`
+            : `The message, sender, recipient, payment, and transaction are permanently public on Hive. You’ll review the recipient, message, fee, and payment before Keychain asks for approval.`,
+        } }) %>
+      </div>
     <% } else { %>
       <p class="mt-5 rounded-lg border border-gray-700 bg-black/40 p-3 text-sm text-gray-400">Wall and private messaging aren’t available here yet.</p>
     <% } %>
@@ -110,7 +117,7 @@
             </header>
             <p class="message-entry__body"><%= item.message %></p>
             <footer class="message-entry__activity">
-              <span class="message-entry__amount"><span class="sr-only">Payment: </span><%= item.amount %></span>
+              <span class="message-entry__amount"><span class="sr-only">Wall fee: </span><%= item.amount %></span>
               <details class="message-entry__details">
                 <summary>Transaction details</summary>
                 <p>Block <%= item.blockNumber || 'pending' %> · transaction <code><%= item.transactionId %></code></p>

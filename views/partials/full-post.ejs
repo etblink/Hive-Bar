@@ -16,9 +16,11 @@
       <span><%= post.positiveVotes.toLocaleString() %> upvotes</span>
       <% if (post.negativeVotes > 0) { %><span><%= post.negativeVotes.toLocaleString() %> downvotes</span><% } %>
       <span class="text-bar-gold">$<%= formatPayout(post) %></span>
-      <%- include('../common/share-action', { item: post }) %>
     </footer>
-    <%- include('../common/vote-form', { item: post }) %>
+    <div class="social-action-row" role="group" aria-label="Post actions">
+      <%- include('../common/vote-form', { item: post }) %>
+      <%- include('../common/share-action', { item: post }) %>
+    </div>
   </div>
 </article>
 

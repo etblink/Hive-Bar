@@ -32,9 +32,8 @@ test('C2-B.2 Wall public/private context stays coherent while retaining existing
   const m4 = source('public/js/m4-actions.js');
 
   assert.match(wall, /action:\s*privateOnly \? 'inbox' : 'wall'/);
-  assert.match(wall, /triggerVariant:\s*'secondary'/);
-  assert.match(wall, /Write a message/);
   assert.match(wall, /kicker:\s*privateOnly \? 'Private message' : 'Wall message'/);
+  assert.match(wall, /wallPrivacy:\s*\{ wallEnabled, inboxEnabled \}/);
   assert.match(composer, /data-wall-privacy-kicker/);
   assert.match(presentation, /\[data-wall-privacy-kicker\]/);
   assert.match(presentation, /privateMode \? 'Private message' : 'Wall message'/);

@@ -1,0 +1,81 @@
+/* C2-B.3 additive presentation overrides.
+ * Keeps direct-child reply ownership intact while aligning social actions visually.
+ */
+
+.social-action-button__glyph,
+.message-entry__open-glyph {
+  display: inline-grid;
+  width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  color: currentColor;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.social-action-button--share .social-action-button__glyph {
+  transform: translateY(-0.05rem);
+}
+
+.comment-card.social-comment {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+}
+
+.social-comment > .social-author,
+.social-comment > .social-comment__body {
+  grid-column: 1 / -1;
+}
+
+.social-comment__activity {
+  display: contents;
+}
+
+.social-comment__stats {
+  grid-column: 1 / -1;
+  margin-top: 0.6rem;
+}
+
+.social-comment__activity > .social-action-row--comment {
+  grid-column: 1;
+  margin-top: 0.15rem;
+}
+
+.social-comment > .composer--dialog-launcher {
+  grid-column: 2;
+  align-self: end;
+  margin: 0 0 0 0.15rem;
+}
+
+.social-comment > .composer--dialog-launcher .composer__dialog-trigger--social {
+  min-width: 44px;
+  justify-content: center;
+  border: 1px solid transparent;
+  padding: 0.55rem 0.65rem;
+  color: var(--hb-text-subtle);
+}
+
+.social-comment > .composer--dialog-launcher .composer__dialog-trigger--social:hover,
+.social-comment > .composer--dialog-launcher .composer__dialog-trigger--social:focus-visible {
+  border-color: var(--hb-border);
+  background: var(--hb-surface-raised);
+  color: var(--hb-text);
+}
+
+.message-entry__open-glyph {
+  color: var(--hb-accent);
+  font-size: 1rem;
+}
+
+@media (max-width: 700px) {
+  .social-comment > .composer--dialog-launcher {
+    align-items: center;
+    align-self: end;
+    flex-direction: row;
+  }
+
+  .social-comment > .composer--dialog-launcher .composer__dialog-trigger--social {
+    align-self: center;
+  }
+}

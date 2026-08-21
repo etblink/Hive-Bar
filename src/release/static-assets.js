@@ -8,6 +8,7 @@ const FIRST_PARTY_ASSETS = Object.freeze([
   '/css/style.css',
   '/css/m15-social.css',
   '/css/c2-b-focused.css',
+  '/css/c2-b3-social.css',
   '/css/ux-1f-home.css',
   '/css/ux-1e-messages.css',
   '/css/m15-wallet-pay.css',

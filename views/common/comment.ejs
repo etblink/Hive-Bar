@@ -21,7 +21,9 @@
       <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
       <span class="text-bar-gold">$<%= formatPayout(comment) %></span>
     </footer>
-    <%- include('vote-form', { item: comment }) %>
+    <div class="social-action-row social-action-row--comment" role="group" aria-label="Comment vote actions">
+      <%- include('vote-form', { item: comment }) %>
+    </div>
   </div>
 
   <% if (hiveSession && canWriteAction('comment')) { %>
