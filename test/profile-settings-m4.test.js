@@ -68,6 +68,73 @@ test('merges only owned fields while preserving unrelated profile and client met
   ]);
 });
 
+test('preserves an unchanged legacy profile image while changing the wall fee', () => {
+  const legacyImage = 'https://files.peakd.com/file/peakd-hive/etblink/me.jpg';
+  const legacyMetadata = JSON.stringify({
+    profile: {
+      name: 'Evan Kotler',
+      about: '',
+      profile_image: legacyImage,
+      location: 'Reno',
+    },
+    other_client: { keep: true },
+    hivebar: { wall_fee: '1.000 HBD', wall_blocklist: [] },
+  });
+
+  const prepared = prepareProfileUpdate({
+    rawMetadata: legacyMetadata,
+    baseRevision: metadataRevision(legacyMetadata),
+    defaultWallFee: DEFAULT_FEE,
+    payload: {
+      displayName: 'Evan Kotler',
+      about: '',
+      profileImage: legacyImage,
+      wallFee: '0.050 HBD',
+      blocklist: '',
+    },
+  });
+
+  const merged = JSON.parse(prepared.postingJsonMetadata);
+  assert.equal(merged.profile.profile_image, legacyImage);
+  assert.equal(merged.hivebar.wall_fee, '0.050 HBD');
+  assert.deepEqual(prepared.diff, {
+    wallFee: { before: '1.000 HBD', after: '0.050 HBD' },
+  });
+
+  assert.throws(
+    () => prepareProfileUpdate({
+      rawMetadata: legacyMetadata,
+      baseRevision: metadataRevision(legacyMetadata),
+      defaultWallFee: DEFAULT_FEE,
+      payload: {
+        displayName: 'Evan Kotler',
+        about: '',
+        profileImage: 'https://example.com/replacement.jpg',
+        wallFee: '0.050 HBD',
+        blocklist: '',
+      },
+    }),
+    /images\.hive\.blog/,
+  );
+
+  const approved = prepareProfileUpdate({
+    rawMetadata: legacyMetadata,
+    baseRevision: metadataRevision(legacyMetadata),
+    defaultWallFee: DEFAULT_FEE,
+    payload: {
+      displayName: 'Evan Kotler',
+      about: '',
+      profileImage: 'https://images.hive.blog/u/etblink/new-avatar',
+      wallFee: '0.050 HBD',
+      blocklist: '',
+    },
+  });
+  assert.equal(
+    JSON.parse(approved.postingJsonMetadata).profile.profile_image,
+    'https://images.hive.blog/u/etblink/new-avatar',
+  );
+});
+
 test('blocks stale, malformed, no-op, and independently invalid settings updates', () => {
   const validPayload = {
     displayName: 'New Name',
