@@ -25,6 +25,7 @@ const { parsePostingMetadata, readProfileSettings } = require('./profile-setting
 const { calculateWalletSummary } = require('./wallet');
 
 const DEFAULT_PAGE_SIZE = 10;
+const BRIDGE_RANKED_POSTS_MAX_LIMIT = 20;
 
 function encodePageCursor(item) {
   return Buffer.from(
@@ -184,16 +185,23 @@ class HiveReadService {
   }) {
     const visible = [];
     const rounds = Math.min(10, Math.max(1, Number(scanPageLimit) || 5));
-    const rawPageSize = Math.min(100, Math.max(this.pageSize + 1, this.pageSize * 3));
+    const rawPageSize = Math.min(
+      BRIDGE_RANKED_POSTS_MAX_LIMIT,
+      Math.max(this.pageSize + 1, this.pageSize * 3),
+    );
     let anchor = cursor;
     let continuation = null;
     let exhausted = false;
 
     for (let round = 0; round < rounds; round += 1) {
+      const requested = Math.min(
+        BRIDGE_RANKED_POSTS_MAX_LIMIT,
+        rawPageSize + (anchor ? 1 : 0),
+      );
       const params = {
         tag: name,
         sort,
-        limit: rawPageSize + (anchor ? 1 : 0),
+        limit: requested,
       };
       if (anchor) {
         params.start_author = anchor.author;
@@ -222,7 +230,6 @@ class HiveReadService {
       }
       if (visible.length > this.pageSize) break;
 
-      const requested = rawPageSize + (anchor ? 1 : 0);
       if (raw.length < requested || !rawTail) {
         exhausted = true;
         break;

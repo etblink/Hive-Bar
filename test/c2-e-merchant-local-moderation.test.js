@@ -93,6 +93,60 @@ test('filtered Community pagination fills visible slots and hydrates visible aut
   assert.equal(calls.filter((call) => call.method === 'get_ranked_posts').length, 2);
 });
 
+test('filtered Community pagination keeps every Bridge request within limit 20 at default page size', async () => {
+  const firstBatch = [
+    ...Array.from({ length: 19 }, (_, index) => rawPost('spammer', `spam-${index + 1}`)),
+    rawPost('viewer00', 'visible-0'),
+  ];
+  const anchor = firstBatch[firstBatch.length - 1];
+  const secondBatch = [
+    anchor,
+    rawPost('fourthst.threads', 'thread-container'),
+    ...Array.from({ length: 10 }, (_, index) => rawPost(
+      `viewer${String(index + 1).padStart(2, '0')}`,
+      `visible-${index + 1}`,
+    )),
+    ...Array.from({ length: 8 }, (_, index) => rawPost('spammer', `spam-${index + 20}`)),
+  ];
+  const calls = [];
+  const service = new HiveReadService({
+    async call(_api, method, params) {
+      calls.push({ method, params: structuredClone(params) });
+      if (method === 'get_ranked_posts') {
+        return params.start_author ? secondBatch : firstBatch;
+      }
+      if (method === 'get_profiles') {
+        return params.accounts.map((name) => ({ name, metadata: {}, stats: {} }));
+      }
+      throw new Error(`unexpected ${method}`);
+    },
+  });
+
+  const page = await service.getCommunityPosts({
+    name: 'hive-108590',
+    excludeContent: rawPost('fourthst.threads', 'thread-container'),
+    contentFilter: (item) => item.author !== 'spammer',
+    scanPageLimit: 3,
+  });
+
+  const rankedCalls = calls.filter((call) => call.method === 'get_ranked_posts');
+  assert.equal(rankedCalls.length, 2);
+  assert.deepEqual(rankedCalls.map((call) => call.params.limit), [20, 20]);
+  assert.ok(rankedCalls.every((call) => call.params.limit <= 20));
+  assert.equal(rankedCalls[1].params.start_author, anchor.author);
+  assert.equal(rankedCalls[1].params.start_permlink, anchor.permlink);
+  assert.deepEqual(
+    page.items.map((item) => item.author),
+    ['viewer00', 'viewer01', 'viewer02', 'viewer03', 'viewer04', 'viewer05', 'viewer06', 'viewer07', 'viewer08', 'viewer09'],
+  );
+  assert.equal(page.nextCursor, encodePageCursor(page.items[9]));
+  assert.deepEqual(
+    calls.find((call) => call.method === 'get_profiles').params.accounts,
+    ['viewer00', 'viewer01', 'viewer02', 'viewer03', 'viewer04', 'viewer05', 'viewer06', 'viewer07', 'viewer08', 'viewer09'],
+  );
+  assert.ok(page.items.every((item) => item.author !== 'fourthst.threads'));
+});
+
 test('discussion filtering occurs before profile hydration', async () => {
   const root = rawPost('alice', 'root');
   const hidden = rawPost('bob', 'hidden', { parent_author: 'alice', parent_permlink: 'root', created: '2026-08-20T12:01:00' });
