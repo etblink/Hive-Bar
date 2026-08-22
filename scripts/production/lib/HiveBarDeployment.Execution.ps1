@@ -1,3 +1,84 @@
+function ConvertTo-LfBashPayload {
+    param([Parameter(Mandatory)][string]$RemoteScript)
+
+    # Native PowerShell pipelines append platform record terminators when feeding stdin.
+    # Normalize source CRLF to LF, then write the exact resulting string without WriteLine.
+    return $RemoteScript.Replace("`r`n", "`n")
+}
+
+function Split-NativeTextLines {
+    param([AllowEmptyString()][string]$Text)
+
+    if ([string]::IsNullOrEmpty($Text)) {
+        return @()
+    }
+
+    $lines = [regex]::Split($Text, "\r?\n")
+    if ($lines.Count -gt 0 -and $lines[-1] -eq '') {
+        $lines = @($lines[0..($lines.Count - 2)])
+    }
+    return @($lines)
+}
+
+function Invoke-SshBashPayload {
+    param(
+        [Parameter(Mandatory)][string]$RemoteScript,
+        [Parameter(Mandatory)][string]$Target,
+        [Parameter(Mandatory)][string[]]$SshArguments
+    )
+
+    $payload = ConvertTo-LfBashPayload -RemoteScript $RemoteScript
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = 'ssh'
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardInput = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+    $startInfo.StandardInputEncoding = $utf8NoBom
+    $startInfo.StandardOutputEncoding = $utf8NoBom
+    $startInfo.StandardErrorEncoding = $utf8NoBom
+
+    foreach ($argument in @($SshArguments) + @($Target, 'sudo -n bash -s')) {
+        [void]$startInfo.ArgumentList.Add([string]$argument)
+    }
+
+    $process = [System.Diagnostics.Process]::new()
+    try {
+        $process.StartInfo = $startInfo
+        if (-not $process.Start()) {
+            throw 'Failed to start ssh.'
+        }
+
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+
+        # Write sends exactly these characters. It does not append the Windows CRLF record
+        # terminator that PowerShell's native-command pipeline adds.
+        $process.StandardInput.Write($payload)
+        $process.StandardInput.Close()
+
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        $exitCode = $process.ExitCode
+    }
+    finally {
+        $process.Dispose()
+    }
+
+    $output = @(Split-NativeTextLines -Text $stdout)
+    $errorOutput = @(Split-NativeTextLines -Text $stderr)
+    foreach ($line in $errorOutput) {
+        [Console]::Error.WriteLine($line)
+    }
+
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        Output = $output
+    }
+}
+
 function Invoke-RemotePayload {
     param(
         [Parameter(Mandatory)][string]$RemoteScript,
@@ -7,8 +88,10 @@ function Invoke-RemotePayload {
     )
 
     # Pipe the payload over stdin so even Observe does not create a remote temporary file.
-    $output = @($RemoteScript | & ssh @SshArguments $Target 'sudo -n bash -s')
-    $exitCode = $LASTEXITCODE
+    # Redirected StandardInput preserves exact LF framing across Windows and Unix PowerShell hosts.
+    $sshResult = Invoke-SshBashPayload -RemoteScript $RemoteScript -Target $Target -SshArguments $SshArguments
+    $output = @($sshResult.Output)
+    $exitCode = $sshResult.ExitCode
     foreach ($line in $output) {
         Write-Host $line
     }
@@ -218,11 +301,12 @@ printf 'PUBLIC_FAILURE_FAIL_CLOSED_READ_ONLY=PASS\n'
     $script = $script.Replace('__EXPECTED_COMMIT__', (ConvertTo-BashSingleQuoted ([string]$release.NewCommit)))
     $script = $script.Replace('__EXPECTED_TREE__', (ConvertTo-BashSingleQuoted ([string]$release.NewTree)))
 
-    $output = @($script | & ssh @SshArguments $Target 'sudo -n bash -s')
+    $sshResult = Invoke-SshBashPayload -RemoteScript $script -Target $Target -SshArguments $SshArguments
+    $output = @($sshResult.Output)
     foreach ($line in $output) {
         Write-Host $line
     }
-    if ($LASTEXITCODE -ne 0) {
+    if ($sshResult.ExitCode -ne 0) {
         Write-Warning 'Public qualification failed and fail-closed command did not complete cleanly.'
     }
 }
