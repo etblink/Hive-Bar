@@ -43,6 +43,8 @@ function startServer(options = {}) {
       now: options.now,
       paymentObserver: options.paymentObserver,
       receiptStore: options.receiptStore,
+      moderationStore: options.moderationStore,
+      moderationService: options.moderationService,
     });
   if (app.locals?.services?.hiveReads) {
     applyReadConsistencyHardening(app.locals.services.hiveReads);
@@ -56,6 +58,7 @@ function startServer(options = {}) {
         communityId: config.hive.communityId,
         threadsContainerAccount: config.hive.threadsContainerAccount,
         writeMode: config.hive.writeMode,
+        moderationEnabled: config.moderation.enabled,
         build: deploymentIdentity.build,
         commit: deploymentIdentity.commit,
         tree: deploymentIdentity.tree,
@@ -74,11 +77,16 @@ function startServer(options = {}) {
   function closeResources() {
     if (resourcesClosed) return;
     resourcesClosed = true;
-    try {
-      app.locals.services?.receiptStore?.close?.();
-    } catch (error) {
-      logger.error({ err: error }, 'Hive-Bar receipt store shutdown failed');
-      process.exitCode = 1;
+    for (const [name, resource] of [
+      ['receipt', app.locals.services?.receiptStore],
+      ['moderation', app.locals.services?.moderationStore],
+    ]) {
+      try {
+        resource?.close?.();
+      } catch (error) {
+        logger.error({ err: error }, `Hive-Bar ${name} store shutdown failed`);
+        process.exitCode = 1;
+      }
     }
   }
   server.once('close', closeResources);

@@ -135,6 +135,8 @@ class HiveReadService {
     sort = 'created',
     cursor: cursorValue = null,
     excludeContent = null,
+    contentFilter = null,
+    scanPageLimit = 5,
   }) {
     const cursor = requirePageCursor(cursorValue);
     const activeSort = requireCommunitySort(sort);
@@ -144,6 +146,20 @@ class HiveReadService {
           permlink: requirePermlink(excludeContent.permlink),
         }
       : null;
+    if (contentFilter !== null && typeof contentFilter !== 'function') {
+      throw new TypeError('Community content filter must be a function');
+    }
+    if (contentFilter) {
+      return this.#filteredCommunityPage({
+        name,
+        sort: activeSort,
+        cursor,
+        exclusion,
+        contentFilter,
+        scanPageLimit,
+      });
+    }
+
     const params = {
       tag: name,
       sort: activeSort,
@@ -156,6 +172,75 @@ class HiveReadService {
 
     const raw = await this.rpcPool.call('bridge', 'get_ranked_posts', params);
     return this.#contentPage(Array.isArray(raw) ? raw : [], cursor, activeSort, exclusion);
+  }
+
+  async #filteredCommunityPage({
+    name,
+    sort,
+    cursor,
+    exclusion,
+    contentFilter,
+    scanPageLimit,
+  }) {
+    const visible = [];
+    const rounds = Math.min(10, Math.max(1, Number(scanPageLimit) || 5));
+    const rawPageSize = Math.min(100, Math.max(this.pageSize + 1, this.pageSize * 3));
+    let anchor = cursor;
+    let continuation = null;
+    let exhausted = false;
+
+    for (let round = 0; round < rounds; round += 1) {
+      const params = {
+        tag: name,
+        sort,
+        limit: rawPageSize + (anchor ? 1 : 0),
+      };
+      if (anchor) {
+        params.start_author = anchor.author;
+        params.start_permlink = anchor.permlink;
+      }
+      const rawResult = await this.rpcPool.call('bridge', 'get_ranked_posts', params);
+      const raw = Array.isArray(rawResult) ? rawResult : [];
+      const withoutAnchor = anchor
+        ? raw.filter(
+            (item) => item.author !== anchor.author || item.permlink !== anchor.permlink,
+          )
+        : raw;
+      const rawTail = withoutAnchor[withoutAnchor.length - 1] || null;
+
+      for (const item of withoutAnchor) {
+        if (
+          exclusion &&
+          item.author === exclusion.author &&
+          item.permlink === exclusion.permlink
+        ) {
+          continue;
+        }
+        const normalized = normalizeContent(item);
+        if (contentFilter(normalized)) visible.push(normalized);
+        if (visible.length > this.pageSize) break;
+      }
+      if (visible.length > this.pageSize) break;
+
+      const requested = rawPageSize + (anchor ? 1 : 0);
+      if (raw.length < requested || !rawTail) {
+        exhausted = true;
+        break;
+      }
+      anchor = { author: rawTail.author, permlink: rawTail.permlink };
+      continuation = encodePageCursor(anchor);
+    }
+
+    const items = visible.slice(0, this.pageSize);
+    const profiles = await this.getProfiles([...new Set(items.map((item) => item.author))]);
+    let nextCursor = null;
+    if (visible.length > this.pageSize && items.length > 0) {
+      nextCursor = encodePageCursor(items[items.length - 1]);
+    } else if (!exhausted && continuation) {
+      nextCursor = continuation;
+    }
+
+    return { items, profiles, sort, nextCursor };
   }
 
   async getOfficialCommunityPosts({ account, community, limit = 3 }) {
@@ -232,9 +317,12 @@ class HiveReadService {
     return Object.fromEntries(profiles.filter((profile) => profile.name).map((profile) => [profile.name, profile]));
   }
 
-  async getPostWithComments(authorValue, permlinkValue) {
+  async getPostWithComments(authorValue, permlinkValue, { discussionFilter = null } = {}) {
     const author = requireHiveAccount(authorValue, 'Author');
     const permlink = requirePermlink(permlinkValue);
+    if (discussionFilter !== null && typeof discussionFilter !== 'function') {
+      throw new TypeError('Discussion filter must be a function');
+    }
     const rawDiscussion = await this.rpcPool.call('bridge', 'get_discussion', {
       author,
       permlink,
@@ -246,6 +334,8 @@ class HiveReadService {
       if (rawPost?.author) discussion = { ...discussion, post: normalizeContent(rawPost) };
     }
     if (!discussion.post) throw new NotFoundError('Post not found');
+    if (discussionFilter) discussion = discussionFilter(discussion);
+    if (!discussion?.post) throw new NotFoundError('Post not found');
 
     const profiles = await this.getProfiles([
       discussion.post.author,
@@ -267,7 +357,10 @@ class HiveReadService {
     return containerRaw ? normalizeContent(containerRaw) : null;
   }
 
-  async getLatestThreads(accountValue) {
+  async getLatestThreads(accountValue, { discussionFilter = null } = {}) {
+    if (discussionFilter !== null && typeof discussionFilter !== 'function') {
+      throw new TypeError('Discussion filter must be a function');
+    }
     const container = await this.getLatestThreadContainer(accountValue);
     if (!container) return { container: null, threads: [], profiles: {} };
 
@@ -275,7 +368,8 @@ class HiveReadService {
       author: container.author,
       permlink: container.permlink,
     });
-    const discussion = normalizeDiscussion(rawDiscussion, container.author, container.permlink);
+    let discussion = normalizeDiscussion(rawDiscussion, container.author, container.permlink);
+    if (discussionFilter) discussion = discussionFilter(discussion);
     const profiles = await this.getProfiles(discussion.comments.map((comment) => comment.author));
     return { container, threads: discussion.comments, profiles };
   }

@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/c2-b-focused.css') : '/css/c2-b-focused.css' %>">
   <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/c2-b3-social.css') : '/css/c2-b3-social.css' %>">
   <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/c2-d-media.css') : '/css/c2-d-media.css' %>">
+  <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/c2-e-moderation.css') : '/css/c2-e-moderation.css' %>">
 </head>
 <body class="flex min-h-screen flex-col overflow-x-hidden">
   <%- include('../../common/header') %>
@@ -12,5 +13,6 @@
     <%- include('partials/community-content') %>
   </main>
   <%- include('../../common/footer') %>
+  <script src="<%= typeof assetUrl === 'function' ? assetUrl('/js/moderation.js') : '/js/moderation.js' %>" defer></script>
 </body>
 </html>

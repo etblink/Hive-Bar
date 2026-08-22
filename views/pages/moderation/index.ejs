@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../../common/head') %>
+  <link rel="stylesheet" href="<%= typeof assetUrl === 'function' ? assetUrl('/css/c2-e-moderation.css') : '/css/c2-e-moderation.css' %>">
+</head>
+<body class="flex min-h-screen flex-col overflow-x-hidden">
+  <%- include('../../common/header') %>
+  <main id="main-content" class="flex-1">
+    <section class="moderation-shell" aria-labelledby="moderation-heading">
+      <header class="moderation-shell__header">
+        <p class="app-kicker">Merchant-local moderation</p>
+        <h1 id="moderation-heading">Fourth Street Bar moderation</h1>
+        <p>
+          Signed in as <strong>@<%= moderationOperator %></strong>. These rules affect only what Fourth Street Bar displays. Hive content remains unchanged and independently available on Hive.
+        </p>
+        <p><a href="/community" class="underline hover:text-bar-gold">Return to Community</a></p>
+      </header>
+
+      <section class="moderation-manage" aria-labelledby="active-moderation-heading">
+        <h2 id="active-moderation-heading" class="text-2xl font-bold">Currently hidden</h2>
+        <% if (activeTargets.length === 0) { %>
+          <div class="state-card"><h3>No local hide rules</h3><p>Community content is not currently being suppressed by merchant-local moderation.</p></div>
+        <% } else { %>
+          <% activeTargets.forEach((target) => { %>
+            <article class="moderation-manage__card">
+              <div class="moderation-manage__meta">
+                <span><%= target.targetType === 'account' ? 'Account rule' : 'Exact content rule' %></span>
+                <span>Updated <%= formatHiveDate(target.updatedAt) %></span>
+                <span>by @<%= target.updatedBy %></span>
+              </div>
+              <p class="moderation-manage__target">
+                <% if (target.targetType === 'account') { %>
+                  @<%= target.author %>
+                <% } else { %>
+                  @<%= target.author %>/<%= target.permlink %>
+                <% } %>
+              </p>
+              <% if (target.reason) { %><p class="moderation-manage__reason"><%= target.reason %></p><% } %>
+              <form data-moderation-unhide data-target-id="<%= target.id %>">
+                <button type="submit" class="button-secondary mt-3" aria-label="Unhide <%= target.targetType === 'account' ? `account @${target.author}` : `content by @${target.author}` %> on Fourth Street Bar">Unhide</button>
+                <p class="moderation-manage__status" role="status" aria-live="polite" data-moderation-status></p>
+              </form>
+            </article>
+          <% }); %>
+        <% } %>
+      </section>
+
+      <section class="moderation-history" aria-labelledby="moderation-history-heading">
+        <h2 id="moderation-history-heading">Audit history</h2>
+        <% if (history.length === 0) { %>
+          <p class="mt-3 text-gray-300">No moderation changes have been recorded.</p>
+        <% } else { %>
+          <ol class="moderation-history__list">
+            <% history.forEach((event) => { %>
+              <li class="moderation-history__item">
+                <strong><%= event.action === 'hide' ? 'Hidden' : 'Unhidden' %></strong>
+                <%= event.target.targetType === 'account' ? `@${event.target.author}` : `@${event.target.author}/${event.target.permlink}` %>
+                by @<%= event.operator %> · <%= formatHiveDate(event.recordedAt) %>
+                <% if (event.reason) { %><div><%= event.reason %></div><% } %>
+              </li>
+            <% }); %>
+          </ol>
+        <% } %>
+      </section>
+    </section>
+  </main>
+  <%- include('../../common/footer') %>
+  <script src="<%= typeof assetUrl === 'function' ? assetUrl('/js/moderation.js') : '/js/moderation.js' %>" defer></script>
+</body>
+</html>

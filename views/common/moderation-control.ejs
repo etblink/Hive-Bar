@@ -1,0 +1,55 @@
+<%
+  const moderationKind = typeof itemKind === 'string' && itemKind ? itemKind : 'content';
+  const moderationId = `moderation-${item.author}-${item.permlink}`;
+%>
+<div class="moderation-control" data-moderation-control>
+  <button
+    type="button"
+    class="moderation-control__trigger"
+    data-moderation-open
+    aria-haspopup="dialog"
+    aria-controls="<%= moderationId %>"
+    aria-label="Moderate <%= moderationKind %> by @<%= item.author %>">
+    Moderate
+  </button>
+  <dialog
+    id="<%= moderationId %>"
+    class="moderation-dialog"
+    data-moderation-dialog
+    aria-labelledby="<%= moderationId %>-heading">
+    <form data-moderation-hide-form>
+      <h2 id="<%= moderationId %>-heading" class="moderation-dialog__title">
+        Hide from Fourth Street Bar
+      </h2>
+      <p class="moderation-dialog__disclosure">
+        This changes only what Fourth Street Bar displays. It does not delete, edit, flag, or otherwise change anything on Hive.
+      </p>
+      <input type="hidden" name="author" value="<%= item.author %>">
+      <input type="hidden" name="permlink" value="<%= item.permlink %>">
+      <div class="moderation-dialog__field">
+        <label for="<%= moderationId %>-target">What should be hidden?</label>
+        <select id="<%= moderationId %>-target" name="targetType" required>
+          <option value="content">Only this <%= moderationKind %></option>
+          <option value="account">All Community content by @<%= item.author %></option>
+        </select>
+      </div>
+      <div class="moderation-dialog__field">
+        <label for="<%= moderationId %>-reason">Reason <span>(optional)</span></label>
+        <textarea
+          id="<%= moderationId %>-reason"
+          name="reason"
+          rows="3"
+          maxlength="240"
+          data-moderation-reason
+          placeholder="Short internal moderation note"></textarea>
+        <p class="moderation-dialog__help">Stored in the local moderation audit history. Maximum 240 UTF-8 bytes.</p>
+      </div>
+      <p class="moderation-dialog__status" role="status" aria-live="polite" data-moderation-status></p>
+      <div class="moderation-dialog__actions">
+        <button type="submit" class="button-primary">Hide locally</button>
+        <button type="button" class="button-secondary" data-moderation-cancel>Cancel</button>
+        <a href="/moderation" class="moderation-dialog__history-link">Moderation history</a>
+      </div>
+    </form>
+  </dialog>
+</div>

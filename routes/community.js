@@ -30,12 +30,18 @@ async function membershipForSession(req) {
   }
 }
 
+function enableModerationControls(req, res) {
+  res.locals.showModerationControls = req.app.locals.services.moderation.isOperator(
+    req.hiveSession?.account,
+  );
+}
+
 async function communityPostsForRequest(req, { name, sort, cursor }) {
   const hiveReads = req.app.locals.services.hiveReads;
   const container = await hiveReads.getLatestThreadContainer(
     req.app.locals.config.hive.threadsContainerAccount,
   );
-  return hiveReads.getCommunityPosts({
+  return req.app.locals.services.moderation.getCommunityPosts({
     name,
     sort,
     cursor,
@@ -45,6 +51,7 @@ async function communityPostsForRequest(req, { name, sort, cursor }) {
 
 router.get('/', async (req, res, next) => {
   try {
+    enableModerationControls(req, res);
     const communityId = req.app.locals.config.hive.communityId;
     const sort = requireCommunitySort(req.query.sort || 'created');
     const [communityInfo, membership] = await Promise.all([
@@ -61,6 +68,7 @@ router.get('/', async (req, res, next) => {
         cursor: req.query.after,
       });
     } catch (error) {
+      if (error?.code === 'MODERATION_STORE_UNAVAILABLE') throw error;
       feedError = true;
       req.log.warn({ err: error }, 'community feed read failed while community info remained available');
     }
@@ -82,7 +90,8 @@ router.get('/', async (req, res, next) => {
 
 router.get('/threads', async (req, res, next) => {
   try {
-    const threadsData = await req.app.locals.services.hiveReads.getLatestThreads(
+    enableModerationControls(req, res);
+    const threadsData = await req.app.locals.services.moderation.getLatestThreads(
       req.app.locals.config.hive.threadsContainerAccount,
     );
     if (req.get('HX-Request') === 'true') {
@@ -113,6 +122,7 @@ router.get('/threads', async (req, res, next) => {
 
 router.get('/:communityName/community-posts', async (req, res, next) => {
   try {
+    enableModerationControls(req, res);
     const communityName = requireConfiguredCommunity(
       req.params.communityName,
       req.app.locals.config,

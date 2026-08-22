@@ -29,9 +29,13 @@ test('M16.7 binds first-party CSS and JavaScript URLs to exact runtime bytes', (
   const footer = source('views/common/footer.ejs');
   const profile = source('views/pages/profile/index.ejs');
   const pay = source('views/pages/pay/index.ejs');
+  const community = source('views/pages/community/index.ejs');
+  const post = source('views/pages/post/index.ejs');
+  const moderation = source('views/pages/moderation/index.ejs');
   const onboardingCustomer = source('views/pages/onboarding/index.ejs');
   const onboardingStaff = source('views/pages/onboarding/staff.ejs');
   const pageScopedJavascript = new Set([
+    '/js/moderation.js',
     '/js/onboarding-customer.js',
     '/js/onboarding-staff.js',
   ]);
@@ -44,6 +48,9 @@ test('M16.7 binds first-party CSS and JavaScript URLs to exact runtime bytes', (
   )) {
     assert.ok(footer.includes(`assetUrl('${publicPath}')`));
   }
+  assert.ok(community.includes("assetUrl('/js/moderation.js')"));
+  assert.ok(post.includes("assetUrl('/js/moderation.js')"));
+  assert.ok(moderation.includes("assetUrl('/js/moderation.js')"));
   assert.ok(onboardingCustomer.includes("assetUrl('/js/onboarding-customer.js')"));
   assert.ok(onboardingStaff.includes("assetUrl('/js/onboarding-staff.js')"));
   assert.throws(() => assetUrl('/js/not-registered.js'), /not registered for versioning/);

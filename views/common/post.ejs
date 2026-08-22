@@ -43,6 +43,7 @@
     <div class="social-action-row" role="group" aria-label="Post actions">
       <%- include('vote-form', { item: post }) %>
       <%- include('share-action', { item: post }) %>
+      <% if (showModerationControls) { %><%- include('moderation-control', { item: post, itemKind: 'post' }) %><% } %>
     </div>
   </div>
 </article>

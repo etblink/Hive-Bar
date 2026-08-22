@@ -18,6 +18,8 @@ const { createLogger } = require('./lib/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errors');
 const { requestContext } = require('./middleware/request-context');
 const { sessionContext } = require('./middleware/session');
+const { ModerationService } = require('./moderation/moderation-service');
+const { ModerationStore } = require('./moderation/moderation-store');
 const { readDeploymentIdentity } = require('./release/deployment-identity');
 const { PreflightStore } = require('./social/preflight-store');
 const { isM10OperatorArmActive } = require('./social/operator-posting-mode');
@@ -25,6 +27,7 @@ const { createHealthRouter } = require('./routes/health');
 const { isV1Action } = require('./v1/actions');
 const { createAuthRouter } = require('../routes/auth');
 const { createM4Router } = require('../routes/m4');
+const { createModerationRouter } = require('../routes/moderation');
 const { createPaymentRouter } = require('../routes/payments');
 const { createSocialRouter } = require('../routes/social');
 
@@ -113,6 +116,29 @@ function createApp(options = {}) {
           },
         });
 
+  let moderationStore = options.moderationStore || null;
+  let moderationStoreError = null;
+  if (config.moderation.enabled && !moderationStore) {
+    try {
+      moderationStore = new ModerationStore({
+        filename: config.moderation.dbPath,
+        now: options.now,
+        requireExisting: config.isProduction,
+      });
+    } catch (error) {
+      moderationStoreError = error;
+      logger.error({ err: error }, 'moderation store unavailable; Community moderation will fail closed');
+    }
+  }
+  const moderation =
+    options.moderationService ||
+    new ModerationService({
+      config,
+      hiveReads,
+      store: moderationStore,
+      unavailableCause: moderationStoreError,
+    });
+
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', config.server.trustProxy);
@@ -127,6 +153,7 @@ function createApp(options = {}) {
   app.locals.writesEnabled = config.hive.writesEnabled;
   app.locals.signerMode = config.hive.signerMode;
   app.locals.buildLabel = deploymentIdentity.build;
+  app.locals.showModerationControls = false;
   app.locals.canWriteAction = (action) => {
     if (config.hive.betaSelfSigningEnabled) {
       return isBetaAction(action);
@@ -173,6 +200,8 @@ function createApp(options = {}) {
     hiveReads,
     keychainAuth,
     logger,
+    moderation,
+    moderationStore,
     preflightStore,
     paymentObserver,
     receiptStore,
@@ -240,6 +269,7 @@ function createApp(options = {}) {
     }),
     createAuthRouter({ config }),
   );
+  app.use(createModerationRouter({ config }));
   app.use('/api/social', createSocialRouter({ config }));
   app.use('/api/m4', createM4Router({ config }));
   app.use('/api/payments', createPaymentRouter({ config, now: options.now || Date.now }));

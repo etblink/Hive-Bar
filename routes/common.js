@@ -1,14 +1,19 @@
 'use strict';
 
 const express = require('express');
+const { isCommunityRoot } = require('../src/moderation/policy');
 
 const router = express.Router();
 
 router.get('/post/:author/:permlink', async (req, res, next) => {
   try {
-    const discussion = await req.app.locals.services.hiveReads.getPostWithComments(
+    const discussion = await req.app.locals.services.moderation.getPostWithComments(
       req.params.author,
       req.params.permlink,
+    );
+    res.locals.showModerationControls = Boolean(
+      isCommunityRoot(discussion.post, req.app.locals.config.hive.communityId) &&
+        req.app.locals.services.moderation.isOperator(req.hiveSession?.account),
     );
     const viewData = {
       ...discussion,

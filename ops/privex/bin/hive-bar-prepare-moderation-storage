@@ -1,0 +1,26 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 077
+
+readonly moderation_dir=/var/lib/hive-bar/moderation
+readonly moderation_db="$moderation_dir/moderation.sqlite3"
+
+fail() {
+  printf 'Hive-Bar moderation storage preparation refused: %s\n' "$1" >&2
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || fail 'run as root'
+[[ ! -L /var/lib/hive-bar ]] || fail '/var/lib/hive-bar must not be a symlink'
+install -d -o hivebar -g hivebar -m 0700 "$moderation_dir"
+[[ ! -L "$moderation_dir" ]] || fail 'moderation directory must not be a symlink'
+
+if [[ -e "$moderation_db" ]]; then
+  [[ -f "$moderation_db" && ! -L "$moderation_db" ]] || fail 'moderation database must be a regular non-symlink file'
+  chown hivebar:hivebar "$moderation_db"
+  chmod 0600 "$moderation_db"
+else
+  install -o hivebar -g hivebar -m 0600 /dev/null "$moderation_db"
+fi
+
+printf 'Hive-Bar moderation storage ready at %s. Moderation was not enabled.\n' "$moderation_db"

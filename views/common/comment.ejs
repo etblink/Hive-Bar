@@ -21,8 +21,9 @@
       <% if (comment.negativeVotes > 0) { %><span><%= comment.negativeVotes.toLocaleString() %> downvotes</span><% } %>
       <span class="text-bar-gold">$<%= formatPayout(comment) %></span>
     </footer>
-    <div class="social-action-row social-action-row--comment" role="group" aria-label="Comment vote actions">
+    <div class="social-action-row social-action-row--comment" role="group" aria-label="Comment actions">
       <%- include('vote-form', { item: comment }) %>
+      <% if (showModerationControls) { %><%- include('moderation-control', { item: comment, itemKind: commentPresentation === 'thread' ? 'Thread or reply' : 'reply' }) %><% } %>
     </div>
   </div>
 

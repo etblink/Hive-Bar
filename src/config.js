@@ -262,6 +262,9 @@ const envSchema = z
     HIVE_WALL_DEFAULT_FEE: z.string().default('1.000 HBD').transform(parseWallFee),
     HIVE_GLOBAL_WALL_EXCLUSIONS: z.string().default('').transform(parseAccountList),
     HIVE_MESSAGE_HISTORY_PAGE_SIZE: z.coerce.number().int().min(5).max(100).default(25),
+    HIVE_MODERATION_ENABLED: z.string().default('false').transform(parseBoolean),
+    HIVE_MODERATION_OPERATOR_ACCOUNTS: z.string().default('').transform(parseAccountList),
+    HIVE_MODERATION_DB_PATH: z.string().default(':memory:').transform(parseReceiptPath),
     HIVE_PAYMENT_MERCHANT_ACCOUNTS: z
       .string()
       .default('fourthstreetbar')
@@ -364,6 +367,24 @@ const envSchema = z
     }
     if (env.HIVE_M12_MERCHANT_AUTHOR && !HIVE_ACCOUNT_PATTERN.test(env.HIVE_M12_MERCHANT_AUTHOR)) {
       context.addIssue({ code: 'custom', path: ['HIVE_M12_MERCHANT_AUTHOR'], message: 'Invalid merchant author account' });
+    }
+    if (env.HIVE_MODERATION_ENABLED && env.HIVE_MODERATION_OPERATOR_ACCOUNTS.length === 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['HIVE_MODERATION_OPERATOR_ACCOUNTS'],
+        message: 'Enabled moderation requires at least one explicit operator account',
+      });
+    }
+    if (
+      env.HIVE_MODERATION_ENABLED &&
+      env.NODE_ENV !== 'test' &&
+      env.HIVE_MODERATION_DB_PATH === ':memory:'
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['HIVE_MODERATION_DB_PATH'],
+        message: 'Enabled moderation requires an explicit durable database path',
+      });
     }
     if (
       env.NODE_ENV !== 'test' &&
@@ -470,6 +491,11 @@ function loadConfig(
       messageHistoryPageSize: result.data.HIVE_MESSAGE_HISTORY_PAGE_SIZE,
       appTag: result.data.HIVE_APP_TAG,
       writesEnabled: result.data.HIVE_WRITE_MODE === 'controlled',
+    },
+    moderation: {
+      enabled: result.data.HIVE_MODERATION_ENABLED,
+      operatorAccounts: result.data.HIVE_MODERATION_OPERATOR_ACCOUNTS,
+      dbPath: result.data.HIVE_MODERATION_DB_PATH,
     },
     payments: {
       merchantAccounts: result.data.HIVE_PAYMENT_MERCHANT_ACCOUNTS,
