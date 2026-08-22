@@ -1,9 +1,18 @@
 @{
     Release = @{
         Milestone = 'C2-X'
+        # OldCommit/OldTree/OldBuild describe the release actually installed in production
+        # before this deployment. They continue to drive entry, last-good, and rollback checks.
         OldCommit = '0000000000000000000000000000000000000000'
         OldTree = '0000000000000000000000000000000000000000'
         OldBuild = 'beta-0000000'
+
+        # Optional immediate Git parent of NewCommit. Omit this field for ordinary direct-child
+        # deployments; the harness then resolves SourceParentCommit to OldCommit exactly as before.
+        # Set it only when accepted source-only commits exist between the deployed old release and
+        # the deploy target. The harness independently proves OldCommit is still a strict ancestor.
+        # SourceParentCommit = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
         NewCommit = '1111111111111111111111111111111111111111'
         NewTree = '1111111111111111111111111111111111111111'
         ExpectedBuild = 'beta-1111111'

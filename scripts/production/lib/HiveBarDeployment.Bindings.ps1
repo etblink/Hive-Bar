@@ -43,6 +43,44 @@ function ConvertTo-BashSingleQuoted {
     return "'" + ($Value -replace "'", "'\''") + "'"
 }
 
+function Resolve-SourceParentCommit {
+    param([Parameter(Mandatory)][hashtable]$Release)
+
+    if ($Release.ContainsKey('SourceParentCommit')) {
+        return Require-String $Release 'SourceParentCommit' 'Release'
+    }
+
+    return Require-String $Release 'OldCommit' 'Release'
+}
+
+function Assert-ReleaseAncestryBinding {
+    param(
+        [Parameter(Mandatory)]$Commit,
+        [Parameter(Mandatory)]$Comparison,
+        [Parameter(Mandatory)][string]$NewCommit,
+        [Parameter(Mandatory)][string]$SourceParentCommit,
+        [Parameter(Mandatory)][string]$OldCommit
+    )
+
+    if ([string]$Commit.sha -ne $NewCommit) {
+        throw "GitHub commit identity mismatch: expected $NewCommit"
+    }
+    if (@($Commit.parents).Count -ne 1 -or [string]$Commit.parents[0].sha -ne $SourceParentCommit) {
+        throw "GitHub source-parent identity mismatch: expected one parent $SourceParentCommit"
+    }
+    if ([string]$Comparison.base_commit.sha -ne $OldCommit) {
+        throw "GitHub ancestry comparison base mismatch: expected deployed old commit $OldCommit"
+    }
+    if ([string]$Comparison.merge_base_commit.sha -ne $OldCommit) {
+        throw "GitHub ancestry mismatch: deployed old commit $OldCommit is not the merge base of $NewCommit"
+    }
+    if ([string]$Comparison.status -ne 'ahead' -or
+        [long]$Comparison.ahead_by -lt 1 -or
+        [long]$Comparison.behind_by -ne 0) {
+        throw "GitHub ancestry mismatch: deployed old commit $OldCommit is not a strict ancestor of $NewCommit"
+    }
+}
+
 function Invoke-JsonGet {
     param(
         [Parameter(Mandatory)][string]$Uri,
@@ -80,19 +118,22 @@ function Assert-GitHubReleaseBinding {
     $newCommit = Require-String $release 'NewCommit' 'Release'
     $newTree = Require-String $release 'NewTree' 'Release'
     $oldCommit = Require-String $release 'OldCommit' 'Release'
+    $sourceParentCommit = Resolve-SourceParentCommit $release
     $ciRunId = [long]$Bindings.GitHub.CiRunId
     $ciRunNumber = [long]$Bindings.GitHub.CiRunNumber
 
     $commit = Invoke-JsonGet "https://api.github.com/repos/$repo/commits/$newCommit"
-    if ([string]$commit.sha -ne $newCommit) {
-        throw "GitHub commit identity mismatch: expected $newCommit"
-    }
     if ([string]$commit.commit.tree.sha -ne $newTree) {
         throw "GitHub tree identity mismatch: expected $newTree, got $($commit.commit.tree.sha)"
     }
-    if ($commit.parents.Count -ne 1 -or [string]$commit.parents[0].sha -ne $oldCommit) {
-        throw "GitHub parent identity mismatch: expected one parent $oldCommit"
-    }
+
+    $comparison = Invoke-JsonGet "https://api.github.com/repos/$repo/compare/${oldCommit}...${newCommit}"
+    Assert-ReleaseAncestryBinding `
+        -Commit $commit `
+        -Comparison $comparison `
+        -NewCommit $newCommit `
+        -SourceParentCommit $sourceParentCommit `
+        -OldCommit $oldCommit
 
     if ($Bindings.GitHub.RequireMainCommit) {
         $main = Invoke-JsonGet "https://api.github.com/repos/$repo/branches/main"
@@ -113,7 +154,8 @@ function Assert-GitHubReleaseBinding {
         throw "CI run $ciRunId is not completed/success."
     }
 
-    Write-Host "GITHUB_RELEASE_BINDING=PASS commit=$newCommit tree=$newTree parent=$oldCommit"
+    Write-Host "GITHUB_RELEASE_BINDING=PASS commit=$newCommit tree=$newTree source_parent=$sourceParentCommit deployed_old=$oldCommit"
+    Write-Host "GITHUB_ANCESTRY_BINDING=PASS old=$oldCommit new=$newCommit ahead_by=$($comparison.ahead_by)"
     Write-Host "GITHUB_CI_BINDING=PASS run=$ciRunId number=$ciRunNumber"
 }
 
@@ -134,6 +176,10 @@ function Assert-Bindings {
     Assert-GitSha $release.OldTree 'Release.OldTree'
     Assert-GitSha $release.NewCommit 'Release.NewCommit'
     Assert-GitSha $release.NewTree 'Release.NewTree'
+    if ($release.ContainsKey('SourceParentCommit')) {
+        [void](Require-String $release 'SourceParentCommit' 'Release')
+        Assert-GitSha $release.SourceParentCommit 'Release.SourceParentCommit'
+    }
 
     $production = $Bindings.Production
     foreach ($name in @('Host', 'RemoteUser', 'SshKeyPath', 'KnownHostsPath', 'Service',
