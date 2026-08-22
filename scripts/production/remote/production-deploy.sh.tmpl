@@ -1,0 +1,388 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 027
+
+operation=__OPERATION__
+service=__SERVICE__
+health_timer=__HEALTH_TIMER__
+deploy_helper=__DEPLOY_HELPER__
+current_link=__CURRENT_LINK__
+last_good_link=__LAST_GOOD_LINK__
+release_root=__RELEASE_ROOT__
+node_path=__NODE_PATH__
+active_env=__ACTIVE_ENV__
+readonly_env=__READONLY_ENV__
+preserved_beta_env=__PRESERVED_BETA_ENV__
+beta_env_sha=__BETA_ENV_SHA__
+readonly_env_sha=__READONLY_ENV_SHA__
+old_commit=__OLD_COMMIT__
+old_tree=__OLD_TREE__
+old_build=__OLD_BUILD__
+new_commit=__NEW_COMMIT__
+new_tree=__NEW_TREE__
+expected_build=__EXPECTED_BUILD__
+readonly_gate=__READONLY_GATE__
+beta_gate=__BETA_GATE__
+expected_actions_csv=__EXPECTED_ACTIONS_CSV__
+
+health_url=http://127.0.0.1:3000/healthz
+ready_url=http://127.0.0.1:3000/readyz
+mutation_started=0
+qualification_complete=0
+
+fail() {
+  printf 'PRODUCTION_HARNESS_REFUSED=%s\n' "$1" >&2
+  return 1
+}
+
+sha256_file() {
+  sha256sum "$1" | awk '{print $1}'
+}
+
+env_metadata_ok() {
+  [[ "$(stat -c '%U:%G:%a' "$1")" == 'root:hivebar:640' ]]
+}
+
+json_health_matches() {
+  local body="$1" mode="$2" commit="$3" tree="$4" build="$5"
+  printf '%s' "$body" | "$node_path" -e '
+let t="";
+process.stdin.setEncoding("utf8");
+process.stdin.on("data", c => t += c);
+process.stdin.on("end", () => {
+  try {
+    const v=JSON.parse(t);
+    const [mode,build,commit,tree]=process.argv.slice(1);
+    process.exit(
+      v.status==="ok" &&
+      v.environment==="production" &&
+      v.writeMode===mode &&
+      v.build===build &&
+      v.commit===commit &&
+      v.tree===tree ? 0 : 1
+    );
+  } catch { process.exit(1); }
+});' "$mode" "$build" "$commit" "$tree"
+}
+
+wait_health() {
+  local mode="$1" commit="$2" tree="$3" build="$4"
+  local attempt body
+  for attempt in {1..30}; do
+    body="$(curl --fail --silent --show-error --max-time 5 "$health_url" 2>/dev/null || true)"
+    if json_health_matches "$body" "$mode" "$commit" "$tree" "$build"; then
+      printf '%s\n' "$body"
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+wait_ready() {
+  local attempt body
+  for attempt in {1..20}; do
+    body="$(curl --fail --silent --show-error --max-time 5 "$ready_url" 2>/dev/null || true)"
+    if printf '%s' "$body" | "$node_path" -e '
+let t="";
+process.stdin.setEncoding("utf8");
+process.stdin.on("data", c => t += c);
+process.stdin.on("end", () => {
+  try { process.exit(JSON.parse(t).status==="ready" ? 0 : 1); }
+  catch { process.exit(1); }
+});'; then
+      printf '%s\n' "$body"
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+run_gate() {
+  local gate="$1"
+  runuser -u hivebar -- env -i HOME=/nonexistent PATH=/usr/local/bin:/usr/bin:/bin sh -c '
+    set -eu
+    active_env="$1"
+    current_link="$2"
+    node_path="$3"
+    gate="$4"
+    set -a
+    . "$active_env"
+    set +a
+    cd "$current_link"
+    "$node_path" "$gate"
+  ' sh "$active_env" "$current_link" "$node_path" "$gate"
+}
+
+verify_beta_gate() {
+  local summary="$1"
+  printf '%s' "$summary" | "$node_path" -e '
+let t="";
+process.stdin.setEncoding("utf8");
+process.stdin.on("data", c => t += c);
+process.stdin.on("end", () => {
+  try {
+    const v=JSON.parse(t);
+    const expected=process.argv[1].split(",").filter(Boolean);
+    if (v.profile!=="privex-beta-self-signing") process.exit(10);
+    if (v.writeMode!=="beta" || v.signerMode!=="keychain") process.exit(11);
+    if (!Array.isArray(v.betaActions) || JSON.stringify(v.betaActions)!==JSON.stringify(expected)) process.exit(12);
+    if (v.controlledAccountCount!==0 || v.controlledActionCount!==0) process.exit(13);
+    if (v.paymentsEnabled!==false || v.distriatorEnabled!==false) process.exit(14);
+    process.exit(0);
+  } catch { process.exit(20); }
+});' "$expected_actions_csv"
+}
+
+verify_loopback() {
+  local listeners
+  listeners="$(ss -H -ltn 2>/dev/null | awk '$4 ~ /:3000$/ {print $4}')"
+  [[ -n "$listeners" ]] || fail 'no listener on port 3000'
+  grep -Fq '127.0.0.1:3000' <<<"$listeners" || fail 'loopback listener missing'
+  if grep -Eq '(^|[[:space:]])(0\.0\.0\.0|\*|\[::\]):3000$' <<<"$listeners"; then
+    fail 'port 3000 exposed beyond loopback'
+  fi
+  printf 'LOOPBACK_ONLY=PASS\n'
+}
+
+assert_contains() {
+  local file="$1" marker="$2"
+  [[ -r "$file" ]] || fail "required source file missing: $file"
+  grep -Fq -- "$marker" "$file" || fail "source marker missing in $file: $marker"
+}
+
+assert_not_contains() {
+  local file="$1" marker="$2"
+  [[ -r "$file" ]] || fail "required source file missing: $file"
+  if grep -Fq -- "$marker" "$file"; then
+    fail "forbidden source marker present in $file: $marker"
+  fi
+}
+
+verify_source_checks() {
+  local release_path="$1"
+__SOURCE_CHECKS__
+  printf 'BOUND_SOURCE_CHECKS=PASS\n'
+}
+
+verify_release_identity() {
+  local expected_commit="$1" expected_tree="$2"
+  local release_path
+  release_path="$(readlink -f "$current_link")"
+  [[ "$release_path" == "$release_root/$expected_commit" ]] || fail "current release is not $expected_commit"
+  [[ "$(<"$release_path/.hive-bar-commit")" == "$expected_commit" ]] || fail 'commit marker mismatch'
+  [[ "$(<"$release_path/.hive-bar-tree")" == "$expected_tree" ]] || fail 'tree marker mismatch'
+  printf '%s\n' "$release_path"
+}
+
+install_readonly_and_restart() {
+  [[ "$(sha256_file "$readonly_env")" == "$readonly_env_sha" ]] || fail 'accepted read-only env hash drifted'
+  env_metadata_ok "$readonly_env" || fail 'accepted read-only env metadata drifted'
+  install -o root -g hivebar -m 0640 "$readonly_env" "$active_env"
+  mutation_started=1
+  systemctl restart "$service"
+}
+
+restore_beta_and_restart() {
+  [[ "$(sha256_file "$preserved_beta_env")" == "$beta_env_sha" ]] || fail 'preserved beta env hash drifted'
+  env_metadata_ok "$preserved_beta_env" || fail 'preserved beta env metadata drifted'
+  install -o root -g hivebar -m 0640 "$preserved_beta_env" "$active_env"
+  mutation_started=1
+  systemctl restart "$service"
+}
+
+fail_closed() {
+  set +e
+  printf 'FAIL_CLOSED_READ_ONLY=BEGIN\n' >&2
+  if [[ -r "$readonly_env" ]] && [[ "$(sha256_file "$readonly_env" 2>/dev/null)" == "$readonly_env_sha" ]]; then
+    install -o root -g hivebar -m 0640 "$readonly_env" "$active_env"
+    systemctl restart "$service"
+    local release_path
+    release_path="$(readlink -f "$current_link" 2>/dev/null || true)"
+    local commit tree build
+    commit="$(cat "$release_path/.hive-bar-commit" 2>/dev/null || true)"
+    tree="$(cat "$release_path/.hive-bar-tree" 2>/dev/null || true)"
+    if [[ "$commit" == "$new_commit" ]]; then
+      build="$expected_build"
+    else
+      build="$(curl --silent --max-time 3 "$health_url" 2>/dev/null | "$node_path" -e '
+let t="";process.stdin.on("data",c=>t+=c);process.stdin.on("end",()=>{try{process.stdout.write(JSON.parse(t).build||"")}catch{}})' 2>/dev/null || true)"
+    fi
+    if [[ -n "$commit" && -n "$tree" && -n "$build" ]] && wait_health disabled "$commit" "$tree" "$build" >/dev/null 2>&1; then
+      printf 'FAIL_CLOSED_READ_ONLY=PASS\n' >&2
+    else
+      printf 'FAIL_CLOSED_READ_ONLY=WARNING_HEALTH_NOT_VERIFIED\n' >&2
+    fi
+  else
+    printf 'FAIL_CLOSED_READ_ONLY=WARNING_ACCEPTED_READONLY_ENV_NOT_VERIFIED\n' >&2
+  fi
+  printf 'PRESERVED_BETA_ENV_RETAINED=%s\n' "$preserved_beta_env" >&2
+  printf 'DO_NOT_AUTOMATICALLY_RETRY=YES\n' >&2
+}
+
+on_error() {
+  local rc=$?
+  trap - ERR
+  if [[ "$operation" != 'Observe' && "$mutation_started" -eq 1 && "$qualification_complete" -eq 0 ]]; then
+    fail_closed
+  fi
+  exit "$rc"
+}
+trap on_error ERR
+
+[[ $EUID -eq 0 ]] || fail 'remote payload must run via sudo -n'
+systemctl is-active --quiet "$service" || fail "$service is not active"
+systemctl is-active --quiet "$health_timer" || fail "$health_timer is not active"
+[[ -r "$active_env" && -r "$readonly_env" ]] || fail 'required environment file missing'
+env_metadata_ok "$active_env" || fail 'active environment metadata drifted'
+env_metadata_ok "$readonly_env" || fail 'read-only environment metadata drifted'
+[[ "$(sha256_file "$readonly_env")" == "$readonly_env_sha" ]] || fail 'read-only environment hash drifted'
+
+active_env_sha="$(sha256_file "$active_env")"
+current_release="$(readlink -f "$current_link")"
+current_commit="$(cat "$current_release/.hive-bar-commit")"
+current_tree="$(cat "$current_release/.hive-bar-tree")"
+last_good_release="$(readlink -f "$last_good_link" 2>/dev/null || true)"
+
+printf 'REMOTE_OPERATION=%s\n' "$operation"
+printf 'ACTIVE_ENV_SHA256=%s\n' "$active_env_sha"
+printf 'CURRENT_RELEASE=%s\nCURRENT_COMMIT=%s\nCURRENT_TREE=%s\n' "$current_release" "$current_commit" "$current_tree"
+printf 'LAST_GOOD_RELEASE=%s\n' "$last_good_release"
+
+case "$operation" in
+  Observe)
+    [[ "$current_commit" == "$new_commit" && "$current_tree" == "$new_tree" ]] || fail 'Observe requires the bound new release to be installed'
+    verify_source_checks "$current_release"
+    verify_loopback
+
+    if [[ "$active_env_sha" == "$beta_env_sha" ]]; then
+      printf 'ACTIVE_ENV_MODE=beta\n'
+      printf 'OBSERVED_HEALTH='
+      wait_health beta "$new_commit" "$new_tree" "$expected_build" || fail 'beta health identity failed'
+      printf 'OBSERVED_READY='
+      wait_ready || fail 'readiness failed'
+      beta_summary="$(run_gate "$beta_gate")"
+      verify_beta_gate "$beta_summary" || fail 'beta gate manifest failed'
+      printf 'OBSERVED_BETA_GATE=PASS\n'
+    elif [[ "$active_env_sha" == "$readonly_env_sha" ]]; then
+      printf 'ACTIVE_ENV_MODE=read-only\n'
+      printf 'OBSERVED_HEALTH='
+      wait_health disabled "$new_commit" "$new_tree" "$expected_build" || fail 'read-only health identity failed'
+      printf 'OBSERVED_READY='
+      wait_ready || fail 'readiness failed'
+      run_gate "$readonly_gate" >/dev/null
+      printf 'OBSERVED_READ_ONLY_GATE=PASS\n'
+    else
+      fail 'active environment matches neither accepted beta nor accepted read-only bytes'
+    fi
+
+    printf 'MUTATION_PERFORMED=NO\nNO_PRODUCTION_MUTATION=YES\n'
+    ;;
+
+  Deploy)
+    [[ "$current_commit" == "$old_commit" && "$current_tree" == "$old_tree" ]] || fail 'Deploy entry is not the exact bound old release'
+    [[ "$active_env_sha" == "$beta_env_sha" ]] || fail 'Deploy entry is not the exact accepted beta environment'
+
+    if [[ -e "$preserved_beta_env" ]]; then
+      [[ "$(sha256_file "$preserved_beta_env")" == "$beta_env_sha" ]] || fail 'existing preserved beta copy has wrong hash'
+      env_metadata_ok "$preserved_beta_env" || fail 'existing preserved beta copy metadata drifted'
+      printf 'PRESERVED_BETA_ENV=REUSED_EXACT\n'
+    else
+      install -o root -g hivebar -m 0640 "$active_env" "$preserved_beta_env"
+      mutation_started=1
+      [[ "$(sha256_file "$preserved_beta_env")" == "$beta_env_sha" ]] || fail 'failed to preserve beta environment exactly'
+      printf 'PRESERVED_BETA_ENV=CREATED\n'
+    fi
+
+    install_readonly_and_restart
+    printf 'OLD_READ_ONLY_HEALTH='
+    wait_health disabled "$old_commit" "$old_tree" "$old_build" || fail 'old read-only health failed'
+    run_gate "$readonly_gate" >/dev/null
+    printf 'OLD_READ_ONLY_GATE=PASS\n'
+
+    printf 'DEPLOY_HELPER_INVOCATION=BEGIN exact_commit=%s\n' "$new_commit"
+    set +e
+    "$deploy_helper" "$new_commit"
+    deploy_rc=$?
+    set -e
+    if [[ "$deploy_rc" -ne 0 ]]; then
+      printf 'DEPLOY_HELPER_AMBIGUOUS_FAILURE=YES rc=%s\n' "$deploy_rc" >&2
+      false
+    fi
+    printf 'DEPLOY_HELPER_INVOCATION=COMPLETE\n'
+
+    release_path="$(verify_release_identity "$new_commit" "$new_tree")"
+    printf 'NEW_READ_ONLY_HEALTH='
+    wait_health disabled "$new_commit" "$new_tree" "$expected_build" || fail 'new read-only health identity failed'
+    printf 'NEW_READ_ONLY_READY='
+    wait_ready || fail 'new read-only readiness failed'
+    run_gate "$readonly_gate" >/dev/null
+    printf 'NEW_READ_ONLY_GATE=PASS\n'
+    verify_source_checks "$release_path"
+    verify_loopback
+    [[ "$(readlink -f "$last_good_link")" == "$release_root/$old_commit" ]] || fail 'last-good is not the exact old release'
+
+    restore_beta_and_restart
+    printf 'FINAL_BETA_HEALTH='
+    wait_health beta "$new_commit" "$new_tree" "$expected_build" || fail 'final beta health identity failed'
+    printf 'FINAL_BETA_READY='
+    wait_ready || fail 'final beta readiness failed'
+    beta_summary="$(run_gate "$beta_gate")"
+    verify_beta_gate "$beta_summary" || fail 'final beta gate manifest failed'
+    printf 'FINAL_BETA_GATE=PASS\n'
+    verify_loopback
+    [[ "$(sha256_file "$active_env")" == "$beta_env_sha" ]] || fail 'active beta environment drifted'
+    [[ "$(readlink -f "$last_good_link")" == "$release_root/$old_commit" ]] || fail 'last-good drifted'
+    printf 'ACTIVE_ENV_MODE=beta\n'
+    printf 'MUTATION_PERFORMED=YES\n'
+    printf 'REMOTE_BETA_READY_FOR_PUBLIC=YES\n'
+    ;;
+
+  Resume)
+    resume_mutation=NO
+    [[ "$current_commit" == "$new_commit" && "$current_tree" == "$new_tree" ]] || fail 'Resume requires the exact bound new release already installed'
+    [[ "$last_good_release" == "$release_root/$old_commit" ]] || fail 'Resume requires last-good to remain the exact old release'
+    [[ -r "$preserved_beta_env" ]] || fail 'Resume requires the preserved beta environment'
+    [[ "$(sha256_file "$preserved_beta_env")" == "$beta_env_sha" ]] || fail 'preserved beta environment hash mismatch'
+    env_metadata_ok "$preserved_beta_env" || fail 'preserved beta environment metadata drifted'
+
+    release_path="$(verify_release_identity "$new_commit" "$new_tree")"
+    verify_source_checks "$release_path"
+    verify_loopback
+
+    if [[ "$active_env_sha" == "$readonly_env_sha" ]]; then
+      printf 'RESUME_ENTRY_MODE=read-only\n'
+      printf 'RESUME_READ_ONLY_HEALTH='
+      wait_health disabled "$new_commit" "$new_tree" "$expected_build" || fail 'resume read-only health identity failed'
+      printf 'RESUME_READ_ONLY_READY='
+      wait_ready || fail 'resume read-only readiness failed'
+      run_gate "$readonly_gate" >/dev/null
+      printf 'RESUME_READ_ONLY_GATE=PASS\n'
+      restore_beta_and_restart
+      resume_mutation=YES
+    elif [[ "$active_env_sha" == "$beta_env_sha" ]]; then
+      printf 'RESUME_ENTRY_MODE=beta\n'
+      printf 'RESUME_RESTART_SKIPPED=ALREADY_BETA\n'
+    else
+      fail 'Resume active environment matches neither accepted beta nor accepted read-only bytes'
+    fi
+
+    printf 'FINAL_BETA_HEALTH='
+    wait_health beta "$new_commit" "$new_tree" "$expected_build" || fail 'resumed beta health identity failed'
+    printf 'FINAL_BETA_READY='
+    wait_ready || fail 'resumed beta readiness failed'
+    beta_summary="$(run_gate "$beta_gate")"
+    verify_beta_gate "$beta_summary" || fail 'resumed beta gate manifest failed'
+    printf 'FINAL_BETA_GATE=PASS\n'
+    verify_loopback
+    [[ "$(sha256_file "$active_env")" == "$beta_env_sha" ]] || fail 'active beta environment drifted after Resume'
+    printf 'ACTIVE_ENV_MODE=beta\n'
+    printf 'MUTATION_PERFORMED=%s\n' "$resume_mutation"
+    printf 'REMOTE_BETA_READY_FOR_PUBLIC=YES\n'
+    ;;
+
+  *)
+    fail "unsupported operation: $operation"
+    ;;
+esac
