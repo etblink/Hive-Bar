@@ -41,7 +41,14 @@
       <p class="mt-3 text-xs leading-5 text-gray-400">Never enter a Hive private key into 4th Street Bar. Add your account inside Hive Keychain after your account is ready.</p>
     </section>
 
-    <% if (!onboarding.active) { %>
+    <% if (onboarding.enabled && !onboarding.available) { %>
+      <section class="mx-auto mt-8 max-w-3xl rounded-2xl border border-red-800/70 bg-red-950/25 p-5 sm:p-7" aria-labelledby="onboarding-unavailable-heading">
+        <p class="app-kicker">Account creation</p>
+        <h2 id="onboarding-unavailable-heading" class="mt-2 text-2xl font-bold">In-person account creation is temporarily unavailable</h2>
+        <p class="mt-3 text-gray-300">The durable onboarding store is not available. No account request, cash confirmation, or Keychain approval should be started until staff restores it.</p>
+        <a class="button-primary mt-5" href="/community">Browse the community</a>
+      </section>
+    <% } else if (!onboarding.active) { %>
       <section class="mx-auto mt-8 max-w-3xl rounded-2xl border border-amber-700/70 bg-amber-950/30 p-5 sm:p-7" aria-labelledby="onboarding-not-active-heading">
         <p class="app-kicker">Account creation</p>
         <h2 id="onboarding-not-active-heading" class="mt-2 text-2xl font-bold">In-person account creation isn’t active yet</h2>
@@ -84,7 +91,7 @@
                 Never give this recovery file to the bartender or anyone else.
               </p>
               <pre class="mt-4 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-red-900/60 bg-red-950/20 p-4 text-xs text-gray-200" data-onboarding-recovery-text></pre>
-              <a class="button-secondary mt-4 inline-flex" href="#" data-onboarding-download>Download recovery file</a>
+              <a class="button-secondary mt-4 inline-flex" data-onboarding-download hidden>Download recovery file</a>
               <label class="mt-5 flex cursor-pointer items-start gap-3 text-sm text-gray-200">
                 <input class="mt-1 h-5 w-5" type="checkbox" data-onboarding-saved>
                 <span>I saved my recovery credentials somewhere private. I understand 4th Street Bar does not keep a copy for me.</span>
@@ -99,12 +106,12 @@
             <div class="min-w-0 flex-1">
               <h2 id="onboarding-qr-heading" class="text-lg font-bold">Create the bartender QR</h2>
               <p class="mt-2 text-sm leading-6 text-gray-300">
-                Pay the bartender $<%= onboarding.cashFeeUsd %> cash, then show this one-time QR. The bartender will review one claimed-account creation and the <%= onboarding.starterHp %> starter delegation before approving them in Hive Keychain.
+                After the QR is created, Hive-Bar removes the recovery download from this page. Staff will first verify that the creator has an account token and enough available Hive Power, then accept the $<%= onboarding.cashFeeUsd %> cash fee and review the exact account-creation transaction.
               </p>
               <button class="button-primary mt-4" type="button" disabled data-onboarding-create-qr>Create my one-time QR</button>
               <div class="mt-5" data-onboarding-qr-panel hidden>
                 <div class="inline-block rounded-2xl bg-white p-4" data-onboarding-qr></div>
-                <p class="mt-3 text-sm text-gray-400">This request expires after <%= onboarding.requestTtlMinutes %> minutes. The QR contains only an opaque request link—not your private credentials.</p>
+                <p class="mt-3 text-sm text-gray-400">This request can expire before Keychain begins. Once signing begins, the durable request becomes observation-only and is never automatically retried. The QR contains only an opaque request link.</p>
               </div>
             </div>
           </div>
@@ -122,7 +129,7 @@
     <% } %>
   </main>
   <%- include('../../common/footer') %>
-  <% if (onboarding.active) { %>
+  <% if (onboarding.active && onboarding.available) { %>
     <script type="importmap"><%- onboardingImportMap %></script>
     <script src="/vendor/zxing/zxing-browser.min.js" defer></script>
     <script type="module" src="<%= typeof assetUrl === 'function' ? assetUrl('/js/onboarding-customer.js') : '/js/onboarding-customer.js' %>"></script>

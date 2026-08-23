@@ -9,71 +9,84 @@
     id="main-content"
     class="app-content-frame flex-1 py-10 sm:py-14"
     data-m19-3-surface="staff-onboarding"
-    data-onboarding-staff
-    data-request-id="<%= request.id %>"
-    data-creator="<%= onboarding.creator %>">
+    <% if (request) { %>data-onboarding-staff data-request-id="<%= request.id %>" data-creator="<%= onboarding.creator %>"<% } %>>
     <header class="mx-auto max-w-3xl">
       <p class="app-kicker">Bartender account setup</p>
-      <h1 class="app-page-title mt-2">Create @<%= request.username %></h1>
-      <p class="mt-4 text-lg leading-8 text-gray-300">This is a one-time onboarding request. Review it, confirm the cash fee, and approve the exact account-creation transaction in Hive Keychain.</p>
+      <h1 class="app-page-title mt-2"><%= request ? `Create @${request.username}` : 'Onboarding unavailable' %></h1>
+      <p class="mt-4 text-lg leading-8 text-gray-300">One durable request, one exact Active-authority Keychain gate, then read-only Hive observation.</p>
     </header>
 
-    <section class="mx-auto mt-8 max-w-3xl rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-7" aria-labelledby="staff-request-heading">
-      <h2 id="staff-request-heading" class="text-xl font-bold">Request</h2>
-      <dl class="mt-4 grid gap-4 sm:grid-cols-2">
-        <div><dt class="text-xs uppercase tracking-wide text-gray-500">New Hive account</dt><dd class="mt-1 font-bold">@<%= request.username %></dd></div>
-        <div><dt class="text-xs uppercase tracking-wide text-gray-500">Cash fee</dt><dd class="mt-1 font-bold">$<%= onboarding.cashFeeUsd %> cash</dd></div>
-        <div><dt class="text-xs uppercase tracking-wide text-gray-500">Creator</dt><dd class="mt-1 font-bold">@<%= onboarding.creator %></dd></div>
-        <div><dt class="text-xs uppercase tracking-wide text-gray-500">Starter delegation</dt><dd class="mt-1 font-bold"><%= onboarding.starterHp %></dd></div>
-        <div><dt class="text-xs uppercase tracking-wide text-gray-500">Request state</dt><dd class="mt-1 font-bold"><%= request.status %></dd></div>
-        <div><dt class="text-xs uppercase tracking-wide text-gray-500">Expires</dt><dd class="mt-1"><%= new Date(request.expiresAt).toISOString() %></dd></div>
-      </dl>
-      <p class="mt-5 text-sm leading-6 text-gray-400">
-        Customer private keys are not present in this request. The submitted owner, active, posting, and memo values are public keys only.
-        The creator becomes the new account’s initial recovery account.
-      </p>
-    </section>
-
-    <% if (!onboarding.active) { %>
-      <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-amber-700/70 bg-amber-950/30 p-5 sm:p-7">
-        <h2 class="text-xl font-bold">Onboarding is not active</h2>
-        <p class="mt-3 text-gray-300">Do not collect cash or attempt account creation until the reviewed onboarding profile is explicitly activated.</p>
-      </section>
-    <% } else if (!authorized) { %>
-      <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-amber-700/70 bg-amber-950/30 p-5 sm:p-7">
-        <h2 class="text-xl font-bold">Sign in as @<%= onboarding.creator %></h2>
-        <p class="mt-3 text-gray-300">Use the Sign in control above with the configured creator account, then reload this QR page. No other signed-in Hive account may prepare this onboarding transaction.</p>
+    <% if (!request) { %>
+      <section class="mx-auto mt-8 max-w-3xl rounded-2xl border border-red-800/70 bg-red-950/25 p-5 sm:p-7" aria-labelledby="staff-store-unavailable-heading">
+        <h2 id="staff-store-unavailable-heading" class="text-xl font-bold">Durable onboarding storage is unavailable</h2>
+        <p class="mt-3 text-gray-300">Do not collect cash, open Keychain, or start a replacement request. Restore and inspect the onboarding store first.</p>
       </section>
     <% } else { %>
-      <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-gray-700 bg-black p-5 sm:p-7" aria-labelledby="staff-approval-heading">
-        <p class="app-kicker">Cash first</p>
-        <h2 id="staff-approval-heading" class="mt-2 text-xl font-bold">Confirm the in-person fee</h2>
-        <label class="mt-4 flex cursor-pointer items-start gap-3 text-gray-200">
-          <input class="mt-1 h-5 w-5" type="checkbox" data-onboarding-cash>
-          <span>I have received the <strong>$<%= onboarding.cashFeeUsd %> cash onboarding fee</strong> from this customer.</span>
-        </label>
-        <button class="button-primary mt-5" type="button" data-onboarding-prepare>Review account creation</button>
+      <section class="mx-auto mt-8 max-w-3xl rounded-2xl border border-gray-700 bg-gray-900 p-5 sm:p-7" aria-labelledby="staff-request-heading">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <h2 id="staff-request-heading" class="text-xl font-bold">Request</h2>
+          <% if (authorized) { %><a class="button-secondary" href="/onboarding/manage">View durable requests</a><% } %>
+        </div>
+        <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div><dt class="text-xs uppercase tracking-wide text-gray-500">New Hive account</dt><dd class="mt-1 font-bold">@<%= request.username %></dd></div>
+          <div><dt class="text-xs uppercase tracking-wide text-gray-500">Cash fee</dt><dd class="mt-1 font-bold">$<%= onboarding.cashFeeUsd %> cash</dd></div>
+          <div><dt class="text-xs uppercase tracking-wide text-gray-500">Creator</dt><dd class="mt-1 font-bold">@<%= onboarding.creator %></dd></div>
+          <div><dt class="text-xs uppercase tracking-wide text-gray-500">Starter delegation</dt><dd class="mt-1 font-bold"><%= onboarding.starterHp %></dd></div>
+          <div><dt class="text-xs uppercase tracking-wide text-gray-500">Request state</dt><dd class="mt-1 font-bold"><%= request.status %></dd></div>
+          <div><dt class="text-xs uppercase tracking-wide text-gray-500">Revision</dt><dd class="mt-1"><%= request.revision %></dd></div>
+          <% if (request.expiresAt) { %><div><dt class="text-xs uppercase tracking-wide text-gray-500">Expires before signing</dt><dd class="mt-1"><%= new Date(request.expiresAt).toISOString() %></dd></div><% } %>
+          <% if (authorized && request.transactionId) { %><div><dt class="text-xs uppercase tracking-wide text-gray-500">Recorded transaction</dt><dd class="mt-1 break-all font-mono text-xs"><%= request.transactionId %></dd></div><% } %>
+        </dl>
+        <p class="mt-5 text-sm leading-6 text-gray-400">
+          Customer private keys are not present in this request. The durable store contains only public keys and non-secret request/operation metadata. The creator becomes the new account’s initial recovery account.
+        </p>
       </section>
 
-      <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-gray-700 bg-black p-5 sm:p-7" data-onboarding-prepared hidden aria-labelledby="staff-keychain-heading">
-        <p class="app-kicker">Review before Keychain</p>
-        <h2 id="staff-keychain-heading" class="mt-2 text-xl font-bold">One Active-authority transaction</h2>
-        <pre class="mt-4 whitespace-pre-wrap rounded-xl border border-gray-700 bg-gray-950 p-4 text-sm text-gray-200" data-onboarding-operation-summary></pre>
-        <details class="mt-4">
-          <summary class="cursor-pointer font-bold text-gray-200">Technical fingerprint</summary>
-          <code class="mt-3 block break-all rounded-lg bg-gray-950 p-3 text-xs text-gray-300" data-onboarding-fingerprint></code>
-        </details>
-        <p class="mt-4 text-sm leading-6 text-amber-200"><strong>One approval only.</strong> If Keychain’s result is unclear, do not send this transaction again. Hive-Bar will check the chain instead.</p>
-        <button class="button-primary mt-5" type="button" disabled data-onboarding-keychain>Continue to Keychain</button>
-      </section>
+      <% if (!onboarding.active && !['signing', 'observing'].includes(request.status)) { %>
+        <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-amber-700/70 bg-amber-950/30 p-5 sm:p-7">
+          <h2 class="text-xl font-bold">Onboarding is not active</h2>
+          <p class="mt-3 text-gray-300">Do not collect cash or begin a new Keychain action. Existing signing/observing requests remain read-only recoverable when the durable service is available.</p>
+        </section>
+      <% } else if (!authorized) { %>
+        <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-amber-700/70 bg-amber-950/30 p-5 sm:p-7">
+          <h2 class="text-xl font-bold">Sign in as @<%= onboarding.creator %></h2>
+          <p class="mt-3 text-gray-300">Use the Sign in control above with the configured creator account, then reload this QR page. No other Hive account can prepare, cancel, broadcast, or inspect protected request details.</p>
+        </section>
+      <% } else { %>
+        <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-gray-700 bg-black p-5 sm:p-7" data-onboarding-cash-section aria-labelledby="staff-approval-heading">
+          <p class="app-kicker">Resources before cash</p>
+          <h2 id="staff-approval-heading" class="mt-2 text-xl font-bold">Verify creator capacity, then receive the fee</h2>
+          <p class="mt-3 text-sm leading-6 text-gray-300" data-onboarding-readiness>Checking the creator account token and starter delegation capacity…</p>
+          <label class="mt-4 flex cursor-pointer items-start gap-3 text-gray-200">
+            <input class="mt-1 h-5 w-5" type="checkbox" disabled data-onboarding-cash>
+            <span>I have actually received the <strong>$<%= onboarding.cashFeeUsd %> cash onboarding fee</strong> from this customer.</span>
+          </label>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <button class="button-primary" type="button" disabled data-onboarding-prepare>Review account creation</button>
+            <button class="button-secondary" type="button" data-onboarding-cancel>Cancel request</button>
+          </div>
+        </section>
+
+        <section class="mx-auto mt-6 max-w-3xl rounded-2xl border border-gray-700 bg-black p-5 sm:p-7" data-onboarding-prepared hidden aria-labelledby="staff-keychain-heading">
+          <p class="app-kicker">Review before Keychain</p>
+          <h2 id="staff-keychain-heading" class="mt-2 text-xl font-bold">One Active-authority transaction</h2>
+          <pre class="mt-4 whitespace-pre-wrap rounded-xl border border-gray-700 bg-gray-950 p-4 text-sm text-gray-200" data-onboarding-operation-summary></pre>
+          <details class="mt-4">
+            <summary class="cursor-pointer font-bold text-gray-200">Technical fingerprint</summary>
+            <code class="mt-3 block break-all rounded-lg bg-gray-950 p-3 text-xs text-gray-300" data-onboarding-fingerprint></code>
+          </details>
+          <p class="mt-4 text-sm leading-6 text-amber-200"><strong>One approval only.</strong> After Hive-Bar locks this request into signing, any ambiguous outcome is observation-only and must never be automatically rebroadcast.</p>
+          <button class="button-primary mt-5" type="button" hidden disabled data-onboarding-keychain>Continue to Keychain</button>
+        </section>
+      <% } %>
+
+      <p class="mx-auto mt-5 min-h-6 max-w-3xl text-sm text-gray-300" role="status" aria-live="polite" data-onboarding-staff-status>
+        <% if (authorized) { %>Loading durable request state…<% } else { %>No protected onboarding action is available from this page yet.<% } %>
+      </p>
     <% } %>
-
-    <p class="mx-auto mt-5 min-h-6 max-w-3xl text-sm text-gray-300" role="status" aria-live="polite" data-onboarding-staff-status>
-      <% if (authorized && onboarding.active) { %>Confirm the $<%= onboarding.cashFeeUsd %> cash fee to begin.<% } else { %>No Hive operation is available from this page yet.<% } %>
-    </p>
   </main>
   <%- include('../../common/footer') %>
-  <% if (authorized && onboarding.active) { %>
+  <% if (request && authorized) { %>
     <script src="<%= typeof assetUrl === 'function' ? assetUrl('/js/onboarding-staff.js') : '/js/onboarding-staff.js' %>" defer></script>
   <% } %>
 </body>

@@ -1,0 +1,38 @@
+#!/bin/bash
+set -Eeuo pipefail
+umask 077
+
+readonly onboarding_dir=/var/lib/hive-bar/onboarding
+readonly onboarding_db="$onboarding_dir/onboarding.sqlite3"
+readonly release_root=/opt/hive-bar/current
+readonly prepare_script="$release_root/scripts/prepare-onboarding-storage.js"
+
+fail() {
+  printf 'Hive-Bar onboarding storage preparation refused: %s\n' "$1" >&2
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || fail 'run as root'
+[[ -d /var/lib/hive-bar && ! -L /var/lib/hive-bar ]] || fail '/var/lib/hive-bar must be an existing non-symlink directory'
+[[ -f "$prepare_script" && ! -L "$prepare_script" ]] || fail 'the installed release does not contain the reviewed onboarding storage initializer'
+
+if [[ -e "$onboarding_dir" || -L "$onboarding_dir" ]]; then
+  [[ -d "$onboarding_dir" && ! -L "$onboarding_dir" ]] || fail 'onboarding directory must be a regular non-symlink directory'
+  chown hivebar:hivebar "$onboarding_dir"
+  chmod 0700 "$onboarding_dir"
+else
+  install -d -o hivebar -g hivebar -m 0700 "$onboarding_dir"
+fi
+
+if [[ -e "$onboarding_db" ]]; then
+  [[ -f "$onboarding_db" && ! -L "$onboarding_db" ]] || fail 'onboarding database must be a regular non-symlink file'
+  chown hivebar:hivebar "$onboarding_db"
+  chmod 0600 "$onboarding_db"
+else
+  install -o hivebar -g hivebar -m 0600 /dev/null "$onboarding_db"
+fi
+
+runuser -u hivebar -- /usr/local/bin/node "$prepare_script" "$onboarding_db" >/dev/null
+chown hivebar:hivebar "$onboarding_db"
+chmod 0600 "$onboarding_db"
+printf 'Hive-Bar onboarding storage ready at %s. Onboarding is not enabled.\n' "$onboarding_db"

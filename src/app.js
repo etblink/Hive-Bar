@@ -20,6 +20,9 @@ const { requestContext } = require('./middleware/request-context');
 const { sessionContext } = require('./middleware/session');
 const { ModerationService } = require('./moderation/moderation-service');
 const { ModerationStore } = require('./moderation/moderation-store');
+const { parseOnboardingConfig } = require('./onboarding/config');
+const { ONBOARDING_SCHEMA_VERSION, OnboardingRequestStore } = require('./onboarding/request-store');
+const { OnboardingService } = require('./onboarding/service');
 const { readDeploymentIdentity } = require('./release/deployment-identity');
 const { PreflightStore } = require('./social/preflight-store');
 const { isM10OperatorArmActive } = require('./social/operator-posting-mode');
@@ -95,8 +98,7 @@ function createApp(options = {}) {
       ttlMs: config.auth.sessionTtlMs,
       now: options.now,
     });
-  const authorityVerifier =
-    options.authorityVerifier || new PostingAuthorityVerifier(rpcPool);
+  const authorityVerifier = options.authorityVerifier || new PostingAuthorityVerifier(rpcPool);
   const keychainAuth =
     options.keychainAuth ||
     new KeychainAuthService({ challengeStore, sessionStore, authorityVerifier });
@@ -139,6 +141,37 @@ function createApp(options = {}) {
       unavailableCause: moderationStoreError,
     });
 
+  const onboardingEnvironment = options.onboardingEnvironment || process.env;
+  const onboardingConfig = options.onboardingConfig || parseOnboardingConfig(onboardingEnvironment, config.hive);
+  let onboardingStore = options.onboardingStore || null;
+  let onboardingStoreError = null;
+  if (onboardingConfig.enabled && !onboardingStore) {
+    try {
+      onboardingStore = new OnboardingRequestStore({
+        filename: onboardingConfig.dbPath,
+        ttlMs: onboardingConfig.requestTtlMs,
+        now: options.now,
+        requireExisting: config.isProduction,
+        maxLiveRequests: onboardingConfig.maxLiveRequests,
+        maxDailyRequests: onboardingConfig.maxDailyRequests,
+      });
+    } catch (error) {
+      onboardingStoreError = error;
+      logger.error({ err: error }, 'onboarding store unavailable; in-person onboarding will fail closed');
+    }
+  }
+  const onboardingService =
+    options.onboardingService ||
+    new OnboardingService({
+      rpcPool,
+      config: onboardingConfig,
+      store: onboardingStore,
+      now: options.now,
+      unavailableCause: onboardingConfig.enabled
+        ? onboardingStoreError
+        : new Error('In-person onboarding is disabled'),
+    });
+
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', config.server.trustProxy);
@@ -146,6 +179,7 @@ function createApp(options = {}) {
   app.set('view engine', 'ejs');
 
   app.locals.config = config;
+  app.locals.onboardingConfig = onboardingConfig;
   app.locals.siteName = config.site.name;
   app.locals.business = config.site.business;
   app.locals.communityId = config.hive.communityId;
@@ -155,12 +189,8 @@ function createApp(options = {}) {
   app.locals.buildLabel = deploymentIdentity.build;
   app.locals.showModerationControls = false;
   app.locals.canWriteAction = (action) => {
-    if (config.hive.betaSelfSigningEnabled) {
-      return isBetaAction(action);
-    }
-    if (config.hive.v1SelfSigningEnabled) {
-      return isV1Action(action);
-    }
+    if (config.hive.betaSelfSigningEnabled) return isBetaAction(action);
+    if (config.hive.v1SelfSigningEnabled) return isV1Action(action);
     return (
       config.hive.writesEnabled &&
       config.hive.controlledActions.includes(action) &&
@@ -199,9 +229,10 @@ function createApp(options = {}) {
     deploymentIdentity,
     hiveReads,
     keychainAuth,
-    logger,
     moderation,
     moderationStore,
+    onboardingService,
+    onboardingStore,
     preflightStore,
     paymentObserver,
     receiptStore,
@@ -249,7 +280,17 @@ function createApp(options = {}) {
     express.static(path.join(path.dirname(require.resolve('@zxing/browser')), '..', 'umd'), staticOptions),
   );
 
-  app.use(createHealthRouter({ config, rpcPool, deploymentIdentity }));
+  const readinessChecks = [];
+  if (onboardingConfig.enabled) {
+    readinessChecks.push(() => {
+      if (!onboardingStore) throw onboardingStoreError || new Error('Onboarding store unavailable');
+      const health = onboardingStore.health();
+      if (health.schemaVersion !== ONBOARDING_SCHEMA_VERSION) {
+        throw new Error('Onboarding schema version mismatch');
+      }
+    });
+  }
+  app.use(createHealthRouter({ config, rpcPool, deploymentIdentity, readinessChecks }));
 
   app.use(
     '/auth',

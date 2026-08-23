@@ -1,6 +1,7 @@
 'use strict';
 
 const { loadConfig } = require('../src/config');
+const { parseOnboardingConfig } = require('../src/onboarding/config');
 const { assertPrivexReadOnlyRelease } = require('../src/release/privex-readiness');
 const { assertPrivexBetaRelease } = require('../src/release/beta-readiness');
 const { assertPrivexV1Release } = require('../src/release/v1-readiness');
@@ -10,6 +11,10 @@ const { assertPrivexControlledPayment } = require('../src/release/payment-readin
 const { startServer } = require('../src/server');
 
 function qualifyPrivexRuntime(config, source = process.env) {
+  const onboarding = parseOnboardingConfig(source, config.hive);
+  if (onboarding.enabled && !onboarding.active) {
+    throw new Error('Enabled onboarding requires the beta + keychain runtime profile');
+  }
   if (config.hive.writeMode === 'disabled') {
     return assertPrivexReadOnlyRelease(config, source);
   }
@@ -42,7 +47,7 @@ try {
     });
     const summary = qualifyPrivexRuntime(config, process.env);
     process.stdout.write(`${JSON.stringify(summary)}\n`);
-    startServer({ config });
+    startServer({ config, onboardingEnvironment: process.env });
   }
 } catch (error) {
   process.stderr.write(`Hive-Bar Privex startup refused: ${error.message}\n`);

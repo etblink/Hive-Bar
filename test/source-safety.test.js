@@ -53,8 +53,8 @@ test('M3 identity and social clients never derive identity from browser storage'
   const onboardingCustomer = path.join(browserDirectory, 'onboarding-customer.js');
   for (const filename of filesUnder(browserDirectory).filter((file) => file.endsWith('.js'))) {
     const source = fs.readFileSync(filename, 'utf8');
-    assert.doesNotMatch(source, /\blocalStorage\b|\bsessionStorage\b|document\.cookie/i, filename);
     if (filename !== onboardingCustomer) {
+      assert.doesNotMatch(source, /\blocalStorage\b|\bsessionStorage\b|document\.cookie/i, filename);
       assert.doesNotMatch(source, /\bprivateKey\b|private_key|\bwif\b/i, filename);
     }
   }
@@ -63,11 +63,18 @@ test('M3 identity and social clients never derive identity from browser storage'
   assert.match(onboardingSource, /window\.crypto\.getRandomValues\(/);
   assert.match(onboardingSource, /PrivateKey\.fromLogin\(username, masterPassword, role\)/);
   assert.match(onboardingSource, /publicKeys:\s*publicKeys\(credentials\)/);
-  assert.doesNotMatch(
-    onboardingSource,
-    /\blocalStorage\b|\bsessionStorage\b|document\.cookie/i,
-    onboardingCustomer,
-  );
+  assert.doesNotMatch(onboardingSource, /\blocalStorage\b|document\.cookie/i, onboardingCustomer);
+  assert.match(onboardingSource, /window\.sessionStorage\.(?:setItem|getItem|removeItem)\(/);
+
+  const trackingWriter = onboardingSource.match(/function saveTracking\(value\) \{([\s\S]*?)\n  \}/u)?.[1];
+  assert.ok(trackingWriter, 'onboarding customer must retain one explicit sessionStorage tracking writer');
+  assert.match(trackingWriter, /window\.sessionStorage\.setItem\(TRACKING_KEY/);
+  for (const field of ['idempotencyKey', 'requestId', 'username', 'staffUrl', 'statusUrl']) {
+    assert.match(trackingWriter, new RegExp(`${field}:`), `tracking writer must retain ${field}`);
+  }
+  for (const forbidden of ['masterPassword', 'privateKey', 'publicKeys', 'derived', 'credentials']) {
+    assert.doesNotMatch(trackingWriter, new RegExp(forbidden, 'i'), `tracking writer must not persist ${forbidden}`);
+  }
 });
 
 test('server sources contain no private-key or Hive broadcast implementation', () => {

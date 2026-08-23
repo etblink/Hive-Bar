@@ -1,0 +1,59 @@
+name: C2-F Visual Acceptance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: c2-f-visual-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  c2-f-visual-acceptance:
+    name: C2-F onboarding durability visual acceptance (Ubuntu / pinned Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Verify exact runtime provenance
+        run: npm run release:check:runtime
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-fund
+      - name: Apply pinned dependency patch
+        run: npx --no-install patch-package
+      - name: Install pinned Chromium runtime
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Build exact presentation assets
+        run: npm run build
+      - name: Qualify onboarding browser custody and recovery
+        env:
+          M18_VISUAL_OUTPUT: artifacts/c2-f-visual
+        run: npm run test:browser:m19-3-1
+      - name: Capture and qualify C2-F responsive onboarding states
+        env:
+          C2_F_VISUAL_OUTPUT: artifacts/c2-f-visual
+        run: npm run test:visual:c2-f
+      - name: Preserve C2-F rendered evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: c2-f-visual-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: artifacts/c2-f-visual
+          if-no-files-found: warn
+          retention-days: 90

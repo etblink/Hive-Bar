@@ -1,6 +1,8 @@
 'use strict';
 
 const { BETA_ACTIONS } = require('../beta/actions');
+const { DEFAULT_ONBOARDING_DB_PATH, parseOnboardingConfig } = require('../onboarding/config');
+const { inspectOnboardingStore } = require('../onboarding/request-store');
 const { RELEASE_APP_TAG } = require('./read-only-readiness');
 const { PAYMENT_DB_PATH, isSafePaymentDatabasePath } = require('./payment-storage');
 const { RELEASE_PUBLIC_HOST, normalizePublicHost } = require('./privex-readiness');
@@ -21,6 +23,21 @@ const BETA_EXPLICIT_SETTINGS = Object.freeze([
   'LOG_LEVEL',
 ]);
 
+const ONBOARDING_ACTIVATION_SETTINGS = Object.freeze([
+  'HIVE_ONBOARDING_ENABLED',
+  'HIVE_ONBOARDING_CREATOR_ACCOUNT',
+  'HIVE_ONBOARDING_CASH_FEE_USD',
+  'HIVE_ONBOARDING_STARTER_HP',
+  'HIVE_ONBOARDING_MIN_REMAINING_HP',
+  'HIVE_ONBOARDING_LOW_ACT_THRESHOLD',
+  'HIVE_ONBOARDING_REQUEST_TTL_MS',
+  'HIVE_ONBOARDING_DB_PATH',
+  'HIVE_ONBOARDING_REQUEST_RATE_WINDOW_MS',
+  'HIVE_ONBOARDING_REQUEST_RATE_MAX',
+  'HIVE_ONBOARDING_MAX_LIVE_REQUESTS',
+  'HIVE_ONBOARDING_MAX_DAILY_REQUESTS',
+]);
+
 function hasOwn(source, name) {
   return Object.prototype.hasOwnProperty.call(source, name);
 }
@@ -30,16 +47,14 @@ function assertPrivexBetaRelease(config, source = {}) {
   const missing = BETA_EXPLICIT_SETTINGS.filter((name) => !hasOwn(source, name));
   const suppliedHost = String(source.HIVE_BAR_HOST || '');
   const publicHost = normalizePublicHost(suppliedHost);
+  const onboarding = parseOnboardingConfig(source, config.hive);
+  let onboardingStore = null;
 
   if (missing.length > 0) {
     issues.push(`explicit beta decisions are required for ${missing.join(', ')}`);
   }
-  if (config.env !== 'production') {
-    issues.push('NODE_ENV must be production');
-  }
-  if (config.hive.writeMode !== 'beta') {
-    issues.push('HIVE_WRITE_MODE must be beta');
-  }
+  if (config.env !== 'production') issues.push('NODE_ENV must be production');
+  if (config.hive.writeMode !== 'beta') issues.push('HIVE_WRITE_MODE must be beta');
   if (config.hive.signerMode !== 'keychain' || !config.hive.betaSelfSigningEnabled) {
     issues.push('HIVE_SIGNER_MODE must be keychain and beta self-signing must be enabled');
   }
@@ -52,12 +67,8 @@ function assertPrivexBetaRelease(config, source = {}) {
   if (config.hive.appTag !== RELEASE_APP_TAG) {
     issues.push(`HIVE_APP_TAG must be exactly ${RELEASE_APP_TAG}`);
   }
-  if (config.payments.enabled) {
-    issues.push('the Pay broadcast lane must remain disabled');
-  }
-  if (config.distriator.enabled) {
-    issues.push('DISTRIATOR_ENABLED must be false');
-  }
+  if (config.payments.enabled) issues.push('the Pay broadcast lane must remain disabled');
+  if (config.distriator.enabled) issues.push('DISTRIATOR_ENABLED must be false');
   if (!publicHost || suppliedHost !== publicHost) {
     issues.push('HIVE_BAR_HOST must be a canonical DNS hostname without a scheme, port, or path');
   }
@@ -76,9 +87,7 @@ function assertPrivexBetaRelease(config, source = {}) {
   if (config.server.trustProxy !== 'loopback') {
     issues.push('TRUST_PROXY must be exactly loopback so only the local Caddy peer is trusted');
   }
-  if (config.hive.rpcNodes.length < 3) {
-    issues.push('at least three distinct Hive RPC nodes are required');
-  }
+  if (config.hive.rpcNodes.length < 3) issues.push('at least three distinct Hive RPC nodes are required');
   if (
     config.payments.receiptDbPath !== ':memory:' &&
     !isSafePaymentDatabasePath(config.payments.receiptDbPath)
@@ -96,6 +105,25 @@ function assertPrivexBetaRelease(config, source = {}) {
   }
   if (/replace_with|change_me|example_secret/i.test(String(source.SESSION_SECRET || ''))) {
     issues.push('SESSION_SECRET must not contain an example placeholder');
+  }
+
+  if (onboarding.enabled) {
+    const onboardingMissing = ONBOARDING_ACTIVATION_SETTINGS.filter((name) => !hasOwn(source, name));
+    if (onboardingMissing.length > 0) {
+      issues.push(`onboarding activation requires explicit ${onboardingMissing.join(', ')}`);
+    }
+    if (!onboarding.active) {
+      issues.push('enabled onboarding requires the accepted beta + Keychain runtime');
+    }
+    if (onboarding.dbPath !== DEFAULT_ONBOARDING_DB_PATH) {
+      issues.push(`HIVE_ONBOARDING_DB_PATH must be exactly ${DEFAULT_ONBOARDING_DB_PATH}`);
+    } else {
+      try {
+        onboardingStore = inspectOnboardingStore(onboarding.dbPath);
+      } catch (error) {
+        issues.push(`onboarding durable store is not ready: ${error.message}`);
+      }
+    }
   }
 
   if (issues.length > 0) {
@@ -122,10 +150,23 @@ function assertPrivexBetaRelease(config, source = {}) {
     rpcNodeCount: config.hive.rpcNodes.length,
     appTag: config.hive.appTag,
     logLevel: config.logging.level,
+    onboarding: {
+      enabled: onboarding.enabled,
+      creator: onboarding.enabled ? onboarding.creator : null,
+      cashFeeUsd: onboarding.cashFeeUsd,
+      starterHp: onboarding.starterHp.display,
+      minRemainingHp: onboarding.minRemainingHp.display,
+      lowActThreshold: onboarding.lowActThreshold,
+      requestRateMax: onboarding.requestRateMax,
+      maxLiveRequests: onboarding.maxLiveRequests,
+      maxDailyRequests: onboarding.maxDailyRequests,
+      storeSchemaVersion: onboardingStore?.schemaVersion || null,
+    },
   });
 }
 
 module.exports = {
   BETA_EXPLICIT_SETTINGS,
+  ONBOARDING_ACTIVATION_SETTINGS,
   assertPrivexBetaRelease,
 };

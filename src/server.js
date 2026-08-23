@@ -45,6 +45,10 @@ function startServer(options = {}) {
       receiptStore: options.receiptStore,
       moderationStore: options.moderationStore,
       moderationService: options.moderationService,
+      onboardingConfig: options.onboardingConfig,
+      onboardingEnvironment: options.onboardingEnvironment,
+      onboardingStore: options.onboardingStore,
+      onboardingService: options.onboardingService,
     });
   if (app.locals?.services?.hiveReads) {
     applyReadConsistencyHardening(app.locals.services.hiveReads);
@@ -59,6 +63,8 @@ function startServer(options = {}) {
         threadsContainerAccount: config.hive.threadsContainerAccount,
         writeMode: config.hive.writeMode,
         moderationEnabled: config.moderation.enabled,
+        onboardingEnabled: app.locals.onboardingConfig?.enabled === true,
+        onboardingAvailable: app.locals.services?.onboardingService?.publicConfig?.().available === true,
         build: deploymentIdentity.build,
         commit: deploymentIdentity.commit,
         tree: deploymentIdentity.tree,
@@ -80,6 +86,7 @@ function startServer(options = {}) {
     for (const [name, resource] of [
       ['receipt', app.locals.services?.receiptStore],
       ['moderation', app.locals.services?.moderationStore],
+      ['onboarding', app.locals.services?.onboardingStore],
     ]) {
       try {
         resource?.close?.();
